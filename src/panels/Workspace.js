@@ -37,7 +37,7 @@ export default function Workspace() {
               data={layer.data}
               hidden={layer.hidden}
               opacity={layer.opacity}
-              trigger={layer.trigger}/>
+              queue={layer.queue}/>
           })
         }
       </ViewPaneSC>

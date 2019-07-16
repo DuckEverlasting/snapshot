@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 
-import { updateLayerData, createLayer, mergeLayers } from "../actions";
+import { updateLayerData, createLayer, deleteLayer } from "../actions";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
@@ -22,18 +22,31 @@ let state = {
 export default function DrawSpace(props) {
   const { activeTool, activeLayer, toolSettings } = useSelector(state => state);
   const dispatch = useDispatch();
-  const { color, width, opacity } = toolSettings[activeTool];
+  const { color, width } = toolSettings[activeTool];
 
   const handleMouseDown = ev => {
     if (activeLayer === null) return;
+    let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     state = {
       ...state,
       mouseDown: true,
-      origin: [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY]
+      origin: [x, y]
     };
     switch (activeTool) {
       case "pencil":
-        break;
+        dispatch(createLayer(activeLayer, "temp"));
+        return dispatch(
+          updateLayerData("temp", {
+            // drawLine(ctx, {orig, dest, width, color})
+            action: "drawLine",
+            params: {
+              orig: state.origin,
+              dest: [x, y],
+              width: width,
+              color: color
+            }
+          })
+        );
       case "line":
         return dispatch(createLayer(activeLayer, "temp"));
       case "fillRect":
@@ -47,18 +60,14 @@ export default function DrawSpace(props) {
 
   const handleMouseMove = ev => {
     if (!state.mouseDown) return;
-    const [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     switch (activeTool) {
       case "pencil":
         return dispatch(
-          updateLayerData(activeLayer, {
-            action: "drawCircle",
-            // drawCircle(ctx, {center, radius, color})
-            params: {
-              center: [x, y],
-              radius: width / 2,
-              color: color
-            }
+          updateLayerData("temp", {
+            action: "continueLine",
+            // continueLine(ctx, {dest})
+            params: { dest: [x, y] }
           })
         );
       case "line":
@@ -111,15 +120,52 @@ export default function DrawSpace(props) {
       ...state,
       mouseDown: false
     };
+    const [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     switch (activeTool) {
       case "pencil":
         break;
       case "line":
-        return dispatch(mergeLayers("temp", activeLayer));
+        dispatch(
+          updateLayerData(activeLayer, {
+            // drawLine(ctx, {orig, dest, width, color})
+            action: "drawLine",
+            params: {
+              orig: state.origin,
+              dest: [x, y],
+              width: width,
+              color: color
+            }
+          })
+        );
+        return dispatch(deleteLayer("temp"));
       case "fillRect":
-        return dispatch(mergeLayers("temp", activeLayer));
+        dispatch(
+          updateLayerData(activeLayer, {
+            // fillRect(ctx, {orig, dest, width, color})
+            action: "fillRect",
+            params: {
+              orig: state.origin,
+              dest: [x, y],
+              width: width,
+              color: color
+            }
+          })
+        );
+        return dispatch(deleteLayer("temp"));
       case "drawRect":
-        return dispatch(mergeLayers("temp", activeLayer));
+        dispatch(
+          updateLayerData(activeLayer, {
+            // drawRect(ctx, {orig, dest, width, color})
+            action: "drawRect",
+            params: {
+              orig: state.origin,
+              dest: [x, y],
+              width: width,
+              color: color
+            }
+          })
+        );
+        return dispatch(deleteLayer("temp"));
       default:
         break;
     }

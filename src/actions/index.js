@@ -3,9 +3,9 @@ export const [
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
+  CLEAR_LAYER_QUEUE,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
-  MERGE_LAYERS,
   CARD_DRAGOVER,
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
@@ -15,9 +15,9 @@ export const [
   "DELETE_LAYER",
   "HIDE_LAYER",
   "UPDATE_LAYER_DATA",
-  "UPDATA_LAYER_OPACITY",
+  "CLEAR_LAYER_QUEUE",
+  "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
-  "MERGE_LAYERS",
   "CARD_DRAGOVER",
   "MAKE_ACTIVE_LAYER",
   "MAKE_ACTIVE_TOOL",
@@ -52,6 +52,13 @@ export const updateLayerData = (id, changes) => {
   };
 };
 
+export const clearLayerQueue = id => {
+  return {
+    type: CLEAR_LAYER_QUEUE,
+    payload: id
+  };
+};
+
 export const updateLayerOpacity = (id, opacity) => {
   return {
     type: UPDATE_LAYER_OPACITY,
@@ -66,28 +73,21 @@ export const updateLayerOrder = (from, to) => {
   };
 };
 
-export const mergeLayers = (fromLayer, toLayer) => {
-  return {
-    type: MERGE_LAYERS,
-    payload: {fromLayer, toLayer}
-  };
-};
-
-export const layerCardDragover = (position) => {
+export const layerCardDragover = position => {
   return {
     type: CARD_DRAGOVER,
     payload: position
   };
 }
 
-export const makeActiveLayer = (layerId) => {
+export const makeActiveLayer = layerId => {
   return {
     type: MAKE_ACTIVE_LAYER,
     payload: layerId
   };
 };
 
-export const makeActiveTool = (slug) => {
+export const makeActiveTool = slug => {
   return {
     type: MAKE_ACTIVE_TOOL,
     payload: slug

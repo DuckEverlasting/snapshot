@@ -3,16 +3,14 @@ import {
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
+  CLEAR_LAYER_QUEUE,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
-  MERGE_LAYERS,
   CARD_DRAGOVER,
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS
 } from "../actions";
-
-import draw from "./drawingReducer.js";
 
 const initialState = {
   workspaceSettings: {
@@ -20,10 +18,10 @@ const initialState = {
     height: 500
   },
   toolSettings: {
-    pencil: { name: "Pencil", color: "#000000", width: 5, opacity: 1 },
-    line: { name: "Line", color: "#000000", width: 5, opacity: 1 },
-    fillRect: { name: "Fill Rectangle", color: "#000000", width: 5, opacity: 1 },
-    drawRect: { name: "Draw Rectangle", color: "#000000", width: 5, opacity: 1 }
+    pencil: { name: "Pencil", color: "rgba(0, 0, 0, 0.5)", width: 5, opacity: 1 },
+    line: { name: "Line", color: "#rgba(0, 0, 0, 1)", width: 5, opacity: 1 },
+    fillRect: { name: "Fill Rectangle", color: "#rgba(0, 0, 0, 1)", width: 5, opacity: 1 },
+    drawRect: { name: "Draw Rectangle", color: "#rgba(0, 0, 0, 1)", width: 5, opacity: 1 }
   },
   layers: [],
   layerOrder: [],
@@ -46,7 +44,7 @@ const rootReducer = (state = initialState, action) => {
         data: canvas,
         hidden: false,
         opacity: 1,
-        trigger: 0,
+        queue: null,
         ctx: canvas.getContext("2d")
       };
       let orderAfterCreate = state.layerOrder.slice(0);
@@ -92,17 +90,25 @@ const rootReducer = (state = initialState, action) => {
       let afterUpdate = state.layers.map(layer => {
         let { id, changes } = action.payload;
         if (layer.id === id) {
-          if (layer.id === "temp") {
-            layer.ctx.clearRect(0, 0, layer.data.width, layer.data.height)
-          };
-          draw(layer.ctx, changes);
-          layer.trigger++;
+          layer.queue = changes;
         }
         return layer;
       });
       return {
         ...state,
         layers: afterUpdate
+      };
+    
+    case CLEAR_LAYER_QUEUE:
+      let afterQueueClear = state.layers.map(layer => {
+        if (layer.id === action.payload) {
+          layer.queue = null;
+        }
+        return layer;
+      });
+      return {
+        ...state,
+        layers: afterQueueClear
       };
 
     case UPDATE_LAYER_OPACITY:
@@ -125,31 +131,6 @@ const rootReducer = (state = initialState, action) => {
       return {
         ...state,
         layerOrder: newLayerOrder
-      };
-
-    case MERGE_LAYERS:
-      let { fromLayer, toLayer } = action.payload;
-      let fromLayerdata = state.layers.filter(layer => {
-        return layer.id === fromLayer;
-      })[0].data;
-      let afterMerge = state.layers
-        .map(layer => {
-          if (layer.id === toLayer) {
-            layer.ctx.drawImage(fromLayerdata, 0, 0);
-            layer.trigger++;
-          }
-          return layer;
-        })
-        .filter(layer => {
-          return layer.id !== fromLayer;
-        });
-      let afterMergeOrder = state.layerOrder.filter(id => {
-        return id !== fromLayer;
-      });
-      return {
-        ...state,
-        layers: afterMerge,
-        layerOrder: afterMergeOrder
       };
 
     case CARD_DRAGOVER:
