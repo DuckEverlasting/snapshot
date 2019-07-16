@@ -2,7 +2,8 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 
-import { updateToolSettings } from "../actions"
+import { updateToolSettings } from "../actions";
+import { toRgbaFromHex as toRgba, toHexFromRgba as toHex } from '../logic/colorConversion.js';
 
 const ToolCardSC = styled.div`
   border-top: 1px solid black;
@@ -53,17 +54,27 @@ const SmallLabelSC = styled(LabelSC)`
 `
 
 export default function ToolCard() {
-  const { activeTool, toolSettings } = useSelector(state => state)
-  const {color, width, opacity} = toolSettings[activeTool]
+  const { activeTool, toolSettings } = useSelector(state => state);
+  const { color: colorRgba, width } = toolSettings[activeTool];
   const dispatch = useDispatch();
+
+  const { hex: colorHex, opacity } = toHex(colorRgba);
 
   const toolName = toolSettings[activeTool].name
 
-  const inputHandler = ev => {
-    let [name, value] = [ev.target.name, ev.target.value];
-    if (name === "width") {value = Number(value)}
-    if (name === "opacity") {value = Number(value / 100)}
-    dispatch(updateToolSettings(activeTool, {...toolSettings[activeTool], [ev.target.name]: value}))
+  const inputColorHandler = ev => {
+    let value = toRgba(ev.target.value, opacity);
+    dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "color": value }))
+  }
+
+  const inputWidthHandler = ev => {
+    let value = Number(ev.target.value);
+    dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "width": value }))
+  }
+
+  const inputOpacityHandler = ev => {
+    let value = toRgba(colorHex, Number(ev.target.value / 100));
+    dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "color": value, "opacity": opacity }))
   }
 
   return (
@@ -71,19 +82,16 @@ export default function ToolCard() {
       <TitleSC>{toolName}</TitleSC>
       <DividerSC>
         <SmallLabelSC>Color
-          <ColorPickerSC name="color" value={color} onChange={inputHandler} type="color"/>
+          <ColorPickerSC value={colorHex} onChange={inputColorHandler} type="color"/>
         </SmallLabelSC>
-        
         <SmallLabelSC>Width
-          <WidthPickerSC name="width" value={width} onChange={inputHandler} type="number"/>
+          <WidthPickerSC value={width} onChange={inputWidthHandler} type="number"/>
         </SmallLabelSC>
       </DividerSC>
-      
       <LabelSC>Opacity
-        <OpacityPickerSC name="opacity" value={opacity * 100} onChange={inputHandler} type="number" />
-        <OpacitySliderSC name="opacity" value={opacity * 100} onChange={inputHandler} type="range" min="0" max="100" />
+        <OpacityPickerSC value={opacity * 100} onChange={inputOpacityHandler} type="number" />
+        <OpacitySliderSC value={opacity * 100} onChange={inputOpacityHandler} type="range" min="0" max="100" />
       </LabelSC>
-      
     </ToolCardSC>
   )
 }
