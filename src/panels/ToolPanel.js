@@ -1,8 +1,9 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 
 import ToolBox from "../components/ToolBox.js"
+import ColorBox from "../components/ColorBox.js"
 import ToolCard from "../components/ToolCard.js"
 
 const ToolPanelSC = styled.div`
@@ -27,8 +28,12 @@ const ToolPanelDividerSC = styled.div`
   display: flex;
   position: relative;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
   height: 88%;
+`
+
+const SpacerSC = styled.div`
+  flex-grow: 1;
 `
 
 export default function ToolPanel() {
@@ -39,6 +44,8 @@ export default function ToolPanel() {
       <TitleSC>Tools</TitleSC>
       <ToolPanelDividerSC>
         <ToolBox />
+        <SpacerSC/>
+        <ColorBox />
         <ToolCard />
       </ToolPanelDividerSC>
     </ToolPanelSC>

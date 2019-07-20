@@ -25,9 +25,9 @@ export function toHexFromRgba(rgba) {
     alphaEnd = rgba.indexOf(")");
 
   // extract dec values for RGB and opacity
-  const redDec = rgba.substring(redStart, greenStart - 2),
-    greenDec = rgba.substring(greenStart, blueStart - 2),
-    blueDec = rgba.substring(blueStart, alphaStart - 2),
+  const redDec = rgba.substring(redStart, greenStart - 1),
+    greenDec = rgba.substring(greenStart, blueStart - 1),
+    blueDec = rgba.substring(blueStart, alphaStart - 1),
     opacity = rgba.substring(alphaStart + 1, alphaEnd);
   
   // convert RGB to hex values
@@ -43,4 +43,15 @@ export function toHexFromRgba(rgba) {
   // stitch it all together, return hex and opacity
   // NOTE THAT THIS RETURNS AN OBJECT, NOT A STRING
   return { hex: `#${redHex}${greenHex}${blueHex}`, opacity: opacity }
+}
+
+export function addOpacity(rgba, opacity) {
+  // find opacity values
+  const alphaStart = rgba.lastIndexOf(",")
+
+  // get substring
+  const rgb = rgba.substring(0, alphaStart)
+    
+  // stitch it all together with opacity
+  return `${rgb}, ${opacity})`
 }

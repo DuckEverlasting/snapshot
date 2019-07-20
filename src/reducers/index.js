@@ -3,13 +3,15 @@ import {
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
+  UPDATE_LAYER_QUEUE,
   CLEAR_LAYER_QUEUE,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
   CARD_DRAGOVER,
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
-  UPDATE_TOOL_SETTINGS
+  UPDATE_TOOL_SETTINGS,
+  UPDATE_COLOR
 } from "../actions";
 
 const initialState = {
@@ -17,11 +19,19 @@ const initialState = {
     width: 500,
     height: 500
   },
+  colorSettings: {
+    primary: "rgba(0, 0, 0, 1)",
+    secondary: "rgba(255, 255, 255, 1)"
+  },
   toolSettings: {
-    pencil: { name: "Pencil", color: "rgba(0, 0, 0, 0.5)", width: 5, opacity: 1 },
-    line: { name: "Line", color: "#rgba(0, 0, 0, 1)", width: 5, opacity: 1 },
-    fillRect: { name: "Fill Rectangle", color: "#rgba(0, 0, 0, 1)", width: 5, opacity: 1 },
-    drawRect: { name: "Draw Rectangle", color: "#rgba(0, 0, 0, 1)", width: 5, opacity: 1 }
+    pencil: { name: "Pencil", width: 5, opacity: 1 },
+    line: { name: "Line", width: 5, opacity: 1 },
+    fillRect: { name: "Fill Rectangle", width: 5, opacity: 1 },
+    drawRect: { name: "Draw Rectangle", width: 5, opacity: 1 },
+    eraser: { name: "Eraser", width: 5, opacity: 0 },
+    eyeDropper: { name: "Eye Dropper", width: "", opacity: "" },
+    selectRect: { name: "Select Rectangle", width: "", opacity: "" },
+    move: { name: "Move", width: "", opacity: "" }
   },
   layers: [],
   layerOrder: [],
@@ -34,13 +44,13 @@ const initialState = {
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {
     case CREATE_LAYER:
-      let { position, temp } = action.payload;
+      let { position, staging } = action.payload;
       let canvas = document.createElement("canvas");
       canvas.width = state.workspaceSettings.width;
       canvas.height = state.workspaceSettings.height;
       const newLayer = {
-        id: temp ? `temp` : state.layerCounter,
-        name: temp ? undefined : `layer ${state.layerCounter}`,
+        id: staging ? `staging` : state.layerCounter,
+        name: staging ? undefined : `layer ${state.layerCounter}`,
         data: canvas,
         hidden: false,
         opacity: 1,
@@ -53,8 +63,8 @@ const rootReducer = (state = initialState, action) => {
         ...state,
         layers: [...state.layers, newLayer],
         layerOrder: orderAfterCreate,
-        activeLayer: temp ? state.activeLayer : state.layerCounter,
-        layerCounter: temp ? state.layerCounter : state.layerCounter + 1,
+        activeLayer: staging ? state.activeLayer : state.layerCounter,
+        layerCounter: staging ? state.layerCounter : state.layerCounter + 1,
       };
 
     case DELETE_LAYER:
@@ -87,6 +97,20 @@ const rootReducer = (state = initialState, action) => {
       }
 
     case UPDATE_LAYER_DATA:
+        let afterUpdateData = state.layers.map(layer => {
+          let { id, changes } = action.payload;
+          if (layer.id === id) {
+            layer.data = changes;
+            layer.ctx = changes.getContext('2d');
+          }
+          return layer;
+        });
+        return {
+          ...state,
+          layers: afterUpdateData
+        };
+
+    case UPDATE_LAYER_QUEUE:
       let afterUpdate = state.layers.map(layer => {
         let { id, changes } = action.payload;
         if (layer.id === id) {
@@ -102,7 +126,7 @@ const rootReducer = (state = initialState, action) => {
     case CLEAR_LAYER_QUEUE:
       let afterQueueClear = state.layers.map(layer => {
         if (layer.id === action.payload) {
-          layer.queue = null;
+          layer.queue = {update: null, get: null}
         }
         return layer;
       });
@@ -158,6 +182,16 @@ const rootReducer = (state = initialState, action) => {
         toolSettings: {
           ...state.toolSettings,
           [tool]: changes
+        }
+      };
+
+    case UPDATE_COLOR:
+      let { key, value } = action.payload;
+      return {
+        ...state,
+        colorSettings: {
+          ...state.colorSettings,
+          [key]: value
         }
       };
 

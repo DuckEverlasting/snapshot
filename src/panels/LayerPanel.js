@@ -57,7 +57,7 @@ export default function LayerPanel() {
         {
           layerOrder.length !== 0 &&
           layerOrder.map((layerId, i) => {
-            if (layerId === "temp") return null;
+            if (layerId === "staging") return null;
             let layer = layers[layers.findIndex(el => el.id === layerId)]
             return <LayerCard key={layer.id} id={layer.id} name={layer.name} hidden={layer.hidden}/>
           })

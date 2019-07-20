@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { useDispatch } from "react-redux";
+import { updateLayerData } from '../actions'
 
 import draw from "../reducers/drawingReducer.js";
-import { clearLayerQueue } from '../actions/';
 
 const LayerSC = styled.canvas`
   position: absolute;
@@ -16,17 +17,28 @@ const LayerSC = styled.canvas`
 
 function Layer(props) {
   const canvasRef = useRef(null)
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (props.queue === null) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    if (props.id === "temp") {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    }
-    draw(ctx, props.queue);
-    clearLayerQueue(props.id);
+    let queue = props.queue;
+    if (queue === null) return;
+    if (queue.type === "draw") drawHandler(ctx, queue)
   }, [props.data, props.queue, props.id]);
+
+  function drawHandler(ctx, queue) {
+    if (queue.clearFirst) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    }
+    if (queue.composite) {
+      ctx.globalCompositeOperation = queue.composite
+    } else {
+      ctx.globalCompositeOperation = "source-over"
+    }
+    draw(ctx, queue);
+    dispatch(updateLayerData(props.id, canvasRef.current))
+  }
 
   return <LayerSC width={props.width} height={props.height} hidden={props.hidden} index={props.index} ref={canvasRef} />
 }
