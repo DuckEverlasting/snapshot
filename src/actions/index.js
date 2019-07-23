@@ -7,7 +7,10 @@ export const [
   CLEAR_LAYER_QUEUE,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
-  CARD_DRAGOVER,
+  ENABLE_LAYER_RENAME,
+  UPDATE_LAYER_NAME,
+  DRAG_LAYERCARD,
+  END_DRAG_LAYERCARD,
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
@@ -21,7 +24,10 @@ export const [
   "CLEAR_LAYER_QUEUE",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
-  "CARD_DRAGOVER",
+  "ENABLE_LAYER_RENAME",
+  "UPDATE_LAYER_NAME",
+  "DRAG_LAYERCARD",
+  "END_DRAG_LAYERCARD",
   "MAKE_ACTIVE_LAYER",
   "MAKE_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
@@ -84,10 +90,30 @@ export const updateLayerOrder = (from, to) => {
   };
 };
 
-export const layerCardDragover = position => {
+export const enableLayerRename = id => {
   return {
-    type: CARD_DRAGOVER,
+    type: ENABLE_LAYER_RENAME,
+    payload: id
+  };
+};
+
+export const updateLayerName = (id, name) => {
+  return {
+    type: UPDATE_LAYER_NAME,
+    payload: {id, name}
+  };
+};
+
+export const dragLayercard = position => {
+  return {
+    type: DRAG_LAYERCARD,
     payload: position
+  };
+}
+
+export const endDragLayercard = () => {
+  return {
+    type: END_DRAG_LAYERCARD
   };
 }
 

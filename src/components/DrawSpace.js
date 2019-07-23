@@ -59,6 +59,7 @@ export default function DrawSpace(props) {
 
   const handleMouseDown = ev => {
     if (activeLayer === null || state.hold) return;
+    if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
     let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     state = {
       ...state,

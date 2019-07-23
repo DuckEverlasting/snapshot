@@ -7,7 +7,10 @@ import {
   CLEAR_LAYER_QUEUE,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
-  CARD_DRAGOVER,
+  ENABLE_LAYER_RENAME,
+  UPDATE_LAYER_NAME,
+  DRAG_LAYERCARD,
+  END_DRAG_LAYERCARD,
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
@@ -35,7 +38,7 @@ const initialState = {
   },
   layers: [],
   layerOrder: [],
-  cardDragPosition: null,
+  draggedLayercard: null,
   activeLayer: null,
   layerCounter: 1,
   activeTool: "pencil"
@@ -51,6 +54,7 @@ const rootReducer = (state = initialState, action) => {
       const newLayer = {
         id: staging ? `staging` : state.layerCounter,
         name: staging ? undefined : `layer ${state.layerCounter}`,
+        nameEditable: false,
         data: canvas,
         hidden: false,
         opacity: 1,
@@ -151,17 +155,50 @@ const rootReducer = (state = initialState, action) => {
     case UPDATE_LAYER_ORDER:
       let { from, to } = action.payload;
       let newLayerOrder = state.layerOrder.slice(0);
-      newLayerOrder.splice(to, 0, state.newLayerOrder.splice(from, 1)[0]);
+      newLayerOrder.splice(to, 0, newLayerOrder.splice(from, 1)[0]);
       return {
         ...state,
         layerOrder: newLayerOrder
       };
 
-    case CARD_DRAGOVER:
+    case ENABLE_LAYER_RENAME:
+      let afterEnable = state.layers.map(layer => {
+        let id = action.payload;
+        if (layer.id === id) {
+          layer.nameEditable = true;
+        }
+        return layer;
+      });
       return {
         ...state,
-        cardDragPosition: action.payload
+        layers: afterEnable
       };
+
+    case UPDATE_LAYER_NAME:
+      let afterRename = state.layers.map(layer => {
+        let { id, name } = action.payload;
+        if (layer.id === id) {
+          layer.name = name;
+          layer.nameEditable = false;
+        }
+        return layer;
+      });
+      return {
+        ...state,
+        layers: afterRename
+      };
+
+    case DRAG_LAYERCARD:
+      return {
+        ...state,
+        draggedLayercard: action.payload
+      };
+
+    case END_DRAG_LAYERCARD:
+      return {
+        ...state,
+        draggedLayercard: null,
+      }
 
     case MAKE_ACTIVE_LAYER:
       return {
