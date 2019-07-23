@@ -34,10 +34,10 @@ export const [
   "UPDATE_COLOR"
 ];
 
-export const createLayer = (position, staging = false) => {
+export const createLayer = (position, special = false) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, staging}
+    payload: {position, special}
   };
 };
 

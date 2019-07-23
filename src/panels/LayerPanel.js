@@ -80,7 +80,7 @@ export default function LayerPanel() {
                   .slice()
                   .reverse()
                   .map((layerId, i) => {
-                    if (layerId === "staging") return null;
+                    if (["staging", "selection"].includes(layerId)) return null;
                     let layer = layers[layers.findIndex((el, i) => el.id === layerId)];
                     return (
                       <LayerCard
@@ -97,7 +97,7 @@ export default function LayerPanel() {
             </LayerBoxSC>)}
         </Droppable>
       </DragDropContext>
-      <ButtonSC onClick={() => dispatch(createLayer(layerOrder.length))}>
+      <ButtonSC onClick={() => dispatch(createLayer(layerOrder.length - 1))}>
         NEW LAYER
       </ButtonSC>
     </LayerPanelSC>

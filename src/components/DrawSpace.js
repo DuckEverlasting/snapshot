@@ -57,8 +57,12 @@ export default function DrawSpace(props) {
     }
   }
 
-  const handleMouseDown = ev => {
-    if (activeLayer === null || state.hold) return;
+  const contextMenuHandler = ev => {
+    ev.preventDefault();
+  }
+
+  const mouseDownHandler = ev => {
+    if (activeLayer === null || state.hold || ev.buttons > 1) return;
     if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
     let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     state = {
@@ -80,12 +84,16 @@ export default function DrawSpace(props) {
         return dispatch(createLayer(activeLayer, "staging"));
       case "eyeDropper":
         return colorPicker(x, y, ev.ctrlKey ? "secondary" : "primary")
+      case "selectRect":
+        return !layerOrder.includes("selection") && dispatch(createLayer(layerOrder.length, "selection"));
+      case "move":
+        break;
       default:
         break;
     }
   };
 
-  const handleMouseMove = ev => {
+  const mouseMoveHandler = ev => {
     if (!state.mouseDown ) return;
     let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     switch (activeTool) {
@@ -171,14 +179,47 @@ export default function DrawSpace(props) {
           destArray: [...state.destArray, [x, y]]
         }
       case "eyeDropper":
-        return colorPicker(x, y, ev.ctrlKey ? "secondary" : "primary");
+        return colorPicker(
+          x, y, ev.ctrlKey ? "secondary" : "primary"
+        );
+      case "selectRect":
+        return dispatch(
+          updateLayerQueue("selection", {
+            // drawRect(ctx, {orig, dest, width, color})
+            action: "drawRect",
+            type: "draw",
+            params: {
+              orig: state.origin,
+              dest: [x, y],
+              width: 1,
+              color: "rgba(0, 0, 0, 1)",
+              dashPattern: [5, 10]
+            },
+            clearFirst: true
+          })
+        );
+      case "move":
+        dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "move",
+            type: "manipulate",
+            params: {
+              orig: state.destArray[state.destArray.length - 1] || state.origin,
+              dest: [x, y]
+            }
+          })
+        );
+        return state = {
+          ...state,
+          destArray: [...state.destArray, [x, y]]
+        }
       default:
         break;
     }
   };
 
-  const handleMouseUp = ev => {
-    if (!state.mouseDown) return;
+  const mouseUpHandler = ev => {
+    if (!state.mouseDown || ev.buttons === 1) return;
 
     state = {
       ...state,
@@ -269,13 +310,17 @@ export default function DrawSpace(props) {
         );
       case "eyeDropper":
         break;
+      case "selectRect":
+        break;
+      case "move":
+        break;
       default:
         break;
     }
   };
 
-  const handleMouseOut = ev => {
-    handleMouseUp(ev);
+  const mouseOutHandler = ev => {
+    mouseUpHandler(ev);
   };
 
   return (
@@ -283,10 +328,11 @@ export default function DrawSpace(props) {
       index={props.index}
       tabIndex="1"
       cursor={cursorHandler}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseOut={handleMouseOut}
+      onContextMenu={contextMenuHandler}
+      onMouseDown={mouseDownHandler}
+      onMouseMove={mouseMoveHandler}
+      onMouseUp={mouseUpHandler}
+      onMouseOut={mouseOutHandler}
     />
   );
 }

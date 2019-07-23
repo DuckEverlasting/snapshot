@@ -17,10 +17,19 @@ import {
   UPDATE_COLOR
 } from "../actions";
 
+let selectionCanvas = document.createElement("canvas");
+let initCanvas = document.createElement("canvas");
+let initWidth = 500;
+let initHeight = 500;
+selectionCanvas.width = initWidth;
+selectionCanvas.height = initHeight;
+initCanvas.width = initWidth;
+initCanvas.height = initHeight;
+
 const initialState = {
   workspaceSettings: {
-    width: 500,
-    height: 500
+    width: initWidth,
+    height: initHeight
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",
@@ -36,24 +45,45 @@ const initialState = {
     selectRect: { name: "Select Rectangle", width: "", opacity: "" },
     move: { name: "Move", width: "", opacity: "" }
   },
-  layers: [],
-  layerOrder: [],
+  layers: [
+    {
+      id: 1,
+      name: "layer 1",
+      nameEditable: false,
+      data: initCanvas,
+      hidden: false,
+      opacity: 1,
+      queue: null,
+      ctx: initCanvas.getContext("2d")
+    },
+    {
+      id: "selection",
+      name: undefined,
+      nameEditable: false,
+      data: selectionCanvas,
+      hidden: false,
+      opacity: 1,
+      queue: null,
+      ctx: selectionCanvas.getContext("2d")
+    },
+  ],
+  layerOrder: [1, "selection"],
   draggedLayercard: null,
-  activeLayer: null,
-  layerCounter: 1,
+  activeLayer: 1,
+  layerCounter: 2,
   activeTool: "pencil"
 };
 
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {
     case CREATE_LAYER:
-      let { position, staging } = action.payload;
+      let { position, special } = action.payload;
       let canvas = document.createElement("canvas");
       canvas.width = state.workspaceSettings.width;
       canvas.height = state.workspaceSettings.height;
-      const newLayer = {
-        id: staging ? `staging` : state.layerCounter,
-        name: staging ? undefined : `layer ${state.layerCounter}`,
+      let newLayer = {
+        id: special ? special : state.layerCounter,
+        name: special ? undefined : `layer ${state.layerCounter}`,
         nameEditable: false,
         data: canvas,
         hidden: false,
@@ -67,10 +97,10 @@ const rootReducer = (state = initialState, action) => {
         ...state,
         layers: [...state.layers, newLayer],
         layerOrder: orderAfterCreate,
-        activeLayer: staging ? state.activeLayer : state.layerCounter,
-        layerCounter: staging ? state.layerCounter : state.layerCounter + 1,
+        activeLayer: special ? state.activeLayer : state.layerCounter,
+        layerCounter: special ? state.layerCounter : state.layerCounter + 1,
       };
-
+    
     case DELETE_LAYER:
       let afterDelete = state.layers.filter(layer => {
         return layer.id !== action.payload;
@@ -78,10 +108,12 @@ const rootReducer = (state = initialState, action) => {
       let afterDeleteOrder = state.layerOrder.filter(id => {
         return id !== action.payload;
       });
+      let afterDeleteActive = state.activeLayer === action.payload ? null : state.activeLayer
       return {
         ...state,
         layers: afterDelete,
-        layerOrder: afterDeleteOrder
+        layerOrder: afterDeleteOrder,
+        activeLayer: afterDeleteActive
       };
     
     case HIDE_LAYER:

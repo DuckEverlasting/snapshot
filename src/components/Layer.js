@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { updateLayerData } from '../actions'
 
 import draw from "../reducers/drawingReducer.js";
+import manipulate from "../reducers/manipulateReducer.js";
 
 const LayerSC = styled.canvas`
   position: absolute;
@@ -25,6 +26,7 @@ function Layer(props) {
     let queue = props.queue;
     if (queue === null) return;
     if (queue.type === "draw") drawHandler(ctx, queue)
+    if (queue.type === "manipulate") manipulateHandler(ctx, queue)
   }, [props.data, props.queue, props.id]);
 
   function drawHandler(ctx, queue) {
@@ -37,6 +39,11 @@ function Layer(props) {
       ctx.globalCompositeOperation = "source-over"
     }
     draw(ctx, queue);
+    dispatch(updateLayerData(props.id, canvasRef.current))
+  }
+
+  function manipulateHandler(ctx, queue) {
+    manipulate(ctx, queue);
     dispatch(updateLayerData(props.id, canvasRef.current))
   }
 

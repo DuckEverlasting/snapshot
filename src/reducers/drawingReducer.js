@@ -4,12 +4,13 @@ import {
   bezier,
   rectangle,
   circle
-} from '../actions/drawingActions.js'
+} from '../actions/ctxActions.js'
 
 export default function(ctx, { action, params }) {
   ctx.beginPath();
   ctx.moveTo(params.orig[0], params.orig[1]);
   if (params.width) ctx.lineWidth = params.width;
+  if (params.dashPattern) ctx.setLineDash(params.dashPattern);
   ctx.strokeStyle = params.color;
   ctx.fillStyle = params.color;
 
