@@ -11,8 +11,8 @@ export default function(ctx, { action, params }) {
   ctx.moveTo(params.orig[0], params.orig[1]);
   if (params.width) ctx.lineWidth = params.width;
   if (params.dashPattern) ctx.setLineDash(params.dashPattern);
-  ctx.strokeStyle = params.color;
-  ctx.fillStyle = params.color;
+  ctx.strokeStyle = params.strokeColor;
+  ctx.fillStyle = params.fillColor;
 
   switch (action) {
     case "drawLine":

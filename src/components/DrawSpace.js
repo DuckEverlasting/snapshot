@@ -85,7 +85,7 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         return colorPicker(x, y, ev.ctrlKey ? "secondary" : "primary")
       case "selectRect":
-        return !layerOrder.includes("selection") && dispatch(createLayer(layerOrder.length, "selection"));
+        return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
         break;
       default:
@@ -107,7 +107,7 @@ export default function DrawSpace(props) {
               orig: state.destArray[state.destArray.length - 1] || state.origin,
               destArray: [[x, y]],
               width: width,
-              color: color
+              strokeColor: color
             }
           })
         );
@@ -125,7 +125,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               destArray: [[x, y]],
               width: width,
-              color: color
+              strokeColor: color
             },
             clearFirst: true
           })
@@ -140,7 +140,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               dest: [x, y],
               width: width,
-              color: color
+              fillColor: color
             },
             clearFirst: true
           })
@@ -155,7 +155,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               dest: [x, y],
               width: width,
-              color: color
+              strokeColor: color
             },
             clearFirst: true
           })
@@ -170,7 +170,7 @@ export default function DrawSpace(props) {
               orig: state.destArray[state.destArray.length - 1] || state.origin,
               destArray: [[x, y]],
               width: width,
-              color: "rgba(0, 0, 0, .5)"
+              strokeColor: "rgba(0, 0, 0, .5)"
             },
           })
         );
@@ -184,7 +184,7 @@ export default function DrawSpace(props) {
         );
       case "selectRect":
         return dispatch(
-          updateLayerQueue("selection", {
+          updateLayerQueue("staging", {
             // drawRect(ctx, {orig, dest, width, color})
             action: "drawRect",
             type: "draw",
@@ -192,7 +192,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               dest: [x, y],
               width: 1,
-              color: "rgba(0, 0, 0, 1)",
+              strokeColor: "rgba(0, 0, 0, 1)",
               dashPattern: [5, 10]
             },
             clearFirst: true
@@ -247,7 +247,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               destArray: state.destArray,
               width: width,
-              color: color
+              strokeColor: color
             }
           })
         );
@@ -261,7 +261,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               destArray: [[x, y]],
               width: width,
-              color: color
+              strokeColor: color
             }
           })
         );
@@ -275,7 +275,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               dest: [x, y],
               width: width,
-              color: color
+              fillColor: color
             }
           })
         );
@@ -289,7 +289,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               dest: [x, y],
               width: width,
-              color: color
+              strokeColor: color
             }
           })
         );
@@ -303,7 +303,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               destArray: state.destArray,
               width: width,
-              color: "rgba(0, 0, 0, 1)"
+              strokeColor: "rgba(0, 0, 0, 1)"
             },
             composite: "destination-out"
           })
@@ -311,7 +311,20 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         break;
       case "selectRect":
-        break;
+        return dispatch(
+          updateLayerQueue("selection", {
+            // drawRect(ctx, {orig, dest, width, color})
+            action: "drawRect",
+            type: "draw",
+            params: {
+              orig: state.origin,
+              dest: [x, y],
+              width: 1,
+              strokeColor: "rgba(0, 0, 0, 1)",
+              dashPattern: [5, 10]
+            }
+          })
+        );
       case "move":
         break;
       default:

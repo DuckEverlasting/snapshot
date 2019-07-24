@@ -19,12 +19,16 @@ import {
 
 let selectionCanvas = document.createElement("canvas");
 let initCanvas = document.createElement("canvas");
-let initWidth = 500;
-let initHeight = 500;
+let initWidth = 1000;
+let initHeight = 750;
 selectionCanvas.width = initWidth;
 selectionCanvas.height = initHeight;
 initCanvas.width = initWidth;
 initCanvas.height = initHeight;
+initCanvas.getContext("2d").beginPath()
+initCanvas.getContext("2d").fillStyle = "rgba(0, 0, 255, 1)"
+initCanvas.getContext("2d").rect(0, 0, initWidth, initHeight)
+initCanvas.getContext("2d").fill();
 
 const initialState = {
   workspaceSettings: {
