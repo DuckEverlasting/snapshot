@@ -30,14 +30,6 @@ function Layer(props) {
   }, [props.data, props.queue, props.id]);
 
   function drawHandler(ctx, queue) {
-    if (queue.clearFirst) {
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    }
-    if (queue.composite) {
-      ctx.globalCompositeOperation = queue.composite
-    } else {
-      ctx.globalCompositeOperation = "source-over"
-    }
     draw(ctx, queue);
     dispatch(updateLayerData(props.id, canvasRef.current))
   }

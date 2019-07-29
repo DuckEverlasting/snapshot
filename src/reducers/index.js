@@ -25,10 +25,6 @@ selectionCanvas.width = initWidth;
 selectionCanvas.height = initHeight;
 initCanvas.width = initWidth;
 initCanvas.height = initHeight;
-initCanvas.getContext("2d").beginPath()
-initCanvas.getContext("2d").fillStyle = "rgba(0, 0, 255, 1)"
-initCanvas.getContext("2d").rect(0, 0, initWidth, initHeight)
-initCanvas.getContext("2d").fill();
 
 const initialState = {
   workspaceSettings: {
@@ -41,6 +37,7 @@ const initialState = {
   },
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 1 },
+    brush: { name: "Brush", width: 15, opacity: 1 },
     line: { name: "Line", width: 5, opacity: 1 },
     fillRect: { name: "Fill Rectangle", width: 5, opacity: 1 },
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 1 },

@@ -7,6 +7,14 @@ import {
 } from '../actions/ctxActions.js'
 
 export default function(ctx, { action, params }) {
+  if (params.clearFirst) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  }
+  if (params.composite) {
+    ctx.globalCompositeOperation = params.composite
+  } else {
+    ctx.globalCompositeOperation = "source-over"
+  }
   ctx.beginPath();
   ctx.moveTo(params.orig[0], params.orig[1]);
   if (params.width) ctx.lineWidth = params.width;

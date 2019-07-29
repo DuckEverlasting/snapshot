@@ -2,7 +2,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEraser, faPencilAlt, faArrowsAltH, faArrowsAlt, faEyeDropper, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
+import { faEraser, faPencilAlt, faPaintBrush, faArrowsAltH, faArrowsAlt, faEyeDropper, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
 import styled from "styled-components";
 
 import { makeActiveTool } from "../actions"
@@ -40,6 +40,11 @@ export default function ToolBox() {
         <ButtonSC title="Pencil" name="pencil" active={activeTool === "pencil"} onClick={changeToolHandler}>
           <SpanSC role="img" aria-label="Pencil">
             <FontAwesomeIcon icon={faPencilAlt} />
+          </SpanSC>
+        </ButtonSC>
+        <ButtonSC title="Brush" name="brush" active={activeTool === "brush"} onClick={changeToolHandler}>
+          <SpanSC role="img" aria-label="Brush">
+            <FontAwesomeIcon icon={faPaintBrush} />
           </SpanSC>
         </ButtonSC>
         <ButtonSC title="Line" name="line" active={activeTool === "line"} onClick={changeToolHandler}>

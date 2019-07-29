@@ -30,7 +30,7 @@ export default function DrawSpace(props) {
   const { opacity, width } = toolSettings[activeTool];
   const color = addOpacity(primary, opacity)
 
-  const colorPicker = (x, y, palette) => {
+  const eyeDropper = (x, y, palette) => {
     let color;
     for (let i = layerOrder.length - 1; i >= 0; i--) {
       let ctx = layers.filter(layer => layer.id === layerOrder[i])[0].ctx;
@@ -74,6 +74,8 @@ export default function DrawSpace(props) {
     switch (activeTool) {
       case "pencil":
         return dispatch(createLayer(activeLayer, "staging"));
+      case "brush":
+        return dispatch(createLayer(activeLayer, "staging"));
       case "line":
         return dispatch(createLayer(activeLayer, "staging"));
       case "fillRect":
@@ -83,7 +85,7 @@ export default function DrawSpace(props) {
       case "eraser":
         return dispatch(createLayer(activeLayer, "staging"));
       case "eyeDropper":
-        return colorPicker(x, y, ev.ctrlKey ? "secondary" : "primary")
+        return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary")
       case "selectRect":
         return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
@@ -94,20 +96,40 @@ export default function DrawSpace(props) {
   };
 
   const mouseMoveHandler = ev => {
-    if (!state.mouseDown ) return;
+    if (!state.mouseDown) return;
     let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    let params = {
+      orig: state.origin,
+      dest: [x, y],
+      destArray: [[x, y]],
+      width: width,
+      strokeColor: color,
+      fillColor: color
+    };
     switch (activeTool) {
       case "pencil":
         dispatch(
           updateLayerQueue("staging", {
-            // drawLine(ctx, {orig, destArray, width, color})
             action: "drawLine",
             type: "draw",
             params: {
-              orig: state.destArray[state.destArray.length - 1] || state.origin,
-              destArray: [[x, y]],
-              width: width,
-              strokeColor: color
+              ...params,
+              orig: state.destArray[state.destArray.length - 1] || state.origin
+            }
+          })
+        );
+        return state = {
+          ...state,
+          destArray: [...state.destArray, [x, y]]
+        }
+      case "brush":
+        dispatch(
+          updateLayerQueue("staging", {
+            action: "drawLine",
+            type: "draw",
+            params: {
+              ...params,
+              orig: state.destArray[state.destArray.length - 1] || state.origin
             }
           })
         );
@@ -118,58 +140,44 @@ export default function DrawSpace(props) {
       case "line":
         return dispatch(
           updateLayerQueue("staging", {
-            // drawLine(ctx, {orig, destArray, width, color})
             action: "drawLine",
             type: "draw",
             params: {
-              orig: state.origin,
-              destArray: [[x, y]],
-              width: width,
-              strokeColor: color
+              ...params,
+              clearFirst: true
             },
-            clearFirst: true
           })
         );
       case "fillRect":
         return dispatch(
           updateLayerQueue("staging", {
-            // fillRect(ctx, {orig, dest, width, color})
             action: "fillRect",
             type: "draw",
             params: {
-              orig: state.origin,
-              dest: [x, y],
-              width: width,
-              fillColor: color
+              ...params,
+              clearFirst: true
             },
-            clearFirst: true
           })
         );
       case "drawRect":
         return dispatch(
           updateLayerQueue("staging", {
-            // drawRect(ctx, {orig, dest, width, color})
             action: "drawRect",
             type: "draw",
             params: {
-              orig: state.origin,
-              dest: [x, y],
-              width: width,
-              strokeColor: color
+              ...params,
+              clearFirst: true
             },
-            clearFirst: true
           })
         );
       case "eraser":
         dispatch(
           updateLayerQueue("staging", {
-            // drawLine(ctx, {orig, destArray, width, color})
             action: "drawLine",
             type: "draw",
             params: {
+              ...params,
               orig: state.destArray[state.destArray.length - 1] || state.origin,
-              destArray: [[x, y]],
-              width: width,
               strokeColor: "rgba(0, 0, 0, .5)"
             },
           })
@@ -179,23 +187,19 @@ export default function DrawSpace(props) {
           destArray: [...state.destArray, [x, y]]
         }
       case "eyeDropper":
-        return colorPicker(
-          x, y, ev.ctrlKey ? "secondary" : "primary"
-        );
+        return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary");
       case "selectRect":
         return dispatch(
           updateLayerQueue("staging", {
-            // drawRect(ctx, {orig, dest, width, color})
             action: "drawRect",
             type: "draw",
             params: {
-              orig: state.origin,
-              dest: [x, y],
+              ...params,
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
-              dashPattern: [5, 10]
+              dashPattern: [5, 10],
+              clearFirst: true
             },
-            clearFirst: true
           })
         );
       case "move":
@@ -204,8 +208,8 @@ export default function DrawSpace(props) {
             action: "move",
             type: "manipulate",
             params: {
+              ...params,
               orig: state.destArray[state.destArray.length - 1] || state.origin,
-              dest: [x, y]
             }
           })
         );
@@ -236,76 +240,79 @@ export default function DrawSpace(props) {
     }, 0)
     
     const [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    let params = {
+      orig: state.origin,
+      dest: [x, y],
+      destArray: [[x, y]],
+      width: width,
+      strokeColor: color,
+      fillColor: color
+    };
     switch (activeTool) {
       case "pencil":
         return dispatch(
           updateLayerQueue(activeLayer, {
-            // drawLine(ctx, {orig, dest, width, color})
             action: "drawLine",
             type: "draw",
             params: {
-              orig: state.origin,
-              destArray: state.destArray,
-              width: width,
-              strokeColor: color
-            }
+              ...params,
+              destArray: state.destArray
+            },
           })
         );
+      case "brush":
+        async function brushFeather(quality) {
+          for (let i = 1; i <= quality; i++) {
+            await dispatch(
+              updateLayerQueue(activeLayer, {
+                action: "drawLine",
+                type: "draw",
+                params: {
+                  ...params,
+                  width: width * (1.25 - ((1 / (quality - 1)) * (i - 1))),
+                  strokeColor: addOpacity(primary, opacity * (1/quality) * i),
+                  destArray: state.destArray
+                }
+              })
+            );
+          }
+        }
+        return brushFeather(50);
       case "line":
         return dispatch(
           updateLayerQueue(activeLayer, {
-            // drawLine(ctx, {orig, dest, width, color})
             action: "drawLine",
             type: "draw",
-            params: {
-              orig: state.origin,
-              destArray: [[x, y]],
-              width: width,
-              strokeColor: color
-            }
+            params: { ...params }
           })
         );
       case "fillRect":
         return dispatch(
           updateLayerQueue(activeLayer, {
-            // fillRect(ctx, {orig, dest, width, color})
             action: "fillRect",
             type: "draw",
-            params: {
-              orig: state.origin,
-              dest: [x, y],
-              width: width,
-              fillColor: color
-            }
+            params: { ...params }
           })
         );
       case "drawRect":
         return dispatch(
           updateLayerQueue(activeLayer, {
-            // drawRect(ctx, {orig, dest, width, color})
             action: "drawRect",
             type: "draw",
-            params: {
-              orig: state.origin,
-              dest: [x, y],
-              width: width,
-              strokeColor: color
-            }
+            params: { ...params }
           })
         );
       case "eraser":
         return dispatch(
           updateLayerQueue(activeLayer, {
-            // drawLine(ctx, {orig, dest, width, color})
             action: "drawLine",
             type: "draw",
             params: {
-              orig: state.origin,
+              ...params,
               destArray: state.destArray,
-              width: width,
-              strokeColor: "rgba(0, 0, 0, 1)"
+              strokeColor: "rgba(0, 0, 0, 1)",
+              composite: "destination-out"
             },
-            composite: "destination-out"
           })
         );
       case "eyeDropper":
@@ -313,12 +320,10 @@ export default function DrawSpace(props) {
       case "selectRect":
         return dispatch(
           updateLayerQueue("selection", {
-            // drawRect(ctx, {orig, dest, width, color})
             action: "drawRect",
             type: "draw",
             params: {
-              orig: state.origin,
-              dest: [x, y],
+              ...params,
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
               dashPattern: [5, 10]
@@ -332,10 +337,6 @@ export default function DrawSpace(props) {
     }
   };
 
-  const mouseOutHandler = ev => {
-    mouseUpHandler(ev);
-  };
-
   return (
     <DrawSpaceSC
       index={props.index}
@@ -345,7 +346,7 @@ export default function DrawSpace(props) {
       onMouseDown={mouseDownHandler}
       onMouseMove={mouseMoveHandler}
       onMouseUp={mouseUpHandler}
-      onMouseOut={mouseOutHandler}
+      onMouseOut={mouseUpHandler}
     />
   );
 }
