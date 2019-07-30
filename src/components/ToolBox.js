@@ -52,6 +52,11 @@ export default function ToolBox() {
             <FontAwesomeIcon icon={faArrowsAltH} />
           </SpanSC>
         </ButtonSC>
+        <ButtonSC title="Eraser" name="eraser" active={activeTool === "eraser"} onClick={changeToolHandler}>
+          <SpanSC role="img" aria-label="Eraser">
+            <FontAwesomeIcon icon={faEraser} />
+          </SpanSC>
+        </ButtonSC>
         <ButtonSC title="Fill Rectangle" name="fillRect" active={activeTool === "fillRect"} onClick={changeToolHandler}>
           <SpanSC role="img" aria-label="Fill Rectangle">
             ⬛
@@ -62,9 +67,14 @@ export default function ToolBox() {
             ⬜
           </SpanSC>
         </ButtonSC>
-        <ButtonSC title="Eraser" name="eraser" active={activeTool === "eraser"} onClick={changeToolHandler}>
-          <SpanSC role="img" aria-label="Eraser">
-            <FontAwesomeIcon icon={faEraser} />
+        <ButtonSC title="Fill Circle" name="fillCirc" active={activeTool === "fillCirc"} onClick={changeToolHandler}>
+          <SpanSC role="img" aria-label="Fill Circle">
+            ⚫
+          </SpanSC>
+        </ButtonSC>
+        <ButtonSC title="Draw Circle" name="drawCirc" active={activeTool === "drawCirc"} onClick={changeToolHandler}>
+          <SpanSC role="img" aria-label="Draw Circle">
+            ⚪
           </SpanSC>
         </ButtonSC>
         <ButtonSC title="Eye Dropper" name="eyeDropper" active={activeTool === "eyeDropper"} onClick={changeToolHandler}>

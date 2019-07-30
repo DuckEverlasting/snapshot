@@ -22,8 +22,9 @@ export function rectangle(ctx, { orig, dest }) {
   ctx.rect(orig[0], orig[1], (dest[0] - orig[0]), (dest[1] - orig[1]))
 }
 
-export function circle(ctx, { orig, radius }) {
-  ctx.arc(orig[0], orig[1], radius, 0, Math.PI * 2);
+export function circle(ctx, { orig, dest }) {
+  ctx.beginPath();
+  ctx.arc(orig[0], orig[1], Math.sqrt(((dest[0] - orig[0]) * (dest[0] - orig[0])) + ((dest[1] - orig[1]) * (dest[1] - orig[1]))), 0, Math.PI * 2);
 }
 
 export function move(ctx, { orig, dest }) {

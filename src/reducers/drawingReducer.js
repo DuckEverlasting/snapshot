@@ -58,7 +58,7 @@ export default function(ctx, { action, params }) {
       rectangle(ctx, params);
       return ctx.stroke();
     
-    case "drawCircle":
+    case "drawCirc":
       circle(ctx, params);
       return ctx.stroke();
     
@@ -81,7 +81,7 @@ export default function(ctx, { action, params }) {
       rectangle(ctx, params);
       return ctx.fill();
     
-    case "fillCircle":
+    case "fillCirc":
       circle(ctx, params);
       return ctx.fill();
 

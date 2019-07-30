@@ -39,12 +39,14 @@ const initialState = {
     pencil: { name: "Pencil", width: 5, opacity: 1 },
     brush: { name: "Brush", width: 15, opacity: 1 },
     line: { name: "Line", width: 5, opacity: 1 },
-    fillRect: { name: "Fill Rectangle", width: 5, opacity: 1 },
+    fillRect: { name: "Fill Rectangle", width: null, opacity: 1 },
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 1 },
+    fillCirc: { name: "Fill Circle", width: null, opacity: 1 },
+    drawCirc: { name: "Draw Circle", width: 5, opacity: 1 },
     eraser: { name: "Eraser", width: 5, opacity: 0 },
-    eyeDropper: { name: "Eye Dropper", width: "", opacity: "" },
-    selectRect: { name: "Select Rectangle", width: "", opacity: "" },
-    move: { name: "Move", width: "", opacity: "" }
+    eyeDropper: { name: "Eye Dropper", width: null, opacity: null },
+    selectRect: { name: "Select Rectangle", width: null, opacity: null },
+    move: { name: "Move", width: null, opacity: null }
   },
   layers: [
     {

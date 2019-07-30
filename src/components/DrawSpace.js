@@ -82,6 +82,10 @@ export default function DrawSpace(props) {
         return dispatch(createLayer(activeLayer, "staging"));
       case "drawRect":
         return dispatch(createLayer(activeLayer, "staging"));
+      case "fillCirc":
+        return dispatch(createLayer(activeLayer, "staging"));
+      case "drawCirc":
+        return dispatch(createLayer(activeLayer, "staging"));
       case "eraser":
         return dispatch(createLayer(activeLayer, "staging"));
       case "eyeDropper":
@@ -125,8 +129,7 @@ export default function DrawSpace(props) {
       case "brush":
         let num;
         if (width <= 5) num = 0
-        else if (5 < width < 15) num = 1
-        else if (15 <= width) num = 2
+        else num = 1
 
         dispatch(
           updateLayerQueue("staging", {
@@ -169,6 +172,28 @@ export default function DrawSpace(props) {
         return dispatch(
           updateLayerQueue("staging", {
             action: "drawRect",
+            type: "draw",
+            params: {
+              ...params,
+              clearFirst: true
+            },
+          })
+        );
+      case "fillCirc":
+        return dispatch(
+          updateLayerQueue("staging", {
+            action: "fillCirc",
+            type: "draw",
+            params: {
+              ...params,
+              clearFirst: true
+            },
+          })
+        );
+      case "drawCirc":
+        return dispatch(
+          updateLayerQueue("staging", {
+            action: "drawCirc",
             type: "draw",
             params: {
               ...params,
@@ -286,8 +311,7 @@ export default function DrawSpace(props) {
         // return brushFeather(50);
         let num;
         if (width <= 5) num = 0
-        else if (5 < width < 15) num = 1
-        else if (15 <= width) num = 2
+        else num = 1
 
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -320,6 +344,22 @@ export default function DrawSpace(props) {
         return dispatch(
           updateLayerQueue(activeLayer, {
             action: "drawRect",
+            type: "draw",
+            params: { ...params }
+          })
+        );
+      case "fillCirc":
+        return dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "fillCirc",
+            type: "draw",
+            params: { ...params }
+          })
+        );
+      case "drawCirc":
+        return dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "drawCirc",
             type: "draw",
             params: { ...params }
           })
