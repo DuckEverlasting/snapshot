@@ -10,6 +10,11 @@ export default function(ctx, { action, params }) {
   if (params.clearFirst) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   }
+  if (params.filter) {
+    ctx.filter = params.filter
+  } else {
+    ctx.filter = "none"
+  }
   if (params.composite) {
     ctx.globalCompositeOperation = params.composite
   } else {

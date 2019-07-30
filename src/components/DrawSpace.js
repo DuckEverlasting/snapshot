@@ -123,13 +123,19 @@ export default function DrawSpace(props) {
           destArray: [...state.destArray, [x, y]]
         }
       case "brush":
+        let num;
+        if (width <= 5) num = 0
+        else if (5 < width < 15) num = 1
+        else if (15 <= width) num = 2
+
         dispatch(
           updateLayerQueue("staging", {
             action: "drawLine",
             type: "draw",
             params: {
               ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin
+              orig: state.destArray[state.destArray.length - 1] || state.origin,
+              filter: `blur(${num}px)`
             }
           })
         );
@@ -223,7 +229,7 @@ export default function DrawSpace(props) {
   };
 
   const mouseUpHandler = ev => {
-    if (!state.mouseDown || ev.buttons === 1) return;
+    if (!state.mouseDown) return;
 
     state = {
       ...state,
@@ -257,27 +263,43 @@ export default function DrawSpace(props) {
             params: {
               ...params,
               destArray: state.destArray
-            },
+            }
           })
         );
       case "brush":
-        async function brushFeather(quality) {
-          for (let i = 1; i <= quality; i++) {
-            await dispatch(
-              updateLayerQueue(activeLayer, {
-                action: "drawLine",
-                type: "draw",
-                params: {
-                  ...params,
-                  width: width * (1.25 - ((1 / (quality - 1)) * (i - 1))),
-                  strokeColor: addOpacity(primary, opacity * (1/quality) * i),
-                  destArray: state.destArray
-                }
-              })
-            );
-          }
-        }
-        return brushFeather(50);
+        // async function brushFeather(quality) {
+        //   for (let i = 1; i <= quality; i++) {
+        //     await dispatch(
+        //       updateLayerQueue(activeLayer, {
+        //         action: "drawLine",
+        //         type: "draw",
+        //         params: {
+        //           ...params,
+        //           width: width * (1.25 - ((1 / (quality - 1)) * (i - 1))),
+        //           strokeColor: addOpacity(primary, opacity * (1/quality) * i),
+        //           destArray: state.destArray
+        //         }
+        //       })
+        //     );
+        //   }
+        // }
+        // return brushFeather(50);
+        let num;
+        if (width <= 5) num = 0
+        else if (5 < width < 15) num = 1
+        else if (15 <= width) num = 2
+
+        return dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "drawLine",
+            type: "draw",
+            params: {
+              ...params,
+              destArray: state.destArray,
+              filter: `blur(${num}px)`
+            }
+          })
+        );
       case "line":
         return dispatch(
           updateLayerQueue(activeLayer, {
