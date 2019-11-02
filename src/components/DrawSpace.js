@@ -1,6 +1,8 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
+import pencilImg from "../cursors/pencil.png"
+import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity } from '../logic/colorConversion.js';
 import { updateLayerQueue, createLayer, deleteLayer, updateColor } from "../actions";
@@ -48,10 +50,12 @@ export default function DrawSpace(props) {
 
   const cursorHandler = () => () => {
     switch (activeTool) {
+      case "pencil": return `url(${pencilImg}) -22 22, auto`;
       case "line": return "crosshair";
       case "fillRect": return "crosshair";
       case "drawRect": return "crosshair";
       case "selectRect": return "crosshair";
+      case "eyeDropper": return `url(${dropperImg}) -22 22, auto`;
       case "move": return "move";
       default: return "auto";
     }
@@ -404,6 +408,7 @@ export default function DrawSpace(props) {
       index={props.index}
       tabIndex="1"
       cursor={cursorHandler}
+      pencilImg={pencilImg}
       onContextMenu={contextMenuHandler}
       onMouseDown={mouseDownHandler}
       onMouseMove={mouseMoveHandler}

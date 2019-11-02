@@ -14,6 +14,7 @@ const ToolPanelSC = styled.div`
   border-bottom-left-radius: 10px;
   border-top-left-radius: 10px;
   z-index: 1;
+  background: #666666;
 `;
 
 const TitleSC = styled.h3`
