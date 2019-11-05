@@ -22,7 +22,8 @@ let state = {
   mouseDown: false,
   origin: null,
   destArray: [],
-  hold: false
+  hold: false,
+  lockedAxis: ""
 };
 
 export default function DrawSpace(props) {
@@ -33,6 +34,10 @@ export default function DrawSpace(props) {
   const color = addOpacity(primary, opacity)
 
   const eyeDropper = (x, y, palette) => {
+    /* 
+      Separate function to handle the Eye Dropper tool. (Doesn't go through the standard draw reducer.)
+    */
+
     let color;
     for (let i = layerOrder.length - 1; i >= 0; i--) {
       let ctx = layers.filter(layer => layer.id === layerOrder[i])[0].ctx;
@@ -49,6 +54,10 @@ export default function DrawSpace(props) {
   }
 
   const cursorHandler = () => () => {
+    /* 
+      Callback that handles which cursor is displayed over the component.
+    */
+
     switch (activeTool) {
       case "pencil": return `url(${pencilImg}) -22 22, auto`;
       case "line": return "crosshair";
@@ -62,10 +71,17 @@ export default function DrawSpace(props) {
   }
 
   const contextMenuHandler = ev => {
+    /* 
+      Handles what happens when secondary mouse button is clicked. Currently set to do nothing.
+    */
+
     ev.preventDefault();
   }
 
   const mouseDownHandler = ev => {
+    /* 
+      Handles what happens when mouse is pressed down.
+    */
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
     if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
     let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
@@ -77,6 +93,7 @@ export default function DrawSpace(props) {
     };
     switch (activeTool) {
       case "pencil":
+        console.log("X", x, "Y", y)
         return dispatch(createLayer(activeLayer, "staging"));
       case "brush":
         return dispatch(createLayer(activeLayer, "staging"));
@@ -103,9 +120,27 @@ export default function DrawSpace(props) {
     }
   };
 
+  const setLockedAxis = (x, y) => {
+    /* 
+      Determines which axis should be "locked" in certain functions.
+    */
+
+    if (Math.abs(state.origin[0] - x) < Math.abs(state.origin[1] - y)) {
+      state = {...state, lockedAxis: "x"}
+    } else {
+      state = {...state, lockedAxis: "y"}
+    }
+  }
+
   const mouseMoveHandler = ev => {
+    /* 
+      Handles what happens when mouse is moved.
+    */
+
     if (!state.mouseDown) return;
     let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+
+    // Default parameters
     let params = {
       orig: state.origin,
       dest: [x, y],
@@ -114,26 +149,22 @@ export default function DrawSpace(props) {
       strokeColor: color,
       fillColor: color
     };
+
+    if (state.lockedAxis && !ev.shiftKey) {
+      state = {...state, lockedAxis: ""}
+    }
+
+    if (!state.lockedAxis && ev.shiftKey) {
+      setLockedAxis(x, y)
+    }
+
     switch (activeTool) {
       case "pencil":
-        dispatch(
-          updateLayerQueue("staging", {
-            action: "drawLine",
-            type: "draw",
-            params: {
-              ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin
-            }
-          })
-        );
-        return state = {
-          ...state,
-          destArray: [...state.destArray, [x, y]]
-        }
-      case "brush":
-        let num;
-        if (width <= 5) num = 0
-        else num = 1
+        if (state.lockedAxis === "x") {
+          x = state.origin[0]
+        } else if (state.lockedAxis === "y") {
+          y = state.origin[1]
+        };
 
         dispatch(
           updateLayerQueue("staging", {
@@ -142,6 +173,34 @@ export default function DrawSpace(props) {
             params: {
               ...params,
               orig: state.destArray[state.destArray.length - 1] || state.origin,
+              destArray: [[x, y]],
+            }
+          })
+        );
+        return state = {
+          ...state,
+          destArray: [...state.destArray, [x, y]]
+        };
+
+      case "brush":
+        let num;
+        if (width <= 5) num = 0
+        else num = 1
+
+        if (state.lockedAxis === "x") {
+          x = state.origin[0]
+        } else if (state.lockedAxis === "y") {
+          y = state.origin[1]
+        };
+
+        dispatch(
+          updateLayerQueue("staging", {
+            action: "drawLine",
+            type: "draw",
+            params: {
+              ...params,
+              orig: state.destArray[state.destArray.length - 1] || state.origin,
+              destArray: [[x, y]],
               filter: `blur(${num}px)`
             }
           })
@@ -149,7 +208,8 @@ export default function DrawSpace(props) {
         return state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
-        }
+        };
+
       case "line":
         return dispatch(
           updateLayerQueue("staging", {
@@ -161,17 +221,30 @@ export default function DrawSpace(props) {
             },
           })
         );
+
       case "fillRect":
+        if (ev.shiftKey) {
+          if (Math.abs(state.origin[0] - x) < Math.abs(state.origin[1] - y)) {
+            x = y;
+            console.log("X", x, "Y", y)
+          } else {
+            y = x;
+            console.log("X", x, "Y", y)
+          };
+        };
+
         return dispatch(
           updateLayerQueue("staging", {
             action: "fillRect",
             type: "draw",
             params: {
               ...params,
-              clearFirst: true
+              clearFirst: true,
+              dest: [x, y]
             },
           })
         );
+
       case "drawRect":
         return dispatch(
           updateLayerQueue("staging", {
@@ -183,6 +256,7 @@ export default function DrawSpace(props) {
             },
           })
         );
+
       case "fillCirc":
         return dispatch(
           updateLayerQueue("staging", {
@@ -194,6 +268,7 @@ export default function DrawSpace(props) {
             },
           })
         );
+
       case "drawCirc":
         return dispatch(
           updateLayerQueue("staging", {
@@ -205,7 +280,14 @@ export default function DrawSpace(props) {
             },
           })
         );
+
       case "eraser":
+        if (state.lockedAxis === "x") {
+          x = state.origin[0]
+        } else if (state.lockedAxis === "y") {
+          y = state.origin[1]
+        };
+
         dispatch(
           updateLayerQueue("staging", {
             action: "drawLine",
@@ -213,6 +295,7 @@ export default function DrawSpace(props) {
             params: {
               ...params,
               orig: state.destArray[state.destArray.length - 1] || state.origin,
+              destArray: [[x, y]],
               strokeColor: "rgba(0, 0, 0, .5)"
             },
           })
@@ -220,9 +303,11 @@ export default function DrawSpace(props) {
         return state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
-        }
+        };
+
       case "eyeDropper":
         return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary");
+
       case "selectRect":
         return dispatch(
           updateLayerQueue("staging", {
@@ -237,6 +322,7 @@ export default function DrawSpace(props) {
             },
           })
         );
+
       case "move":
         dispatch(
           updateLayerQueue(activeLayer, {
@@ -258,21 +344,25 @@ export default function DrawSpace(props) {
   };
 
   const mouseUpHandler = ev => {
+    /* 
+      Handles what happens when mouse is released.
+    */
+
     if (!state.mouseDown) return;
 
     state = {
       ...state,
       mouseDown: false,
       hold: true
-    }
+    };
 
     setTimeout(() => {
       state = {
         ...state,
         hold: false
-      }
+      };
       dispatch(deleteLayer("staging"))
-    }, 0)
+    }, 0);
     
     const [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
     let params = {
@@ -295,6 +385,7 @@ export default function DrawSpace(props) {
             }
           })
         );
+
       case "brush":
         // async function brushFeather(quality) {
         //   for (let i = 1; i <= quality; i++) {
@@ -328,6 +419,7 @@ export default function DrawSpace(props) {
             }
           })
         );
+
       case "line":
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -336,6 +428,7 @@ export default function DrawSpace(props) {
             params: { ...params }
           })
         );
+
       case "fillRect":
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -344,6 +437,7 @@ export default function DrawSpace(props) {
             params: { ...params }
           })
         );
+
       case "drawRect":
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -352,6 +446,7 @@ export default function DrawSpace(props) {
             params: { ...params }
           })
         );
+
       case "fillCirc":
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -360,6 +455,7 @@ export default function DrawSpace(props) {
             params: { ...params }
           })
         );
+
       case "drawCirc":
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -368,6 +464,7 @@ export default function DrawSpace(props) {
             params: { ...params }
           })
         );
+
       case "eraser":
         return dispatch(
           updateLayerQueue(activeLayer, {
@@ -381,8 +478,10 @@ export default function DrawSpace(props) {
             },
           })
         );
+
       case "eyeDropper":
         break;
+
       case "selectRect":
         return dispatch(
           updateLayerQueue("selection", {
@@ -396,8 +495,10 @@ export default function DrawSpace(props) {
             }
           })
         );
+
       case "move":
         break;
+
       default:
         break;
     }
