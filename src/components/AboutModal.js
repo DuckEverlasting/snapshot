@@ -2,7 +2,8 @@ import React from "react";
 import styled from "styled-components";
 
 const AboutModalSC = styled.div`
-  position: absolute;
+  position: fixed;
+  top: 0;
   display: flex;
   justify-content: center;
   align-items: center;
