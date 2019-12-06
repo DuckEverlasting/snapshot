@@ -17,6 +17,7 @@ const LayerPanelSC = styled.div`
   border-bottom-right-radius: 10px;
   border-top-right-radius: 10px;
   z-index: 1;
+  background: #666666;
 `;
 
 const LayerBoxSC = styled.div`

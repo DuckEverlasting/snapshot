@@ -16,6 +16,7 @@ import {
 const LayerCardSC = styled.div`
   position: relative;
   border: 1px solid black;
+  color: black;
   background: ${props => (props.active ? "yellow" : "white")};
   opacity: ${props => (props.layerHidden ? 0.5 : 1)};
   cursor: pointer;

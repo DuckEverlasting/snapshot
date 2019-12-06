@@ -10,7 +10,9 @@ const WorkspaceSC = styled.div`
   width: ${props => props.width}px;
   height: ${props => props.height}px;
   border: 3px solid black;
+  overflow: hidden;
   z-index: 1;
+  background: white;
 `
 
 const ViewPaneSC = styled.div`
