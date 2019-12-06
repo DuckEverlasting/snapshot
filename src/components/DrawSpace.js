@@ -226,10 +226,8 @@ export default function DrawSpace(props) {
         if (ev.shiftKey) {
           if (Math.abs(state.origin[0] - x) < Math.abs(state.origin[1] - y)) {
             x = y;
-            console.log("X", x, "Y", y)
           } else {
             y = x;
-            console.log("X", x, "Y", y)
           };
         };
 

@@ -96,14 +96,14 @@ export default function LayerCard(props) {
           active={props.id === activeLayer}
           layerHidden={props.hidden}
         >
-          <HideButtonSC onClick={hideHandler}>
+          <HideButtonSC title="Hide Layer" onClick={hideHandler}>
             {props.hidden ? (
               <FontAwesomeIcon icon={faEyeSlash} />
             ) : (
               <FontAwesomeIcon icon={faEye} />
             )}
           </HideButtonSC>
-          <DeleteButtonSC onClick={deleteHandler}>
+          <DeleteButtonSC title="Delete Layer" onClick={deleteHandler}>
             <FontAwesomeIcon icon={faTrashAlt} />
           </DeleteButtonSC>
           {!props.nameEditable && <NameSC onDoubleClick={enableRenameHandler}>{props.name}</NameSC>}
