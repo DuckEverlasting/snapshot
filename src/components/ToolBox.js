@@ -82,11 +82,11 @@ export default function ToolBox() {
             <FontAwesomeIcon icon={faEyeDropper} />
           </SpanSC>
         </ButtonSC>
-        <ButtonSC title="Select Rectangle" name="selectRect" active={activeTool === "selectRect"} onClick={changeToolHandler}>
-          <SpanSC role="img" aria-label="Select Rectangle">
-            <FontAwesomeIcon icon={faVectorSquare} />
-          </SpanSC>
-        </ButtonSC>
+            {/* <ButtonSC title="Select Rectangle" name="selectRect" active={activeTool === "selectRect"} onClick={changeToolHandler}>
+              <SpanSC role="img" aria-label="Select Rectangle">
+                <FontAwesomeIcon icon={faVectorSquare} />
+              </SpanSC>
+            </ButtonSC> */}
         <ButtonSC title="Move" name="move" active={activeTool === "move"} onClick={changeToolHandler}>
           <SpanSC role="img" aria-label="Move">
             <FontAwesomeIcon icon={faArrowsAlt} />

@@ -45,9 +45,9 @@ export default function ToolPanel() {
       <TitleSC>Tools</TitleSC>
       <ToolPanelDividerSC>
         <ToolBox />
-        <SpacerSC/>
         <ColorBox />
         <ToolCard />
+        <SpacerSC/>
       </ToolPanelDividerSC>
     </ToolPanelSC>
   );

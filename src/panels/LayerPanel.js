@@ -41,6 +41,8 @@ const TitleSC = styled.h3`
 `;
 
 const ButtonSC = styled.button`
+  outline: none;
+  background: #e3e3e3;
   width: 80%;
   font-size: 12px;
 `;
@@ -98,7 +100,7 @@ export default function LayerPanel() {
             </LayerBoxSC>)}
         </Droppable>
       </DragDropContext>
-      <ButtonSC onClick={() => dispatch(createLayer(layerOrder.length - 1))}>
+      <ButtonSC title="New Layer" onClick={() => dispatch(createLayer(layerOrder.length - 1))}>
         NEW LAYER
       </ButtonSC>
     </LayerPanelSC>
