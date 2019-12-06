@@ -7,8 +7,8 @@ const AboutModalSC = styled.div`
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, .8);
-  height: 100%;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
   z-index: 99;
 `
 
