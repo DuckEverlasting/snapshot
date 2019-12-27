@@ -14,7 +14,8 @@ export const [
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
-  UPDATE_COLOR
+  UPDATE_COLOR,
+  UPDATE_WORKSPACE_SETTINGS
 ] = [
   "CREATE_LAYER",
   "DELETE_LAYER",
@@ -31,7 +32,8 @@ export const [
   "MAKE_ACTIVE_LAYER",
   "MAKE_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
-  "UPDATE_COLOR"
+  "UPDATE_COLOR",
+  "UPDATE_WORKSPACE_SETTINGS"
 ];
 
 export const createLayer = (position, special = false) => {
@@ -144,3 +146,10 @@ export const updateColor = (key, value) => {
     payload: {key, value}
   };
 };
+
+export const updateWorkspaceSettings = (changes) => {
+  return {
+    type: UPDATE_WORKSPACE_SETTINGS,
+    payload: changes
+  }
+}

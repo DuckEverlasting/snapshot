@@ -9,10 +9,11 @@ import manipulate from "../reducers/manipulateReducer.js";
 const LayerSC = styled.canvas`
   position: absolute;
   visibility: ${props => props.hidden ? "hidden" : "visible"};
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
+  width: 100%;
+  height: 100%;
   left: 0%;
   top: 0%;
+  image-rendering: pixelated;
   z-index: ${props => props.index};
 `
 

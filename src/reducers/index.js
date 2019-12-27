@@ -14,13 +14,14 @@ import {
   MAKE_ACTIVE_LAYER,
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
-  UPDATE_COLOR
+  UPDATE_COLOR,
+  UPDATE_WORKSPACE_SETTINGS,
 } from "../actions";
 
 let selectionCanvas = document.createElement("canvas");
 let initCanvas = document.createElement("canvas");
-let initWidth = 1000;
-let initHeight = 750;
+let initWidth = window.innerWidth * .7;
+let initHeight = window.innerHeight * .8;
 selectionCanvas.width = initWidth;
 selectionCanvas.height = initHeight;
 initCanvas.width = initWidth;
@@ -28,8 +29,11 @@ initCanvas.height = initHeight;
 
 const initialState = {
   workspaceSettings: {
+    canvasWidth: initWidth,
+    canvasHeight: initHeight,
     width: initWidth,
-    height: initHeight
+    height: initHeight,
+    zoomPct: 100
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",
@@ -82,8 +86,9 @@ const rootReducer = (state = initialState, action) => {
     case CREATE_LAYER:
       let { position, special } = action.payload;
       let canvas = document.createElement("canvas");
-      canvas.width = state.workspaceSettings.width;
-      canvas.height = state.workspaceSettings.height;
+      canvas.width = state.workspaceSettings.canvasWidth;
+      canvas.height = state.workspaceSettings.canvasHeight;
+      canvas.getContext("2d").imageSmoothingEnabled = false;
       let newLayer = {
         id: special ? special : state.layerCounter,
         name: special ? undefined : `layer ${state.layerCounter}`,
@@ -137,10 +142,10 @@ const rootReducer = (state = initialState, action) => {
 
     case UPDATE_LAYER_DATA:
         let afterUpdateData = state.layers.map(layer => {
-          let { id, changes } = action.payload;
+          let { id, changes: layerChanges } = action.payload;
           if (layer.id === id) {
-            layer.data = changes;
-            layer.ctx = changes.getContext('2d');
+            layer.data = layerChanges;
+            layer.ctx = layerChanges.getContext('2d');
           }
           return layer;
         });
@@ -151,9 +156,9 @@ const rootReducer = (state = initialState, action) => {
 
     case UPDATE_LAYER_QUEUE:
       let afterUpdate = state.layers.map(layer => {
-        let { id, changes } = action.payload;
+        let { id, changes: layerQueueChanges } = action.payload;
         if (layer.id === id) {
-          layer.queue = changes;
+          layer.queue = layerQueueChanges;
         }
         return layer;
       });
@@ -248,12 +253,12 @@ const rootReducer = (state = initialState, action) => {
       };
 
     case UPDATE_TOOL_SETTINGS:
-      let { tool, changes } = action.payload;
+      let { tool, changes: toolChanges } = action.payload;
       return {
         ...state,
         toolSettings: {
           ...state.toolSettings,
-          [tool]: changes
+          [tool]: toolChanges
         }
       };
 
@@ -264,6 +269,16 @@ const rootReducer = (state = initialState, action) => {
         colorSettings: {
           ...state.colorSettings,
           [key]: value
+        }
+      };
+
+    case UPDATE_WORKSPACE_SETTINGS:
+      let workspaceSettingsChanges = action.payload;
+      return {
+        ...state,
+        workspaceSettings: {
+          ...state.workspaceSettings,
+          ...workspaceSettingsChanges
         }
       };
 

@@ -23,6 +23,7 @@ const TitleSC = styled.h3`
   justify-content: center;
   height: 12%;
   margin: 0;
+  font-size: 1.2rem;
 `
 
 const ToolPanelDividerSC = styled.div`
@@ -39,7 +40,7 @@ const SpacerSC = styled.div`
 
 export default function ToolPanel() {
   const { height } = useSelector(state => state.workspaceSettings);
-
+  
   return (
     <ToolPanelSC height={height}>
       <TitleSC>Tools</TitleSC>

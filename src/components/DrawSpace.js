@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity } from '../logic/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor } from "../actions";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
@@ -14,7 +14,7 @@ const DrawSpaceSC = styled.div`
   left: 0%;
   top: 0%;
   outline: none;
-  cursor: ${props => props.cursor};
+  cursor: ${props => props.cursorHandler};
   z-index: ${props => props.index};
 `;
 
@@ -27,7 +27,7 @@ let state = {
 };
 
 export default function DrawSpace(props) {
-  const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
+  const { activeTool, activeLayer, toolSettings, layers, layerOrder, workspaceSettings } = useSelector(state => state);
   const { primary } = useSelector(state => state.colorSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];
@@ -93,7 +93,6 @@ export default function DrawSpace(props) {
     };
     switch (activeTool) {
       case "pencil":
-        console.log("X", x, "Y", y)
         return dispatch(createLayer(activeLayer, "staging"));
       case "brush":
         return dispatch(createLayer(activeLayer, "staging"));
@@ -506,7 +505,7 @@ export default function DrawSpace(props) {
     <DrawSpaceSC
       index={props.index}
       tabIndex="1"
-      cursor={cursorHandler}
+      cursorHandler={cursorHandler}
       pencilImg={pencilImg}
       onContextMenu={contextMenuHandler}
       onMouseDown={mouseDownHandler}

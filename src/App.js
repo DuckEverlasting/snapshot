@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
 
 import AboutModal from './components/AboutModal.js';
+import TopBar from './panels/TopBar.js';
 import Workspace from './panels/Workspace.js';
 import ToolPanel from './panels/ToolPanel.js';
 import LayerPanel from './panels/LayerPanel.js';
+
+import { updateWorkspaceSettings } from './actions'
 
 const AppSC = styled.div`
   text-align: center;
@@ -22,12 +26,6 @@ const AppContainerSC = styled.div`
   user-select: none;
 `
 
-const TitleSC = styled.h1`
-  color: white;
-  font-size: 4rem;
-  margin: 0;
-`
-
 const AboutButtonSC = styled.button`
   outline: none;
   background: #e3e3e3;
@@ -38,6 +36,15 @@ const AboutButtonSC = styled.button`
 
 function App() {
   const [modalOn, setModalOn] = useState(false)
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const adjustSizing = () => {
+      dispatch(updateWorkspaceSettings({ width: window.innerWidth * .7, height: window.innerHeight * .8}))
+    }
+    window.addEventListener("resize", adjustSizing)
+    return () => window.removeEventListener("resize", adjustSizing)
+  }, [dispatch])
 
   const handleModalButton = ev => {
     ev.preventDefault();
@@ -47,7 +54,7 @@ function App() {
   return (
     <AppSC>
       {modalOn && <AboutModal turnOff={() => setModalOn(false)}/>}
-      <TitleSC>PhotoSmith</TitleSC>
+      <TopBar/>
       <AppContainerSC>
         <ToolPanel />
         <Workspace />
