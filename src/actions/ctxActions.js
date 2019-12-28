@@ -1,9 +1,11 @@
-export function line(ctx, { destArray }) {
+export function line(ctx, { destArray, translation }) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+  if (translation) ctx.translate(translation, translation);
   destArray.forEach(dest => {
     ctx.lineTo(dest[0], dest[1]);
   })
+  if (translation) ctx.translate(-translation, -translation);
 }
 
 export function quadratic(ctx, { destArray }) {
@@ -18,8 +20,10 @@ export function bezier(ctx, { destArray }) {
   })
 }
 
-export function rectangle(ctx, { orig, dest }) {
+export function rectangle(ctx, { orig, dest, translation }) {
+  if (translation) ctx.translate(translation, translation);
   ctx.rect(orig[0], orig[1], (dest[0] - orig[0]), (dest[1] - orig[1]))
+  if (translation) ctx.translate(-translation, -translation);
 }
 
 export function circle(ctx, { orig, dest }) {

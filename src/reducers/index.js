@@ -33,6 +33,8 @@ const initialState = {
     canvasHeight: initHeight,
     width: initWidth,
     height: initHeight,
+    translateX: 0,
+    translateY: 0,
     zoomPct: 100
   },
   colorSettings: {

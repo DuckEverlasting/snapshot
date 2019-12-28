@@ -21,9 +21,12 @@ export default function(ctx, { action, params }) {
     ctx.globalCompositeOperation = "source-over"
   }
   ctx.beginPath();
-  ctx.moveTo(params.orig[0], params.orig[1]);
-  if (params.width) ctx.lineWidth = params.width;
+  if (params.width) {
+    params.translation = (params.width % 2) / 2;
+    ctx.lineWidth = params.width
+  };
   if (params.dashPattern) ctx.setLineDash(params.dashPattern);
+  ctx.moveTo(params.orig[0], params.orig[1]);
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
 

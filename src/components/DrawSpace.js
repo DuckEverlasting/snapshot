@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity } from '../logic/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor } from "../actions";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
   width: 100%;
   height: 100%;
-  left: 0%;
-  top: 0%;
   outline: none;
   cursor: ${props => props.cursorHandler};
   z-index: ${props => props.index};
@@ -27,7 +25,7 @@ let state = {
 };
 
 export default function DrawSpace(props) {
-  const { activeTool, activeLayer, toolSettings, layers, layerOrder, workspaceSettings } = useSelector(state => state);
+  const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
   const { primary } = useSelector(state => state.colorSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];
@@ -57,6 +55,10 @@ export default function DrawSpace(props) {
     /* 
       Callback that handles which cursor is displayed over the component.
     */
+
+    if (props.overrideCursor !== null) {
+      return props.overrideCursor
+    }
 
     switch (activeTool) {
       case "pencil": return `url(${pencilImg}) -22 22, auto`;
@@ -370,18 +372,34 @@ export default function DrawSpace(props) {
       strokeColor: color,
       fillColor: color
     };
+    
     switch (activeTool) {
       case "pencil":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "drawLine",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: state.destArray
-            }
-          })
-        );
+        console.log(params)
+        if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
+          return dispatch(
+            updateLayerQueue(activeLayer, {
+              action: "fillRect",
+              type: "draw",
+              params: {
+                ...params,
+                orig: [params.orig[0] - .5 * params.width, params.orig[1] - .5 * params.width],
+                dest: [params.dest[0] + .5 * params.width, params.dest[1] + .5 * params.width]
+              }
+            })
+          );
+        } else {
+          return dispatch(
+            updateLayerQueue(activeLayer, {
+              action: "drawLine",
+              type: "draw",
+              params: {
+                ...params,
+                destArray: state.destArray
+              }
+            })
+          );
+        }
 
       case "brush":
         // async function brushFeather(quality) {
