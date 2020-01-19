@@ -58,6 +58,8 @@ const TitleSC = styled.h1`
   border-bottom: none;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  white-space: nowrap;
+  user-select: none;
 `
 
 export default function TopBar() {
