@@ -52,7 +52,8 @@ const initialState = {
     eraser: { name: "Eraser", width: 5, opacity: 0 },
     eyeDropper: { name: "Eye Dropper", width: null, opacity: null },
     selectRect: { name: "Select Rectangle", width: null, opacity: null },
-    move: { name: "Move", width: null, opacity: null }
+    move: { name: "Move", width: null, opacity: null },
+    zoom: { name: "Zoom", width: null, opacity: null }
   },
   layers: [
     {

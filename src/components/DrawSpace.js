@@ -5,7 +5,7 @@ import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity } from '../logic/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor } from "../actions";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
@@ -27,6 +27,7 @@ let state = {
 export default function DrawSpace(props) {
   const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
   const { primary } = useSelector(state => state.colorSettings);
+  const { zoomPct } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];
   const color = addOpacity(primary, opacity)
@@ -68,6 +69,7 @@ export default function DrawSpace(props) {
       case "selectRect": return "crosshair";
       case "eyeDropper": return `url(${dropperImg}) -22 22, auto`;
       case "move": return "move";
+      case "zoom": return "zoom-in";
       default: return "auto";
     }
   }
@@ -115,6 +117,8 @@ export default function DrawSpace(props) {
       case "selectRect":
         return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
+        break;
+      case "zoom":
         break;
       default:
         break;
@@ -336,13 +340,17 @@ export default function DrawSpace(props) {
         return state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
-        }
+        };
+
+      case "zoom":
+        break;
+
       default:
         break;
     }
   };
 
-  const mouseUpHandler = ev => {
+  const mouseUpHandler = (ev, mouseOut=false) => {
     /* 
       Handles what happens when mouse is released.
     */
@@ -514,6 +522,10 @@ export default function DrawSpace(props) {
       case "move":
         break;
 
+      case "zoom":
+        if (mouseOut) break;
+        return dispatch(updateWorkspaceSettings({zoomPct: zoomPct * (ev.altKey ? 2/3 : 3/2)}));
+
       default:
         break;
     }
@@ -529,7 +541,7 @@ export default function DrawSpace(props) {
       onMouseDown={mouseDownHandler}
       onMouseMove={mouseMoveHandler}
       onMouseUp={mouseUpHandler}
-      onMouseOut={mouseUpHandler}
+      onMouseOut={ev => mouseUpHandler(ev, true)}
     />
   );
 }
