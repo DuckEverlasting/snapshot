@@ -10,6 +10,7 @@ import {
   faArrowsAlt,
   faEyeDropper,
   faVectorSquare,
+  faHandPaper,
   faSearch
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
@@ -50,6 +51,7 @@ export default function ToolBox() {
       <ToolButton title="Eye Dropper" name="eyeDropper" faIcon={faEyeDropper}/>
       {/* <ToolButton title="Select Rectangle" name="selectRect" faIcon={faVectorSquare}/> */}
       <ToolButton title="Move" name="move" faIcon={faArrowsAlt}/>
+      <ToolButton title="Hand" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom" name="zoom" faIcon={faSearch}/>
     </ToolboxSC>
   );

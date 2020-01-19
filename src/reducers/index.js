@@ -53,6 +53,7 @@ const initialState = {
     eyeDropper: { name: "Eye Dropper", width: null, opacity: null },
     selectRect: { name: "Select Rectangle", width: null, opacity: null },
     move: { name: "Move", width: null, opacity: null },
+    hand: { name: "Hand", width: null, opacity: null },
     zoom: { name: "Zoom", width: null, opacity: null }
   },
   layers: [
