@@ -27,7 +27,7 @@ let state = {
 export default function DrawSpace(props) {
   const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
   const { primary } = useSelector(state => state.colorSettings);
-  const { zoomPct } = useSelector(state => state.workspaceSettings);
+  const { zoomPct, translateX, translateY } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];
   const color = addOpacity(primary, opacity)
@@ -69,6 +69,7 @@ export default function DrawSpace(props) {
       case "selectRect": return "crosshair";
       case "eyeDropper": return `url(${dropperImg}) -22 22, auto`;
       case "move": return "move";
+      case "hand": return "grab";
       case "zoom": return "zoom-in";
       default: return "auto";
     }
@@ -117,6 +118,8 @@ export default function DrawSpace(props) {
       case "selectRect":
         return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
+        break;
+      case "hand":
         break;
       case "zoom":
         break;
@@ -341,6 +344,11 @@ export default function DrawSpace(props) {
           ...state,
           destArray: [...state.destArray, [x, y]]
         };
+        
+      case "hand":
+        const deltaX = state.origin[0] - ev.nativeEvent.offsetX
+        const deltaY = state.origin[1] - ev.nativeEvent.offsetY
+        dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}));
 
       case "zoom":
         break;
@@ -520,6 +528,9 @@ export default function DrawSpace(props) {
         );
 
       case "move":
+        break;
+
+      case "hand":
         break;
 
       case "zoom":

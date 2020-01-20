@@ -21,7 +21,7 @@ const WidthPickerSC = styled.input`
   width: 35%;
 `
 
-const OpacitySliderSC = styled.input`
+const WidthSliderSC = styled.input`
   margin-top: 3px;
   width: 80%;
 `
@@ -29,6 +29,11 @@ const OpacitySliderSC = styled.input`
 const OpacityPickerSC = styled.input`
   padding: 3px 0;
   width: 35%;
+`
+
+const OpacitySliderSC = styled.input`
+  margin-top: 3px;
+  width: 80%;
 `
 
 const LabelSC = styled.label`
@@ -60,6 +65,7 @@ export default function ToolCard() {
       <TitleSC>{toolName}</TitleSC>
       <LabelSC visible={width !== null}>Width
         <WidthPickerSC value={width} onChange={inputWidthHandler} type="number"/>
+        <WidthSliderSC value={width} onChange={inputWidthHandler} type="range" min="1" max="255"/>
       </LabelSC>
       <LabelSC visible={opacity !== null}>Opacity
         <OpacityPickerSC value={opacity * 100} onChange={inputOpacityHandler} type="number"/>

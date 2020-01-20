@@ -49,7 +49,7 @@ const initialState = {
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 1 },
     fillCirc: { name: "Fill Circle", width: null, opacity: 1 },
     drawCirc: { name: "Draw Circle", width: 5, opacity: 1 },
-    eraser: { name: "Eraser", width: 5, opacity: 0 },
+    eraser: { name: "Eraser", width: 5, opacity: null },
     eyeDropper: { name: "Eye Dropper", width: null, opacity: null },
     selectRect: { name: "Select Rectangle", width: null, opacity: null },
     move: { name: "Move", width: null, opacity: null },

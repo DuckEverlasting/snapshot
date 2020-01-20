@@ -10,9 +10,11 @@ import {
   faArrowsAlt,
   faEyeDropper,
   faVectorSquare,
-  faHandPaper,
   faSearch
 } from "@fortawesome/free-solid-svg-icons";
+import {
+  faHandPaper
+} from "@fortawesome/free-regular-svg-icons"
 import styled from "styled-components";
 
 import { makeActiveTool } from "../actions";
