@@ -9,10 +9,10 @@ import manipulate from "../reducers/manipulateReducer.js";
 const LayerSC = styled.canvas`
   position: absolute;
   visibility: ${props => props.hidden ? "hidden" : "visible"};
-  width: 100%;
-  height: 100%;
-  left: 0%;
-  top: 0%;
+  width: 300%;
+  height: 300%;
+  bottom: -100%;
+  right: -100%;
   image-rendering: pixelated;
   z-index: ${props => props.index};
 `
@@ -40,7 +40,14 @@ function Layer(props) {
     dispatch(updateLayerData(props.id, canvasRef.current))
   }
 
-  return <LayerSC width={props.width} height={props.height} hidden={props.hidden} index={props.index} ref={canvasRef} />
+  return <div style={{
+    position: "absolute",
+    width: props.width,
+    height: props.height,
+    overflow: "hidden",
+  }}>
+    <LayerSC width={props.width * 3} height={props.height * 3} hidden={props.hidden} index={props.index} ref={canvasRef} />
+  </div>
 }
 
 export default React.memo(Layer)

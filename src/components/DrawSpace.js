@@ -27,7 +27,7 @@ let state = {
 export default function DrawSpace(props) {
   const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
   const { primary } = useSelector(state => state.colorSettings);
-  const { zoomPct, translateX, translateY } = useSelector(state => state.workspaceSettings);
+  const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];
   const color = addOpacity(primary, opacity)
@@ -89,7 +89,7 @@ export default function DrawSpace(props) {
     */
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
     if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
-    let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     state = {
       ...state,
       mouseDown: true,
@@ -146,7 +146,7 @@ export default function DrawSpace(props) {
     */
 
     if (!state.mouseDown) return;
-    let [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
 
     // Default parameters
     let params = {
@@ -379,7 +379,7 @@ export default function DrawSpace(props) {
       dispatch(deleteLayer("staging"))
     }, 0);
     
-    const [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     let params = {
       orig: state.origin,
       dest: [x, y],
