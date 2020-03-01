@@ -1,4 +1,4 @@
-export const hotkeys = {
+export const hotkey = {
   "p": {type: "activeTool", payload: "pencil"}, 
   "b": {type: "activeTool", payload: "brush"},
   "l": {type: "activeTool", payload: "line"},
@@ -8,4 +8,14 @@ export const hotkeys = {
   "h": {type: "activeTool", payload: "hand"},
   "z": {type: "activeTool", payload: "zoom"},
   "x": {type: "special", payload: "switchColors"}
+}
+
+export const hotkeyCtrl = {
+  "c": {type: "special", payload: "copy"},
+  "v": {type: "special", payload: "paste"},
+  "z": {type: "special", payload: "undo"}
+}
+
+export const hotkeyCtrlShift = {
+  "z": {type: "special", payload: "redo"}
 }
