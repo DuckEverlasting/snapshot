@@ -30,7 +30,8 @@ export default function DrawSpace(props) {
   const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];
-  const color = addOpacity(primary, opacity)
+  // Note conversion of opacity to 0 - 1 from 0 - 100 below.
+  const color = addOpacity(primary, opacity / 100)
 
   const eyeDropper = (x, y, palette) => {
     /* 

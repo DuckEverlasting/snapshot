@@ -41,14 +41,15 @@ const initialState = {
     primary: "rgba(0, 0, 0, 1)",
     secondary: "rgba(255, 255, 255, 1)"
   },
+  // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. This is so the number input component won't get confused. Opacity is converted to 0 - 1 format in DrawSpace.
   toolSettings: {
-    pencil: { name: "Pencil", width: 5, opacity: 1 },
-    brush: { name: "Brush", width: 15, opacity: 1 },
-    line: { name: "Line", width: 5, opacity: 1 },
-    fillRect: { name: "Fill Rectangle", width: null, opacity: 1 },
-    drawRect: { name: "Draw Rectangle", width: 5, opacity: 1 },
-    fillCirc: { name: "Fill Circle", width: null, opacity: 1 },
-    drawCirc: { name: "Draw Circle", width: 5, opacity: 1 },
+    pencil: { name: "Pencil", width: 5, opacity: 100 },
+    brush: { name: "Brush", width: 15, opacity: 100 },
+    line: { name: "Line", width: 5, opacity: 100 },
+    fillRect: { name: "Fill Rectangle", width: null, opacity: 100 },
+    drawRect: { name: "Draw Rectangle", width: 5, opacity: 100 },
+    fillCirc: { name: "Fill Circle", width: null, opacity: 100 },
+    drawCirc: { name: "Draw Circle", width: 5, opacity: 100 },
     eraser: { name: "Eraser", width: 5, opacity: null },
     eyeDropper: { name: "Eye Dropper", width: null, opacity: null },
     selectRect: { name: "Select Rectangle", width: null, opacity: null },

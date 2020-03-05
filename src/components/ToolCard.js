@@ -52,11 +52,20 @@ export default function ToolCard() {
 
   const inputWidthHandler = ev => {
     let value = Number(ev.target.value);
+    if (value < 1) {
+      value = 1
+    };
     dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "width": value }))
   }
 
   const inputOpacityHandler = ev => {
-    let value = Number(ev.target.value) / 100;
+    let value = Number(ev.target.value);
+    if (value < 0) {
+      value = 0
+    };
+    if (value > 100) {
+      value = 100
+    };
     dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "opacity": value}))
   }
 
@@ -64,12 +73,12 @@ export default function ToolCard() {
     <ToolCardSC>
       <TitleSC>{toolName}</TitleSC>
       <LabelSC visible={width !== null}>Width
-        <WidthPickerSC value={width} onChange={inputWidthHandler} type="number"/>
-        <WidthSliderSC value={width} onChange={inputWidthHandler} type="range" min="1" max="255"/>
+        <WidthPickerSC value={width} onChange={inputWidthHandler} type="number" min="1" max="255" step="1"/>
+        <WidthSliderSC value={width} onChange={inputWidthHandler} type="range" min="1" max="255" step="1"/>
       </LabelSC>
       <LabelSC visible={opacity !== null}>Opacity
-        <OpacityPickerSC value={opacity * 100} onChange={inputOpacityHandler} type="number"/>
-        <OpacitySliderSC value={opacity * 100} onChange={inputOpacityHandler} type="range" min="0" max="100"/>
+        <OpacityPickerSC value={opacity} onChange={inputOpacityHandler} type="number" min="0" max="100" step="1"/>
+        <OpacitySliderSC value={opacity} onChange={inputOpacityHandler} type="range" min="0" max="100" step="1"/>
       </LabelSC>
     </ToolCardSC>
   )
