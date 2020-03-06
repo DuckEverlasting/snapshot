@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useDispatch } from "react-redux";
-import { updateLayerData } from '../actions'
+import { updateLayerData } from '../actions/redux'
 
-import draw from "../reducers/drawingReducer.js";
-import manipulate from "../reducers/manipulateReducer.js";
+import draw from "../reducers/custom/drawingReducer.js";
+import manipulate from "../reducers/custom/manipulateReducer.js";
 
 const LayerWrapperSC = styled.div`
   position: absolute;

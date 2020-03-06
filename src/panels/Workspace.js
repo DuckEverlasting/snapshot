@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import DrawSpace from '../components/DrawSpace';
 import Layer from '../components/Layer';
 
-import { updateWorkspaceSettings } from '../actions';
+import { updateWorkspaceSettings } from '../actions/redux';
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -125,13 +125,14 @@ export default function Workspace() {
     <WorkspaceSC ref={workspaceRef} width={width} height={height}>
       <CanvasPaneSC onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onMouseOut={handleMouseOut} onMouseMove={handleMouseMove} translateX={translateX} translateY={translateY} width={canvasWidth} height={canvasHeight} zoomPct={zoomPct}>
         <DrawSpace overrideCursor={isDragging ? "grabbing" : null} index={layerOrder.length + 2}/>
+        {/* <LayerRenderer layerOrder={layerOrder} layers={layers} width={canvasWidth} height={canvasHeight} /> */}
         {
           layerOrder.length !== 0 &&
           layerOrder.map((layerId, i) => {
-            let layer = layers[layers.findIndex(el => el.id === layerId)]
+            let layer = layers[layerId]
             return <Layer
-              key={layer.id}
-              id={layer.id}
+              key={layerId}
+              id={layerId}
               width={canvasWidth}
               height={canvasHeight}
               index={i + 1}
@@ -143,5 +144,41 @@ export default function Workspace() {
         }
       </CanvasPaneSC>
     </WorkspaceSC>    
+  )
+}
+
+function LayerRenderer({layerOrder, layers, canvasHeight, canvasWidth}) {
+  const [animatedLayers, setAnimatedLayers] = useState(layers)
+
+  useEffect(() => {
+    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+
+    return () => cancelAnimationFrame(reqFrame);
+  }, [])
+
+  function updateAnimatedLayers() {
+    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+    setAnimatedLayers(layers)
+  }
+
+  return (
+    <>
+      {
+        layerOrder.length !== 0 &&
+        layerOrder.map((layerId, i) => {
+          let layer = animatedLayers[layerId]
+          return <Layer
+            key={layerId}
+            id={layerId}
+            width={canvasWidth}
+            height={canvasHeight}
+            index={i + 1}
+            data={layer.data}
+            hidden={layer.hidden}
+            opacity={layer.opacity}
+            queue={layer.queue}/>
+        })
+      }
+    </>
   )
 }

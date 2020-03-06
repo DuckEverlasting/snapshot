@@ -16,7 +16,7 @@ import {
   UPDATE_TOOL_SETTINGS,
   UPDATE_COLOR,
   UPDATE_WORKSPACE_SETTINGS,
-} from "../actions";
+} from "../../actions/redux";
 
 let selectionCanvas = document.createElement("canvas");
 let initCanvas = document.createElement("canvas");
@@ -57,9 +57,8 @@ const initialState = {
     hand: { name: "Hand", width: null, opacity: null },
     zoom: { name: "Zoom", width: null, opacity: null }
   },
-  layers: [
-    {
-      id: 1,
+  layers: {
+    1: {
       name: "layer 1",
       nameEditable: false,
       data: initCanvas,
@@ -68,8 +67,7 @@ const initialState = {
       queue: null,
       ctx: initCanvas.getContext("2d")
     },
-    {
-      id: "selection",
+    selection: {
       name: undefined,
       nameEditable: false,
       data: selectionCanvas,
@@ -78,7 +76,7 @@ const initialState = {
       queue: null,
       ctx: selectionCanvas.getContext("2d")
     },
-  ],
+  },
   layerOrder: [1, "selection"],
   draggedLayercard: null,
   activeLayer: 1,
@@ -86,16 +84,16 @@ const initialState = {
   activeTool: "pencil"
 };
 
-const rootReducer = (state = initialState, action) => {
-  switch (action.type) {
+const rootReducer = (state = initialState, {type, payload}) => {
+  switch (type) {
     case CREATE_LAYER:
-      let { position, special } = action.payload;
+      let { position, special } = payload;
       let canvas = document.createElement("canvas");
       canvas.width = state.workspaceSettings.canvasWidth;
       canvas.height = state.workspaceSettings.canvasHeight;
       canvas.getContext("2d").imageSmoothingEnabled = false;
-      let newLayer = {
-        id: special ? special : state.layerCounter,
+      const layerID = special ? special : state.layerCounter;
+      const newLayer = {
         name: special ? undefined : `layer ${state.layerCounter}`,
         nameEditable: false,
         data: canvas,
@@ -105,23 +103,21 @@ const rootReducer = (state = initialState, action) => {
         ctx: canvas.getContext("2d")
       };
       let orderAfterCreate = state.layerOrder.slice(0);
-      orderAfterCreate.splice(position, 0, newLayer.id);
+      orderAfterCreate.splice(position, 0, layerID);
       return {
         ...state,
-        layers: [...state.layers, newLayer],
+        layers: {...state.layers, [layerID]: newLayer},
         layerOrder: orderAfterCreate,
         activeLayer: special ? state.activeLayer : state.layerCounter,
         layerCounter: special ? state.layerCounter : state.layerCounter + 1,
       };
     
     case DELETE_LAYER:
-      let afterDelete = state.layers.filter(layer => {
-        return layer.id !== action.payload;
-      });
+      let afterDelete = {...state.layers, [payload]: undefined}
       let afterDeleteOrder = state.layerOrder.filter(id => {
-        return id !== action.payload;
+        return id !== payload;
       });
-      let afterDeleteActive = state.activeLayer === action.payload ? null : state.activeLayer
+      let afterDeleteActive = state.activeLayer === payload ? null : state.activeLayer
       return {
         ...state,
         layers: afterDelete,
@@ -130,75 +126,81 @@ const rootReducer = (state = initialState, action) => {
       };
     
     case HIDE_LAYER:
-      let hiddenLayer = state.layers.filter(layer => {
-        return layer.id === action.payload
-      })[0];
-      hiddenLayer.hidden = !hiddenLayer.hidden;
+      let afterHiddenLayer = {
+        ...state.layers, 
+        [payload]: {
+          ...state.layers[payload],
+          hidden: !state.layers[payload].hidden
+        }
+      }
+      
       let activeLayer = state.activeLayer;
-      if (activeLayer === action.payload) activeLayer = null;
+      if (activeLayer === payload) activeLayer = null;
       return {
         ...state,
-        layer: [
-          ...state.layers,
-          hiddenLayer
-        ],
+        layer: afterHiddenLayer,
         activeLayer
       }
 
     case UPDATE_LAYER_DATA:
-        let afterUpdateData = state.layers.map(layer => {
-          let { id, changes: layerChanges } = action.payload;
-          if (layer.id === id) {
-            layer.data = layerChanges;
-            layer.ctx = layerChanges.getContext('2d');
+        let afterUpdateData = {
+          ...state.layers, 
+          [payload.id]: {
+            ...state.layers[payload.id],
+            data: payload.changes,
+            ctx: payload.changes.getContext('2d')
           }
-          return layer;
-        });
+        }
+        
         return {
           ...state,
           layers: afterUpdateData
         };
 
     case UPDATE_LAYER_QUEUE:
-      let afterUpdate = state.layers.map(layer => {
-        let { id, changes: layerQueueChanges } = action.payload;
-        if (layer.id === id) {
-          layer.queue = layerQueueChanges;
+      let afterUpdate = {
+        ...state.layers, 
+        [payload.id]: {
+          ...state.layers[payload.id],
+          queue: payload.changes,
         }
-        return layer;
-      });
+      }
+      
       return {
         ...state,
         layers: afterUpdate
       };
     
     case CLEAR_LAYER_QUEUE:
-      let afterQueueClear = state.layers.map(layer => {
-        if (layer.id === action.payload) {
-          layer.queue = {update: null, get: null}
+      let afterQueueClear = {
+        ...state.layers, 
+        [payload.id]: {
+          ...state.layers[payload.id],
+          queue: {update: null, get: null},
         }
-        return layer;
-      });
+      }
+      
       return {
         ...state,
         layers: afterQueueClear
       };
 
     case UPDATE_LAYER_OPACITY:
-      let afterOpacity = state.layers.map(layer => {
-        let { id, opacity } = action.payload;
-        if (layer.id === id) {
-          layer.opacity = opacity;
+      let afterOpacity = {
+        ...state.layers, 
+        [payload.id]: {
+          ...state.layers[payload.id],
+          opacity: payload.opacity,
         }
-        return layer;
-      });
+      }
+
       return {
         ...state,
         layers: afterOpacity
       };
 
     case UPDATE_LAYER_ORDER:
-      let { from, to } = action.payload;
+      let { from, to } = payload;
       let newLayerOrder = state.layerOrder.slice(0);
       newLayerOrder.splice(to, 0, newLayerOrder.splice(from, 1)[0]);
       return {
@@ -207,27 +209,29 @@ const rootReducer = (state = initialState, action) => {
       };
 
     case ENABLE_LAYER_RENAME:
-      let afterEnable = state.layers.map(layer => {
-        let id = action.payload;
-        if (layer.id === id) {
-          layer.nameEditable = true;
+      let afterEnable =  {
+        ...state.layers, 
+        [payload.id]: {
+          ...state.layers[payload.id],
+          nameEditable: true
         }
-        return layer;
-      });
+      }
+
       return {
         ...state,
         layers: afterEnable
       };
 
     case UPDATE_LAYER_NAME:
-      let afterRename = state.layers.map(layer => {
-        let { id, name } = action.payload;
-        if (layer.id === id) {
-          layer.name = name;
-          layer.nameEditable = false;
+      let afterRename = {
+        ...state.layers, 
+        [payload.id]: {
+          ...state.layers[payload.id],
+          name: payload.name,
+          nameEditable: false
         }
-        return layer;
-      });
+      }
+
       return {
         ...state,
         layers: afterRename
@@ -236,7 +240,7 @@ const rootReducer = (state = initialState, action) => {
     case DRAG_LAYERCARD:
       return {
         ...state,
-        draggedLayercard: action.payload
+        draggedLayercard: payload
       };
 
     case END_DRAG_LAYERCARD:
@@ -248,17 +252,17 @@ const rootReducer = (state = initialState, action) => {
     case MAKE_ACTIVE_LAYER:
       return {
         ...state,
-        activeLayer: action.payload
+        activeLayer: payload
       };
 
     case MAKE_ACTIVE_TOOL:
       return {
         ...state,
-        activeTool: action.payload
+        activeTool: payload
       };
 
     case UPDATE_TOOL_SETTINGS:
-      let { tool, changes: toolChanges } = action.payload;
+      let { tool, changes: toolChanges } = payload;
       return {
         ...state,
         toolSettings: {
@@ -268,7 +272,7 @@ const rootReducer = (state = initialState, action) => {
       };
 
     case UPDATE_COLOR:
-      let { key, value } = action.payload;
+      let { key, value } = payload;
       return {
         ...state,
         colorSettings: {
@@ -278,7 +282,7 @@ const rootReducer = (state = initialState, action) => {
       };
 
     case UPDATE_WORKSPACE_SETTINGS:
-      let workspaceSettingsChanges = action.payload;
+      let workspaceSettingsChanges = payload;
       return {
         ...state,
         workspaceSettings: {

@@ -8,7 +8,7 @@ import Workspace from './panels/Workspace.js';
 import ToolPanel from './panels/ToolPanel.js';
 import LayerPanel from './panels/LayerPanel.js';
 
-import { updateWorkspaceSettings } from './actions'
+import { updateWorkspaceSettings } from './actions/redux'
 
 const AppSC = styled.div`
   text-align: center;

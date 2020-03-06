@@ -11,7 +11,7 @@ import {
   hideLayer,
   enableLayerRename,
   updateLayerName
-} from "../actions";
+} from "../actions/redux";
 
 const LayerCardSC = styled.div`
   position: relative;

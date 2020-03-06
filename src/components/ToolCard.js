@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 
-import { updateToolSettings } from "../actions";
+import { updateToolSettings } from "../actions/redux";
 
 const ToolCardSC = styled.div`
   margin-bottom: 10px;

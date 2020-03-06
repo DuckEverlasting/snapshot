@@ -17,7 +17,7 @@ import {
 } from "@fortawesome/free-regular-svg-icons"
 import styled from "styled-components";
 
-import { makeActiveTool } from "../actions";
+import { makeActiveTool } from "../actions/redux";
 
 const ToolboxSC = styled.div`
   display: flex;
@@ -51,7 +51,7 @@ export default function ToolBox() {
       <ToolButton title="Fill Circle" name="fillCirc" icon="⚫"/>
       <ToolButton title="Draw Circle" name="drawCirc" icon="⚪"/>
       <ToolButton title="Eye Dropper" name="eyeDropper" faIcon={faEyeDropper}/>
-      {/* <ToolButton title="Select Rectangle" name="selectRect" faIcon={faVectorSquare}/> */}
+      <ToolButton title="Select Rectangle" name="selectRect" faIcon={faVectorSquare}/>
       <ToolButton title="Move" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom" name="zoom" faIcon={faSearch}/>

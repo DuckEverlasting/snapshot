@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSync } from '@fortawesome/free-solid-svg-icons'
 
-import { updateColor } from "../actions";
-import { toRgbaFromHex as toRgba, toHexFromRgba as toHex } from '../logic/colorConversion.js';
+import { updateColor } from "../actions/redux";
+import { toRgbaFromHex as toRgba, toHexFromRgba as toHex } from '../utils/colorConversion.js';
 
 const ColorBoxSC = styled.div`
   position: relative;

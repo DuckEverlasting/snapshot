@@ -4,9 +4,12 @@ import {
   bezier,
   rectangle,
   circle
-} from '../actions/ctxActions.js'
+} from '../../actions/custom/ctxActions.js'
 
 export default function(ctx, { action, params }) {
+  if (action === "clear") {
+    return ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  }
   if (params.clearFirst) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   }

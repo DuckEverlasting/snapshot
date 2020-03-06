@@ -4,8 +4,8 @@ import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
-import { addOpacity } from '../logic/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions";
+import { addOpacity } from '../utils/colorConversion.js';
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions/redux";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
@@ -40,7 +40,7 @@ export default function DrawSpace(props) {
 
     let color;
     for (let i = layerOrder.length - 1; i >= 0; i--) {
-      let ctx = layers.filter(layer => layer.id === layerOrder[i])[0].ctx;
+      let ctx = layers[layerOrder[i]].ctx;
       const pixel = ctx.getImageData(x, y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
@@ -117,6 +117,7 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary")
       case "selectRect":
+        dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
         return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
         break;

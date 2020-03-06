@@ -4,7 +4,7 @@ import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
 import LayerCard from "../components/LayerCard";
-import { createLayer, updateLayerOrder } from "../actions";
+import { createLayer, updateLayerOrder } from "../actions/redux";
 
 const LayerPanelSC = styled.div`
   display: flex;
@@ -84,11 +84,11 @@ export default function LayerPanel() {
                   .reverse()
                   .map((layerId, i) => {
                     if (["staging", "selection"].includes(layerId)) return null;
-                    let layer = layers[layers.findIndex((el, i) => el.id === layerId)];
+                    let layer = layers[layerId];
                     return (
                       <LayerCard
-                        key={layer.id}
-                        id={layer.id}
+                        key={layerId}
+                        id={layerId}
                         index={i}
                         name={layer.name}
                         nameEditable={layer.nameEditable}
