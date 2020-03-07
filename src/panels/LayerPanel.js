@@ -48,8 +48,9 @@ const ButtonSC = styled.button`
 `;
 
 export default function LayerPanel() {
-  const { height } = useSelector(state => state.workspaceSettings);
-  const { layers, layerOrder } = useSelector(state => state);
+  const height = useSelector(state => state.workspaceSettings.height);
+  const layerSettings = useSelector(state => state.layerSettings)
+  const layerOrder = useSelector(state => state.layerOrder)
   const dispatch = useDispatch();
 
   const onDragEnd = result => {
@@ -84,7 +85,7 @@ export default function LayerPanel() {
                   .reverse()
                   .map((layerId, i) => {
                     if (["staging", "selection"].includes(layerId)) return null;
-                    let layer = layers[layerId];
+                    let layer = layerSettings[layerId];
                     return (
                       <LayerCard
                         key={layerId}

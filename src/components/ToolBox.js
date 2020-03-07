@@ -39,7 +39,7 @@ const SpanSC = styled.span`
   pointer-events: none;
 `;
 
-export default function ToolBox() {
+function ToolBox() {
   return (
     <ToolboxSC>
       <ToolButton title="Pencil" name="pencil" faIcon={faPencilAlt}/>
@@ -60,12 +60,14 @@ export default function ToolBox() {
 }
 
 function ToolButton({ title, name, faIcon, icon }) {
-  const { activeTool } = useSelector(state => state);
+  const activeTool = useSelector(state => state.activeTool);
   const dispatch = useDispatch();
   const changeToolHandler = ev => {
     ev.preventDefault();
     dispatch(makeActiveTool(ev.target.name));
   };
+
+  console.log("RENDERING BUTTON " + name)
 
   return (
     <ButtonSC
@@ -84,3 +86,5 @@ function ToolButton({ title, name, faIcon, icon }) {
     </ButtonSC>
   )
 }
+
+export default React.memo(ToolBox)

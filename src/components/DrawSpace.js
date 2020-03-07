@@ -25,8 +25,9 @@ let state = {
 };
 
 export default function DrawSpace(props) {
+  // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
   const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
-  const { primary } = useSelector(state => state.colorSettings);
+  const primary = useSelector(state => state.colorSettings.primary);
   const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
   const { opacity, width } = toolSettings[activeTool];

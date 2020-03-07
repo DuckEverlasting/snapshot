@@ -28,9 +28,14 @@ const CanvasPaneSC = styled.div`
   flex: none;
 `
 
+let animationFrame = 0;
+let lastFrame = 0;
+
 export default function Workspace() {
   const {canvasWidth, canvasHeight, width, height, translateX, translateY, zoomPct} = useSelector(state => state.workspaceSettings)
-  const {layers, layerOrder} = useSelector(state => state)
+  const layerData = useSelector(state => state.layerData)
+  const layerSettings = useSelector(state => state.layerSettings)
+  const layerOrder = useSelector(state => state.layerOrder)
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({x: null, y: null});
@@ -38,6 +43,17 @@ export default function Workspace() {
   const workspaceRef = useRef(null);
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+
+    return () => cancelAnimationFrame(reqFrame);
+  }, [])
+
+  function updateAnimatedLayers() {
+    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+    animationFrame = reqFrame;
+  }
 
   useEffect(() => {  
     const zoom = (amount) => {
@@ -116,67 +132,55 @@ export default function Workspace() {
 
   const handleMouseMove = ev => {
     if (!isDragging) return;
+    if (animationFrame === lastFrame) return;
+    lastFrame = animationFrame;
     const deltaX = dragOrigin.x - ev.nativeEvent.offsetX * (zoomPct / 100)
     const deltaY = dragOrigin.y - ev.nativeEvent.offsetY * (zoomPct / 100)
     dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}))
   }
 
   return(
-    <WorkspaceSC ref={workspaceRef} width={width} height={height}>
+    <WorkspaceSC ref={workspaceRef} width={width} height={height} frame={animationFrame}>
       <CanvasPaneSC onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onMouseOut={handleMouseOut} onMouseMove={handleMouseMove} translateX={translateX} translateY={translateY} width={canvasWidth} height={canvasHeight} zoomPct={zoomPct}>
         <DrawSpace overrideCursor={isDragging ? "grabbing" : null} index={layerOrder.length + 2}/>
-        {/* <LayerRenderer layerOrder={layerOrder} layers={layers} width={canvasWidth} height={canvasHeight} /> */}
-        {
-          layerOrder.length !== 0 &&
-          layerOrder.map((layerId, i) => {
-            let layer = layers[layerId]
-            return <Layer
-              key={layerId}
-              id={layerId}
-              width={canvasWidth}
-              height={canvasHeight}
-              index={i + 1}
-              data={layer.data}
-              hidden={layer.hidden}
-              opacity={layer.opacity}
-              queue={layer.queue}/>
-          })
-        }
+        <LayerRenderer layerOrder={layerOrder} layerData={layerData} layerSettings={layerSettings} width={canvasWidth} height={canvasHeight} />
       </CanvasPaneSC>
     </WorkspaceSC>    
   )
 }
 
-function LayerRenderer({layerOrder, layers, canvasHeight, canvasWidth}) {
-  const [animatedLayers, setAnimatedLayers] = useState(layers)
+function LayerRenderer({layerOrder, layerData, layerSettings, width, height}) {
+  // const [animationFrame, setAnimationFrame] = useState(0)
 
-  useEffect(() => {
-    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+  // useEffect(() => {
+  //   const reqFrame = requestAnimationFrame(updateAnimatedLayers);
 
-    return () => cancelAnimationFrame(reqFrame);
-  }, [])
+  //   return () => cancelAnimationFrame(reqFrame);
+  // }, [])
 
-  function updateAnimatedLayers() {
-    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-    setAnimatedLayers(layers)
-  }
+  // function updateAnimatedLayers() {
+  //   const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+  //   setAnimationFrame(reqFrame)
+  // }
 
   return (
     <>
       {
         layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
-          let layer = animatedLayers[layerId]
+          let layerDat = layerData[layerId]
+          let layerSet = layerSettings[layerId]
           return <Layer
             key={layerId}
             id={layerId}
-            width={canvasWidth}
-            height={canvasHeight}
+            // frame={animationFrame}
+            width={width}
+            height={height}
             index={i + 1}
-            data={layer.data}
-            hidden={layer.hidden}
-            opacity={layer.opacity}
-            queue={layer.queue}/>
+            data={layerDat.data}
+            hidden={layerSet.hidden}
+            opacity={layerSet.opacity}
+            queue={layerDat.queue} />
         })
       }
     </>

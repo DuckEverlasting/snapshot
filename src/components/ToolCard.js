@@ -44,7 +44,8 @@ const LabelSC = styled.label`
 `
 
 export default function ToolCard() {
-  const { activeTool, toolSettings } = useSelector(state => state);
+  const activeTool = useSelector(state => state.activeTool)
+  const toolSettings = useSelector(state => state.toolSettings)
   const { width, opacity } = toolSettings[activeTool];
   const dispatch = useDispatch();
 

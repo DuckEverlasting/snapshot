@@ -39,7 +39,7 @@ const SpacerSC = styled.div`
 `
 
 export default function ToolPanel() {
-  const { height } = useSelector(state => state.workspaceSettings);
+  const height = useSelector(state => state.workspaceSettings.height);
   
   return (
     <ToolPanelSC height={height}>

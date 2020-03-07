@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useDispatch } from "react-redux";
 import { updateLayerData } from '../actions/redux'
@@ -27,8 +27,11 @@ const LayerSC = styled.canvas`
 function Layer(props) {
   const canvasRef = useRef(null)
   const dispatch = useDispatch();
+  // const [lastFrame, setLastFrame] = useState(props.frame)
 
   useEffect(() => {
+    // if (lastFrame === props.frame) return;
+    // setLastFrame(props.frame);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let queue = props.queue;

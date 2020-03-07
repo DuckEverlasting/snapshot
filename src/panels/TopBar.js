@@ -63,7 +63,7 @@ const TitleSC = styled.h1`
 `
 
 export default function TopBar() {
-  const { width } = useSelector(state => state.workspaceSettings);
+  const width = useSelector(state => state.workspaceSettings.width);
 
   return (
     <TopBarSC width={width}>

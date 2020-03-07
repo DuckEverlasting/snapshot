@@ -57,25 +57,31 @@ const initialState = {
     hand: { name: "Hand", width: null, opacity: null },
     zoom: { name: "Zoom", width: null, opacity: null }
   },
-  layers: {
+  layerData: {
     1: {
-      name: "layer 1",
-      nameEditable: false,
       data: initCanvas,
-      hidden: false,
-      opacity: 1,
       queue: null,
       ctx: initCanvas.getContext("2d")
     },
     selection: {
-      name: undefined,
-      nameEditable: false,
       data: selectionCanvas,
-      hidden: false,
-      opacity: 1,
       queue: null,
       ctx: selectionCanvas.getContext("2d")
     },
+  },
+  layerSettings: {
+    1: {
+      name: "layer 1",
+      nameEditable: false,
+      hidden: false,
+      opacity: 1
+    },
+    selection: {
+      name: undefined,
+      nameEditable: false,
+      hidden: false,
+      opacity: 1
+    }
   },
   layerOrder: [1, "selection"],
   draggedLayercard: null,
@@ -93,44 +99,49 @@ const rootReducer = (state = initialState, {type, payload}) => {
       canvas.height = state.workspaceSettings.canvasHeight;
       canvas.getContext("2d").imageSmoothingEnabled = false;
       const layerID = special ? special : state.layerCounter;
-      const newLayer = {
-        name: special ? undefined : `layer ${state.layerCounter}`,
-        nameEditable: false,
+      const newLayerData = {
         data: canvas,
-        hidden: false,
-        opacity: 1,
         queue: null,
         ctx: canvas.getContext("2d")
+      };
+      const newLayerSettings = {
+        name: special ? undefined : `layer ${state.layerCounter}`,
+        nameEditable: false,
+        hidden: false,
+        opacity: 1,
       };
       let orderAfterCreate = state.layerOrder.slice(0);
       orderAfterCreate.splice(position, 0, layerID);
       return {
         ...state,
-        layers: {...state.layers, [layerID]: newLayer},
+        layerData: {...state.layerData, [layerID]: newLayerData},
+        layerSettings: {...state.layerSettings, [layerID]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: special ? state.activeLayer : state.layerCounter,
         layerCounter: special ? state.layerCounter : state.layerCounter + 1,
       };
     
     case DELETE_LAYER:
-      let afterDelete = {...state.layers, [payload]: undefined}
+      let afterDeleteData = {...state.layerData, [payload]: undefined}
+      let afterDeleteSettings = {...state.layerSettings, [payload]: undefined}
       let afterDeleteOrder = state.layerOrder.filter(id => {
         return id !== payload;
       });
       let afterDeleteActive = state.activeLayer === payload ? null : state.activeLayer
       return {
         ...state,
-        layers: afterDelete,
+        layerData: afterDeleteData,
+        layerSettings: afterDeleteSettings,
         layerOrder: afterDeleteOrder,
         activeLayer: afterDeleteActive
       };
     
     case HIDE_LAYER:
-      let afterHiddenLayer = {
-        ...state.layers, 
+      let afterHiddenSettings = {
+        ...state.layerSettings, 
         [payload]: {
-          ...state.layers[payload],
-          hidden: !state.layers[payload].hidden
+          ...state.layerSettings[payload],
+          hidden: !state.layerSettings[payload].hidden
         }
       }
       
@@ -138,15 +149,15 @@ const rootReducer = (state = initialState, {type, payload}) => {
       if (activeLayer === payload) activeLayer = null;
       return {
         ...state,
-        layer: afterHiddenLayer,
+        layerSettings: afterHiddenSettings,
         activeLayer
       }
 
     case UPDATE_LAYER_DATA:
         let afterUpdateData = {
-          ...state.layers, 
+          ...state.layerData, 
           [payload.id]: {
-            ...state.layers[payload.id],
+            ...state.layerData[payload.id],
             data: payload.changes,
             ctx: payload.changes.getContext('2d')
           }
@@ -154,49 +165,49 @@ const rootReducer = (state = initialState, {type, payload}) => {
         
         return {
           ...state,
-          layers: afterUpdateData
+          layerData: afterUpdateData
         };
 
     case UPDATE_LAYER_QUEUE:
-      let afterUpdate = {
-        ...state.layers, 
+      let afterUpdateQueue = {
+        ...state.layerData, 
         [payload.id]: {
-          ...state.layers[payload.id],
+          ...state.layerData[payload.id],
           queue: payload.changes,
         }
       }
       
       return {
         ...state,
-        layers: afterUpdate
+        layerData: afterUpdateQueue
       };
     
     case CLEAR_LAYER_QUEUE:
-      let afterQueueClear = {
-        ...state.layers, 
+      let afterClearQueue = {
+        ...state.layerData, 
         [payload.id]: {
-          ...state.layers[payload.id],
+          ...state.layerData[payload.id],
           queue: {update: null, get: null},
         }
       }
       
       return {
         ...state,
-        layers: afterQueueClear
+        layerData: afterClearQueue
       };
 
     case UPDATE_LAYER_OPACITY:
-      let afterOpacity = {
-        ...state.layers, 
+      let afterOpacitySettings = {
+        ...state.layerSettings, 
         [payload.id]: {
-          ...state.layers[payload.id],
+          ...state.layerSettings[payload.id],
           opacity: payload.opacity,
         }
       }
 
       return {
         ...state,
-        layers: afterOpacity
+        layerSettings: afterOpacitySettings
       };
 
     case UPDATE_LAYER_ORDER:
@@ -209,24 +220,24 @@ const rootReducer = (state = initialState, {type, payload}) => {
       };
 
     case ENABLE_LAYER_RENAME:
-      let afterEnable =  {
-        ...state.layers, 
+      let afterEnableSettings =  {
+        ...state.layerSettings, 
         [payload.id]: {
-          ...state.layers[payload.id],
+          ...state.layerSettings[payload.id],
           nameEditable: true
         }
       }
 
       return {
         ...state,
-        layers: afterEnable
+        layerSettings: afterEnableSettings
       };
 
     case UPDATE_LAYER_NAME:
-      let afterRename = {
-        ...state.layers, 
+      let afterRenameSettings = {
+        ...state.layerSettings, 
         [payload.id]: {
-          ...state.layers[payload.id],
+          ...state.layerSettings[payload.id],
           name: payload.name,
           nameEditable: false
         }
@@ -234,7 +245,7 @@ const rootReducer = (state = initialState, {type, payload}) => {
 
       return {
         ...state,
-        layers: afterRename
+        layerSettings: afterRenameSettings
       };
 
     case DRAG_LAYERCARD:
