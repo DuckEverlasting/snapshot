@@ -21,12 +21,13 @@ let state = {
   origin: null,
   destArray: [],
   hold: false,
-  lockedAxis: ""
+  lockedAxis: "",
+  heldShift: false
 };
 
 export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
-  const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
+  const { activeTool, activeLayer, selectionPath, toolSettings, layers, layerOrder } = useSelector(state => state);
   const primary = useSelector(state => state.colorSettings.primary);
   const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
@@ -96,7 +97,8 @@ export default function DrawSpace(props) {
       ...state,
       mouseDown: true,
       origin: [x, y],
-      destArray: []
+      destArray: [],
+      heldShift: ev.shiftKey
     };
     switch (activeTool) {
       case "pencil":
@@ -118,7 +120,7 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary")
       case "selectRect":
-        dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
+        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
         return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
         break;
@@ -158,7 +160,8 @@ export default function DrawSpace(props) {
       destArray: [[x, y]],
       width: width,
       strokeColor: color,
-      fillColor: color
+      fillColor: color,
+      clip: selectionPath
     };
 
     if (state.lockedAxis && !ev.shiftKey) {
@@ -389,12 +392,12 @@ export default function DrawSpace(props) {
       destArray: [[x, y]],
       width: width,
       strokeColor: color,
-      fillColor: color
+      fillColor: color,
+      clip: selectionPath
     };
     
     switch (activeTool) {
       case "pencil":
-        console.log(params)
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
           return dispatch(
             updateLayerQueue(activeLayer, {
@@ -517,15 +520,26 @@ export default function DrawSpace(props) {
         break;
 
       case "selectRect":
+        let path;
+        if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
+          console.log("DING")
+          path = null;
+        } else if (selectionPath !== null && state.heldShift) {
+          console.log(selectionPath)
+          path = selectionPath;
+        } else {
+          path = new Path2D();
+        }
         return dispatch(
           updateLayerQueue("selection", {
             action: "drawRect",
-            type: "draw",
+            type: "selectionDraw",
             params: {
               ...params,
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
-              dashPattern: [5, 10]
+              dashPattern: [5, 10],
+              path
             }
           })
         );

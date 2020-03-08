@@ -5,6 +5,7 @@ export const [
   UPDATE_LAYER_DATA,
   UPDATE_LAYER_QUEUE,
   CLEAR_LAYER_QUEUE,
+  UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
   ENABLE_LAYER_RENAME,
@@ -23,6 +24,7 @@ export const [
   "UPDATE_LAYER_DATA",
   "UPDATE_LAYER_QUEUE",
   "CLEAR_LAYER_QUEUE",
+  "UPDATE_SELECTION_PATH",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
   "ENABLE_LAYER_RENAME",
@@ -75,6 +77,13 @@ export const clearLayerQueue = id => {
   return {
     type: CLEAR_LAYER_QUEUE,
     payload: id
+  };
+};
+
+export const updateSelectionPath = path => {
+  return {
+    type: UPDATE_SELECTION_PATH,
+    payload: path
   };
 };
 

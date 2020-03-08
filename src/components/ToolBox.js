@@ -67,8 +67,6 @@ function ToolButton({ title, name, faIcon, icon }) {
     dispatch(makeActiveTool(ev.target.name));
   };
 
-  console.log("RENDERING BUTTON " + name)
-
   return (
     <ButtonSC
       title={title}

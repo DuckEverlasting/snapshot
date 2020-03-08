@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useDispatch } from "react-redux";
-import { updateLayerData } from '../actions/redux'
+import { updateLayerData, updateSelectionPath } from '../actions/redux'
 
 import draw from "../reducers/custom/drawingReducer.js";
 import manipulate from "../reducers/custom/manipulateReducer.js";
+import selection from "../reducers/custom/selectionReducer.js";
 
 const LayerWrapperSC = styled.div`
   position: absolute;
@@ -37,7 +38,8 @@ function Layer(props) {
     let queue = props.queue;
     if (queue === null) return;
     if (queue.type === "draw") drawHandler(ctx, queue)
-    if (queue.type === "manipulate") manipulateHandler(ctx, queue)
+    else if (queue.type === "manipulate") manipulateHandler(ctx, queue)
+    else if (queue.type === "selectionDraw") selectionDrawHandler(ctx, queue)
   }, [props.data, props.queue, props.id]);
 
   function drawHandler(ctx, queue) {
@@ -47,6 +49,13 @@ function Layer(props) {
 
   function manipulateHandler(ctx, queue) {
     manipulate(ctx, queue);
+    dispatch(updateLayerData(props.id, canvasRef.current))
+  }
+
+  function selectionDrawHandler(ctx, queue) {
+    draw(ctx, queue);
+    const path = selection(queue);
+    dispatch(updateSelectionPath(path))
     dispatch(updateLayerData(props.id, canvasRef.current))
   }
 
