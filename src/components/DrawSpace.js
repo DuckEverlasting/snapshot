@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
@@ -22,8 +22,10 @@ let state = {
   origin: null,
   destArray: [],
   hold: false,
+  interrupt: false,
   lockedAxis: "",
-  heldShift: false
+  heldShift: false,
+  tool: null
 };
 
 export default function DrawSpace(props) {
@@ -32,9 +34,12 @@ export default function DrawSpace(props) {
   const primary = useSelector(state => state.colorSettings.primary);
   const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
-  const { opacity, width } = toolSettings[activeTool];
-  // Note conversion of opacity to 0 - 1 from 0 - 100 below.
-  const color = addOpacity(primary, opacity / 100)
+
+  useEffect(() => {
+    if (state.mouseDown) {
+      state = { ...state, interrupt: true }
+    }
+  }, [activeTool])
 
   const eyeDropper = (x, y, palette) => {
     /* 
@@ -91,6 +96,7 @@ export default function DrawSpace(props) {
     /* 
       Handles what happens when mouse is pressed down.
     */
+
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
     if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
@@ -99,9 +105,10 @@ export default function DrawSpace(props) {
       mouseDown: true,
       origin: [x, y],
       destArray: [],
-      heldShift: ev.shiftKey
+      heldShift: ev.shiftKey,
+      tool: activeTool
     };
-    switch (activeTool) {
+    switch (state.tool) {
       case "pencil":
         return dispatch(createLayer(activeLayer, "staging"));
       case "brush":
@@ -151,7 +158,13 @@ export default function DrawSpace(props) {
       Handles what happens when mouse is moved.
     */
 
+    if (state.interrupt) {
+      return mouseUpHandler(ev);
+    }
     if (!state.mouseDown) return;
+    const { opacity, width } = toolSettings[state.tool];
+    // Note conversion of opacity to 0 - 1 from 0 - 100 below.
+    const color = addOpacity(primary, opacity / 100)
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
 
     // Default parameters
@@ -173,7 +186,7 @@ export default function DrawSpace(props) {
       setLockedAxis(x, y)
     }
 
-    switch (activeTool) {
+    switch (state.tool) {
       case "pencil":
         if (state.lockedAxis === "x") {
           x = state.origin[0]
@@ -373,16 +386,22 @@ export default function DrawSpace(props) {
 
     if (!state.mouseDown) return;
 
+    const { opacity, width } = toolSettings[state.tool];
+    // Note conversion of opacity to 0 - 1 from 0 - 100 below.
+    const color = addOpacity(primary, opacity / 100)
+
     state = {
       ...state,
       mouseDown: false,
-      hold: true
+      hold: true,
+      interrupt: false
     };
 
     setTimeout(() => {
       state = {
         ...state,
-        hold: false
+        hold: false,
+        tool: null
       };
       dispatch(deleteLayer("staging"))
     }, 0);
@@ -397,8 +416,8 @@ export default function DrawSpace(props) {
       fillColor: color,
       clip: selectionPath
     };
-    
-    switch (activeTool) {
+
+    switch (state.tool) {
       case "pencil":
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
           return dispatch(
