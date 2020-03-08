@@ -4,7 +4,8 @@ export const hotkey = {
   "l": {type: "activeTool", payload: "line"},
   "e": {type: "activeTool", payload: "eraser"},
   "i": {type: "activeTool", payload: "eyeDropper"},
-  "m": {type: "activeTool", payload: "move"},
+  "v": {type: "activeTool", payload: "move"},
+  "m": {type: "activeTool", payload: "selectRect"},
   "h": {type: "activeTool", payload: "hand"},
   "z": {type: "activeTool", payload: "zoom"},
   "x": {type: "special", payload: "switchColors"}

@@ -73,11 +73,11 @@ export default function ToolCard() {
   return (
     <ToolCardSC>
       <TitleSC>{toolName}</TitleSC>
-      <LabelSC visible={width !== null}>Width
+      <LabelSC visible={width !== undefined}>Width
         <WidthPickerSC value={width} onChange={inputWidthHandler} type="number" min="1" max="255" step="1"/>
         <WidthSliderSC value={width} onChange={inputWidthHandler} type="range" min="1" max="255" step="1"/>
       </LabelSC>
-      <LabelSC visible={opacity !== null}>Opacity
+      <LabelSC visible={opacity !== undefined}>Opacity
         <OpacityPickerSC value={opacity} onChange={inputOpacityHandler} type="number" min="0" max="100" step="1"/>
         <OpacitySliderSC value={opacity} onChange={inputOpacityHandler} type="range" min="0" max="100" step="1"/>
       </LabelSC>

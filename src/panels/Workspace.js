@@ -5,7 +5,9 @@ import styled from 'styled-components';
 import DrawSpace from '../components/DrawSpace';
 import Layer from '../components/Layer';
 
-import { updateWorkspaceSettings } from '../actions/redux';
+import { hotkey, hotkeyCtrl, hotkeyCtrlShift } from "../enums/hotkeys";
+
+import { updateWorkspaceSettings, makeActiveTool, updateColor } from '../actions/redux';
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -36,6 +38,7 @@ export default function Workspace() {
   const layerData = useSelector(state => state.layerData)
   const layerSettings = useSelector(state => state.layerSettings)
   const layerOrder = useSelector(state => state.layerOrder)
+  const {primary, secondary} = useSelector(state => state.colorSettings)
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({x: null, y: null});
@@ -139,8 +142,29 @@ export default function Workspace() {
     dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}))
   }
 
+  const handleKeyPress = ev => {
+    let keyCombo;
+    if (ev.ctrlKey && ev.shiftKey) { 
+      keyCombo = hotkeyCtrlShift[ev.key]
+    } else if (ev.ctrlKey) {
+      keyCombo = hotkeyCtrl[ev.key]
+    } else {
+      keyCombo = hotkey[ev.key]
+    }
+    if (keyCombo === undefined) return;
+    if (keyCombo.type === "activeTool") {
+      dispatch(makeActiveTool(keyCombo.payload))
+    } else {
+      switch(keyCombo.payload) {
+        case "switchColors":
+          dispatch(updateColor("primary", secondary))
+          dispatch(updateColor("secondary", primary))
+      }
+    }
+  }
+
   return(
-    <WorkspaceSC ref={workspaceRef} width={width} height={height} frame={animationFrame}>
+    <WorkspaceSC ref={workspaceRef} width={width} height={height} onKeyPress={handleKeyPress}>
       <CanvasPaneSC onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onMouseOut={handleMouseOut} onMouseMove={handleMouseMove} translateX={translateX} translateY={translateY} width={canvasWidth} height={canvasHeight} zoomPct={zoomPct}>
         <DrawSpace overrideCursor={isDragging ? "grabbing" : null} index={layerOrder.length + 2}/>
         <LayerRenderer layerOrder={layerOrder} layerData={layerData} layerSettings={layerSettings} width={canvasWidth} height={canvasHeight} />

@@ -5,6 +5,7 @@ import {
   UPDATE_LAYER_DATA,
   UPDATE_LAYER_QUEUE,
   CLEAR_LAYER_QUEUE,
+  UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
   ENABLE_LAYER_RENAME,
@@ -46,16 +47,16 @@ const initialState = {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
     brush: { name: "Brush", width: 15, opacity: 100 },
     line: { name: "Line", width: 5, opacity: 100 },
-    fillRect: { name: "Fill Rectangle", width: null, opacity: 100 },
+    fillRect: { name: "Fill Rectangle", width: undefined, opacity: 100 },
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 100 },
-    fillCirc: { name: "Fill Circle", width: null, opacity: 100 },
+    fillCirc: { name: "Fill Circle", width: undefined, opacity: 100 },
     drawCirc: { name: "Draw Circle", width: 5, opacity: 100 },
-    eraser: { name: "Eraser", width: 5, opacity: null },
-    eyeDropper: { name: "Eye Dropper", width: null, opacity: null },
-    selectRect: { name: "Select Rectangle", width: null, opacity: null },
-    move: { name: "Move", width: null, opacity: null },
-    hand: { name: "Hand", width: null, opacity: null },
-    zoom: { name: "Zoom", width: null, opacity: null }
+    eraser: { name: "Eraser", width: 5, opacity: undefined },
+    eyeDropper: { name: "Eye Dropper", width: undefined, opacity: undefined },
+    selectRect: { name: "Select Rectangle", width: undefined, opacity: undefined },
+    move: { name: "Move", width: undefined, opacity: undefined },
+    hand: { name: "Hand", width: undefined, opacity: undefined },
+    zoom: { name: "Zoom", width: undefined, opacity: undefined }
   },
   layerData: {
     1: {
@@ -83,6 +84,7 @@ const initialState = {
       opacity: 1
     }
   },
+  selectionPath: null,
   layerOrder: [1, "selection"],
   draggedLayercard: null,
   activeLayer: 1,
@@ -195,6 +197,12 @@ const rootReducer = (state = initialState, {type, payload}) => {
         ...state,
         layerData: afterClearQueue
       };
+    
+    case UPDATE_SELECTION_PATH:
+      return {
+        ...state,
+        selectionPath: payload
+      }
 
     case UPDATE_LAYER_OPACITY:
       let afterOpacitySettings = {

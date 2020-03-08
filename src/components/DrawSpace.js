@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity } from '../utils/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions/redux";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
+import selection from "../reducers/custom/selectionReducer.js";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
@@ -21,18 +22,24 @@ let state = {
   origin: null,
   destArray: [],
   hold: false,
-  lockedAxis: ""
+  interrupt: false,
+  lockedAxis: "",
+  heldShift: false,
+  tool: null
 };
 
 export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
-  const { activeTool, activeLayer, toolSettings, layers, layerOrder } = useSelector(state => state);
+  const { activeTool, activeLayer, selectionPath, toolSettings, layers, layerOrder } = useSelector(state => state);
   const primary = useSelector(state => state.colorSettings.primary);
   const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
   const dispatch = useDispatch();
-  const { opacity, width } = toolSettings[activeTool];
-  // Note conversion of opacity to 0 - 1 from 0 - 100 below.
-  const color = addOpacity(primary, opacity / 100)
+
+  useEffect(() => {
+    if (state.mouseDown) {
+      state = { ...state, interrupt: true }
+    }
+  }, [activeTool])
 
   const eyeDropper = (x, y, palette) => {
     /* 
@@ -89,6 +96,7 @@ export default function DrawSpace(props) {
     /* 
       Handles what happens when mouse is pressed down.
     */
+
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
     if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
@@ -96,9 +104,11 @@ export default function DrawSpace(props) {
       ...state,
       mouseDown: true,
       origin: [x, y],
-      destArray: []
+      destArray: [],
+      heldShift: ev.shiftKey,
+      tool: activeTool
     };
-    switch (activeTool) {
+    switch (state.tool) {
       case "pencil":
         return dispatch(createLayer(activeLayer, "staging"));
       case "brush":
@@ -118,7 +128,7 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary")
       case "selectRect":
-        dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
+        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
         return dispatch(createLayer(layerOrder.length, "staging"));
       case "move":
         break;
@@ -148,7 +158,13 @@ export default function DrawSpace(props) {
       Handles what happens when mouse is moved.
     */
 
+    if (state.interrupt) {
+      return mouseUpHandler(ev);
+    }
     if (!state.mouseDown) return;
+    const { opacity, width } = toolSettings[state.tool];
+    // Note conversion of opacity to 0 - 1 from 0 - 100 below.
+    const color = addOpacity(primary, opacity / 100)
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
 
     // Default parameters
@@ -158,7 +174,8 @@ export default function DrawSpace(props) {
       destArray: [[x, y]],
       width: width,
       strokeColor: color,
-      fillColor: color
+      fillColor: color,
+      clip: selectionPath
     };
 
     if (state.lockedAxis && !ev.shiftKey) {
@@ -169,7 +186,7 @@ export default function DrawSpace(props) {
       setLockedAxis(x, y)
     }
 
-    switch (activeTool) {
+    switch (state.tool) {
       case "pencil":
         if (state.lockedAxis === "x") {
           x = state.origin[0]
@@ -327,7 +344,8 @@ export default function DrawSpace(props) {
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
               dashPattern: [5, 10],
-              clearFirst: true
+              clearFirst: true,
+              clip: null
             },
           })
         );
@@ -368,16 +386,22 @@ export default function DrawSpace(props) {
 
     if (!state.mouseDown) return;
 
+    const { opacity, width } = toolSettings[state.tool];
+    // Note conversion of opacity to 0 - 1 from 0 - 100 below.
+    const color = addOpacity(primary, opacity / 100)
+
     state = {
       ...state,
       mouseDown: false,
-      hold: true
+      hold: true,
+      interrupt: false
     };
 
     setTimeout(() => {
       state = {
         ...state,
-        hold: false
+        hold: false,
+        tool: null
       };
       dispatch(deleteLayer("staging"))
     }, 0);
@@ -389,12 +413,12 @@ export default function DrawSpace(props) {
       destArray: [[x, y]],
       width: width,
       strokeColor: color,
-      fillColor: color
+      fillColor: color,
+      clip: selectionPath
     };
-    
-    switch (activeTool) {
+
+    switch (state.tool) {
       case "pencil":
-        console.log(params)
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
           return dispatch(
             updateLayerQueue(activeLayer, {
@@ -517,6 +541,17 @@ export default function DrawSpace(props) {
         break;
 
       case "selectRect":
+        let path;
+        if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
+          path = null;
+        } else if (selectionPath !== null && state.heldShift) {
+          console.log(selectionPath)
+          path = selectionPath;
+        } else {
+          path = new Path2D();
+        }
+        path = selection(path, { action: "drawRect", params })
+        dispatch(updateSelectionPath(path))
         return dispatch(
           updateLayerQueue("selection", {
             action: "drawRect",
@@ -525,7 +560,7 @@ export default function DrawSpace(props) {
               ...params,
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
-              dashPattern: [5, 10]
+              dashPattern: [5, 10],
             }
           })
         );

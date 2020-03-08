@@ -42,19 +42,19 @@ const SpanSC = styled.span`
 function ToolBox() {
   return (
     <ToolboxSC>
-      <ToolButton title="Pencil" name="pencil" faIcon={faPencilAlt}/>
-      <ToolButton title="Brush" name="brush" faIcon={faPaintBrush}/>
-      <ToolButton title="Line" name="line" faIcon={faArrowsAltH}/>
-      <ToolButton title="Eraser" name="eraser" faIcon={faEraser}/>
+      <ToolButton title="Pencil (P)" name="pencil" faIcon={faPencilAlt}/>
+      <ToolButton title="Brush (B)" name="brush" faIcon={faPaintBrush}/>
+      <ToolButton title="Line (L)" name="line" faIcon={faArrowsAltH}/>
+      <ToolButton title="Eraser (E)" name="eraser" faIcon={faEraser}/>
       <ToolButton title="Fill Rectangle" name="fillRect" icon="⬛"/>
       <ToolButton title="Draw Rectangle" name="drawRect" icon="⬜"/>
       <ToolButton title="Fill Circle" name="fillCirc" icon="⚫"/>
       <ToolButton title="Draw Circle" name="drawCirc" icon="⚪"/>
-      <ToolButton title="Eye Dropper" name="eyeDropper" faIcon={faEyeDropper}/>
-      <ToolButton title="Select Rectangle" name="selectRect" faIcon={faVectorSquare}/>
-      <ToolButton title="Move" name="move" faIcon={faArrowsAlt}/>
-      <ToolButton title="Hand" name="hand" faIcon={faHandPaper}/>
-      <ToolButton title="Zoom" name="zoom" faIcon={faSearch}/>
+      <ToolButton title="Eye Dropper (I)" name="eyeDropper" faIcon={faEyeDropper}/>
+      <ToolButton title="Select Rectangle (M)" name="selectRect" faIcon={faVectorSquare}/>
+      <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
+      <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
+      <ToolButton title="Zoom (Z)" name="zoom" faIcon={faSearch}/>
     </ToolboxSC>
   );
 }
@@ -66,8 +66,6 @@ function ToolButton({ title, name, faIcon, icon }) {
     ev.preventDefault();
     dispatch(makeActiveTool(ev.target.name));
   };
-
-  console.log("RENDERING BUTTON " + name)
 
   return (
     <ButtonSC
