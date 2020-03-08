@@ -39,7 +39,6 @@ function Layer(props) {
     if (queue === null) return;
     if (queue.type === "draw") drawHandler(ctx, queue)
     else if (queue.type === "manipulate") manipulateHandler(ctx, queue)
-    else if (queue.type === "selectionDraw") selectionDrawHandler(ctx, queue)
   }, [props.data, props.queue, props.id]);
 
   function drawHandler(ctx, queue) {
@@ -49,13 +48,6 @@ function Layer(props) {
 
   function manipulateHandler(ctx, queue) {
     manipulate(ctx, queue);
-    dispatch(updateLayerData(props.id, canvasRef.current))
-  }
-
-  function selectionDrawHandler(ctx, queue) {
-    draw(ctx, queue);
-    const path = selection(queue);
-    dispatch(updateSelectionPath(path))
     dispatch(updateLayerData(props.id, canvasRef.current))
   }
 

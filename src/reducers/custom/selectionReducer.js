@@ -6,8 +6,7 @@ import {
   circle
 } from '../../actions/custom/ctxActions.js'
 
-export default function({ action, params }) {
-  const { path } = params;
+export default function(path, { action, params }) {
   if (path === null) return path;
   path.moveTo(params.orig[0], params.orig[1]);
 

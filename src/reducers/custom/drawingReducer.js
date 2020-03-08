@@ -8,8 +8,10 @@ import {
 
 export default function(ctx, { action, params }) {
   if (action === "clear") {
-    return ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    return;
   }
+
   if (params.clearFirst) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }
@@ -32,69 +34,86 @@ export default function(ctx, { action, params }) {
   ctx.moveTo(params.orig[0], params.orig[1]);
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
+  if (params.clip) {
+    ctx.save();
+    ctx.clip(params.clip)
+  }
 
   switch (action) {
     case "drawLine":
       line(ctx, params);
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawQuad":
       quadratic(ctx, params);
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawBezier":
       bezier(ctx, params);
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawLinePath":
       line(ctx, params);
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawQuadPath":
       quadratic(ctx, params);
       ctx.closePath();
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawBezierPath":
       bezier(ctx, params);
       ctx.closePath();
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawRect":
       rectangle(ctx, params);
-      if (params.clip) {
-        ctx.restore();
-      }
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "drawCirc":
       circle(ctx, params);
-      return ctx.stroke();
+      ctx.stroke();
+      break;
 
     case "fillLinePath":
       line(ctx, params);
       ctx.closePath();
-      return ctx.fill();
+      ctx.fill();
+      break;
 
     case "fillQuadPath":
       quadratic(ctx, params);
       ctx.closePath();
-      return ctx.fill();
+      ctx.fill();
+      break;
 
     case "fillBezierPath":
       bezier(ctx, params);
       ctx.closePath();
-      return ctx.fill();
+      ctx.fill();
+      break;
 
     case "fillRect":
       rectangle(ctx, params);
-      return ctx.fill();
+      ctx.fill();
+      break;
 
     case "fillCirc":
       circle(ctx, params);
-      return ctx.fill();
+      ctx.fill();
+      break;
 
     default:
       return "error: invalid draw action";
+  }
+  if (params.clip) {
+    ctx.restore();
   }
 }

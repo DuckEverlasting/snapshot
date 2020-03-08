@@ -5,7 +5,8 @@ import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity } from '../utils/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings } from "../actions/redux";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
+import selection from "../reducers/custom/selectionReducer.js";
 
 const DrawSpaceSC = styled.div`
   position: absolute;
@@ -330,7 +331,8 @@ export default function DrawSpace(props) {
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
               dashPattern: [5, 10],
-              clearFirst: true
+              clearFirst: true,
+              clip: null
             },
           })
         );
@@ -522,7 +524,6 @@ export default function DrawSpace(props) {
       case "selectRect":
         let path;
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
-          console.log("DING")
           path = null;
         } else if (selectionPath !== null && state.heldShift) {
           console.log(selectionPath)
@@ -530,16 +531,17 @@ export default function DrawSpace(props) {
         } else {
           path = new Path2D();
         }
+        path = selection(path, { action: "drawRect", params })
+        dispatch(updateSelectionPath(path))
         return dispatch(
           updateLayerQueue("selection", {
             action: "drawRect",
-            type: "selectionDraw",
+            type: "draw",
             params: {
               ...params,
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
               dashPattern: [5, 10],
-              path
             }
           })
         );
