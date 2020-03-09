@@ -131,7 +131,8 @@ export default function DrawSpace(props) {
       case "eraser":
         return dispatch(createLayer(activeLayer, "staging"));
       case "eyeDropper":
-        return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary")
+        let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
+        return eyeDropper(x, y, modifier ? "secondary" : "primary")
       case "selectRect":
         if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
         return dispatch(createLayer(layerOrder.length, "staging"));
@@ -339,7 +340,8 @@ export default function DrawSpace(props) {
         };
 
       case "eyeDropper":
-        return eyeDropper(x, y, ev.ctrlKey ? "secondary" : "primary");
+        let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
+        return eyeDropper(x, y, modifier ? "secondary" : "primary");
 
       case "selectRect":
         return dispatch(

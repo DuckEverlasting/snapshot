@@ -98,19 +98,20 @@ export default function Workspace() {
       } else {
         const str = ev.shiftKey ? 3 : 1;
         let dir;
+        let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
         if (ev.deltaX && ev.deltaY) {
           // FIGURE THIS OUT LATER
           return
         } else if (ev.deltaX) {
           dir = ev.deltaX > 0 ? -1 : 1
-          if (ev.ctrlKey) {
+          if (modifier) {
             translate(0, 10 * dir * str)
           } else {
             translate(10 * dir * str, 0)
           }
         } else if (ev.deltaY) {
           dir = ev.deltaY > 0 ? -1 : 1
-          if (ev.ctrlKey) {
+          if (modifier) {
             translate(10 * dir * str, 0)
           } else {
             translate(0, 10 * dir * str)
@@ -154,10 +155,10 @@ export default function Workspace() {
   }
 
   const handleKeyDown = ev => {
-    if (ev.key === "Shift" || ev.key === "Control") return;
     ev.preventDefault();
     let keyCombo;
-    if (ev.ctrlKey) {
+    let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
+    if (modifier) {
       keyCombo = hotkeyCtrl[ev.key]
     } else {
       keyCombo = hotkey[ev.key]
