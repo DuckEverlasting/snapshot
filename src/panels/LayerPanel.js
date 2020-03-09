@@ -6,13 +6,16 @@ import styled from "styled-components";
 import LayerCard from "../components/LayerCard";
 import { createLayer, updateLayerOrder } from "../actions/redux";
 
-const LayerPanelSC = styled.div`
+const LayerPanelSC = styled.div.attrs(props => ({
+  style: {
+    height: `${props.height}px`
+  }
+}))`
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
   width: 120px;
-  height: ${props => props.height}px;
   border: 3px solid black;
   border-bottom-right-radius: 10px;
   border-top-right-radius: 10px;

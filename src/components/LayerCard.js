@@ -13,12 +13,15 @@ import {
   updateLayerName
 } from "../actions/redux";
 
-const LayerCardSC = styled.div`
+const LayerCardSC = styled.div.attrs(props => ({
+  style: {
+    background: props.active ? "yellow" : "white",
+    opacity: props.layerHidden ? 0.5 : 1
+  }
+}))`
   position: relative;
   border: 1px solid black;
   color: black;
-  background: ${props => (props.active ? "yellow" : "white")};
-  opacity: ${props => (props.layerHidden ? 0.5 : 1)};
   cursor: pointer;
 `;
 

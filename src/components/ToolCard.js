@@ -36,8 +36,11 @@ const OpacitySliderSC = styled.input`
   width: 80%;
 `
 
-const LabelSC = styled.label`
-  display: ${props => props.visible ? "flex" : "none"};
+const LabelSC = styled.label.attrs(props => ({
+  style: {
+    display: props.visible ? "flex" : "none"
+  }
+}))`
   flex-direction: column;
   align-items: center;
   font-size: 14px;

@@ -9,23 +9,29 @@ import { hotkey, hotkeyCtrl, hotkeyCtrlShift } from "../enums/hotkeys";
 
 import { updateWorkspaceSettings, makeActiveTool, updateColor } from '../actions/redux';
 
-const WorkspaceSC = styled.div`
+const WorkspaceSC = styled.div.attrs(props => ({
+  style: {
+    width: props.width,
+    height: props.height
+  }
+}))`
   position: relative;
   display: flex;
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
   border: 3px solid black;
   overflow: hidden;
   z-index: 1;
   background: rgb(175, 175, 175);
 `
 
-const CanvasPaneSC = styled.div`
+const CanvasPaneSC = styled.div.attrs(props => ({
+  style: {
+    width: props.width,
+    height: props.height,
+    transform: `translateX(${props.translateX}px) translateY(${props.translateY}px) scale(${props.zoomPct / 100})` 
+  }
+}))`
   position: relative;
   margin: auto;
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
-  transform: translateX(${props => props.translateX}px) translateY(${props => props.translateY}px) scale(${props => props.zoomPct / 100});
   background: white;
   flex: none;
 `

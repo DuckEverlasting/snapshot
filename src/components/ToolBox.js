@@ -27,11 +27,14 @@ const ToolboxSC = styled.div`
   padding: 10px 0;
 `;
 
-const ButtonSC = styled.button`
+const ButtonSC = styled.button.attrs(props => ({
+  style: {
+    background: props.active ? "yellow" : "#e3e3e3",
+    borderColor: props.active ? "yellow" : "#e3e3e3"
+  }
+}))`
   width: 40%;
   margin: 2%;
-  background: ${props => (props.active ? "yellow" : "#e3e3e3")};
-  border-color: ${props => (props.active ? "yellow" : "#e3e3e3")};
   outline: none;
 `;
 

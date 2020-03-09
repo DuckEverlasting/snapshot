@@ -1,28 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useDispatch } from "react-redux";
-import { updateLayerData, updateSelectionPath } from '../actions/redux'
+import { updateLayerData } from '../actions/redux'
 
 import draw from "../reducers/custom/drawingReducer.js";
 import manipulate from "../reducers/custom/manipulateReducer.js";
-import selection from "../reducers/custom/selectionReducer.js";
 
-const LayerWrapperSC = styled.div`
+const LayerWrapperSC = styled.div.attrs(props => ({
+  style: {
+    width: `${props.width}px`,
+    height: `${props.height}px`
+  }
+}))`
   position: absolute;
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
   overflow: hidden;
 `
 
-const LayerSC = styled.canvas`
+const LayerSC = styled.canvas.attrs(props => ({
+  style: {
+    visibility: props => props.hidden ? "hidden" : "visible",
+    zIndex: props.index
+  }
+}))`
   position: absolute;
-  visibility: ${props => props.hidden ? "hidden" : "visible"};
   width: 300%;
   height: 300%;
   bottom: -100%;
   right: -100%;
   image-rendering: pixelated;
-  z-index: ${props => props.index};
 `
 
 function Layer(props) {

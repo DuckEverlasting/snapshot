@@ -8,13 +8,16 @@ import { addOpacity } from '../utils/colorConversion.js';
 import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
-const DrawSpaceSC = styled.div`
+const DrawSpaceSC = styled.div.attrs(props => ({
+  style: {
+    zIndex: props.index
+  }
+}))`
   position: absolute;
   width: 100%;
   height: 100%;
   outline: none;
   cursor: ${props => props.cursorHandler};
-  z-index: ${props => props.index};
 `;
 
 let state = {
@@ -22,6 +25,7 @@ let state = {
   origin: null,
   destArray: [],
   hold: false,
+  throttle: false,
   interrupt: false,
   lockedAxis: "",
   heldShift: false,
@@ -367,8 +371,15 @@ export default function DrawSpace(props) {
         };
         
       case "hand":
-        const deltaX = state.origin[0] - ev.nativeEvent.offsetX
-        const deltaY = state.origin[1] - ev.nativeEvent.offsetY
+        if (state.throttle) break;
+
+        state = {...state, throttle: true}
+        setTimeout(() => {
+          state = {...state, throttle: false}
+        }, 25)
+
+        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX + canvasWidth)
+        const deltaY = state.origin[1] - (ev.nativeEvent.offsetY + canvasHeight)
         dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}));
 
       case "zoom":

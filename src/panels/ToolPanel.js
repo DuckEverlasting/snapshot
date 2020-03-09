@@ -6,10 +6,13 @@ import ToolBox from "../components/ToolBox.js"
 import ColorBox from "../components/ColorBox.js"
 import ToolCard from "../components/ToolCard.js"
 
-const ToolPanelSC = styled.div`
+const ToolPanelSC = styled.div.attrs(props => ({
+  style: {
+    height: `${props.height}px`
+  }
+}))`
   position: relative;
   width: 120px;
-  height: ${props => props.height}px;
   border: 3px solid black;
   border-bottom-left-radius: 10px;
   border-top-left-radius: 10px;

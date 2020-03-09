@@ -3,9 +3,12 @@ import { useSelector } from "react-redux";
 
 import styled from "styled-components";
 
-const TopBarSC = styled.div`
+const TopBarSC = styled.div.attrs(props => ({
+  style: {
+    width: `${props.width}px`
+  }
+}))`
   height: 80px;
-  width: ${props => props.width}px;
   margin: auto;
   position: relative;
   display: flex;
