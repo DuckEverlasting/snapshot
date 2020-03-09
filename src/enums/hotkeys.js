@@ -14,9 +14,9 @@ export const hotkey = {
 export const hotkeyCtrl = {
   "c": {type: "special", payload: "copy"},
   "v": {type: "special", payload: "paste"},
-  "z": {type: "special", payload: "undo"}
-}
-
-export const hotkeyCtrlShift = {
-  "z": {type: "special", payload: "redo"}
+  "V": {type: "special", payload: "pasteToNew"},
+  "j": {type: "special", payload: "duplicate"},
+  "z": {type: "special", payload: "undo"},
+  "Z": {type: "special", payload: "redo"},
+  "d": {type: "special", payload: "deselect"}
 }

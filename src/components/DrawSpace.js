@@ -34,9 +34,10 @@ let state = {
 
 export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
-  const { activeTool, activeLayer, selectionPath, toolSettings, layers, layerOrder } = useSelector(state => state);
+  const { activeTool, activeLayer, selectionPath, toolSettings, layerData, layerOrder } = useSelector(state => state);
   const primary = useSelector(state => state.colorSettings.primary);
   const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
+  const layerCounter = useSelector(state => state.layerCounter);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function DrawSpace(props) {
 
     let color;
     for (let i = layerOrder.length - 1; i >= 0; i--) {
-      let ctx = layers[layerOrder[i]].ctx;
+      let ctx = layerData[layerOrder[i]].ctx;
       const pixel = ctx.getImageData(x, y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
@@ -139,6 +140,8 @@ export default function DrawSpace(props) {
       case "hand":
         break;
       case "zoom":
+        break;
+      case "TEST":
         break;
       default:
         break;
@@ -355,6 +358,13 @@ export default function DrawSpace(props) {
         );
 
       case "move":
+        if (state.throttle) break;
+
+        state = {...state, throttle: true}
+        setTimeout(() => {
+          state = {...state, throttle: false}
+        }, 25)
+
         dispatch(
           updateLayerQueue(activeLayer, {
             action: "move",

@@ -38,10 +38,10 @@ export const [
   "UPDATE_WORKSPACE_SETTINGS"
 ];
 
-export const createLayer = (position, special = false) => {
+export const createLayer = (position, special = null, source = null) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, special}
+    payload: {position, special, source}
   };
 };
 

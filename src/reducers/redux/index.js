@@ -21,12 +21,15 @@ import {
 
 let selectionCanvas = document.createElement("canvas");
 let initCanvas = document.createElement("canvas");
+let clipboardCanvas = document.createElement("canvas");
 let initWidth = window.innerWidth * .7;
 let initHeight = window.innerHeight * .8;
 selectionCanvas.width = initWidth;
 selectionCanvas.height = initHeight;
 initCanvas.width = initWidth;
 initCanvas.height = initHeight;
+clipboardCanvas.width = initWidth;
+clipboardCanvas.height = initWidth;
 
 const initialState = {
   workspaceSettings: {
@@ -56,7 +59,8 @@ const initialState = {
     selectRect: { name: "Select Rectangle", width: undefined, opacity: undefined },
     move: { name: "Move", width: undefined, opacity: undefined },
     hand: { name: "Hand", width: undefined, opacity: undefined },
-    zoom: { name: "Zoom", width: undefined, opacity: undefined }
+    zoom: { name: "Zoom", width: undefined, opacity: undefined },
+    TEST: { name: "TEST" }
   },
   layerData: {
     1: {
@@ -69,6 +73,11 @@ const initialState = {
       queue: null,
       ctx: selectionCanvas.getContext("2d")
     },
+    clipboard: {
+      data: clipboardCanvas,
+      queue: null,
+      ctx: clipboardCanvas.getContext("2d")  
+    }
   },
   layerSettings: {
     1: {
@@ -82,10 +91,16 @@ const initialState = {
       nameEditable: false,
       hidden: false,
       opacity: 1
+    },
+    clipboard: {
+      name: undefined,
+      nameEditable: false,
+      hidden: true,
+      opacity: 1
     }
   },
   selectionPath: null,
-  layerOrder: [1, "selection"],
+  layerOrder: ["clipboard", 1, "selection"],
   draggedLayercard: null,
   activeLayer: 1,
   layerCounter: 2,
@@ -114,6 +129,7 @@ const rootReducer = (state = initialState, {type, payload}) => {
       };
       let orderAfterCreate = state.layerOrder.slice(0);
       orderAfterCreate.splice(position, 0, layerID);
+
       return {
         ...state,
         layerData: {...state.layerData, [layerID]: newLayerData},

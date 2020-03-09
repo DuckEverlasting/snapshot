@@ -5,9 +5,11 @@ import styled from 'styled-components';
 import DrawSpace from '../components/DrawSpace';
 import Layer from '../components/Layer';
 
-import { hotkey, hotkeyCtrl, hotkeyCtrlShift } from "../enums/hotkeys";
+import manipulate from "../reducers/custom/manipulateReducer";
 
-import { updateWorkspaceSettings, makeActiveTool, updateColor } from '../actions/redux';
+import { hotkey, hotkeyCtrl } from "../enums/hotkeys";
+
+import { createLayer, updateWorkspaceSettings, makeActiveTool, updateColor, updateSelectionPath, updateLayerQueue } from '../actions/redux';
 
 const WorkspaceSC = styled.div.attrs(props => ({
   style: {
@@ -41,9 +43,12 @@ let lastFrame = 0;
 
 export default function Workspace() {
   const {canvasWidth, canvasHeight, width, height, translateX, translateY, zoomPct} = useSelector(state => state.workspaceSettings)
+  const activeLayer = useSelector(state => state.activeLayer)
   const layerData = useSelector(state => state.layerData)
   const layerSettings = useSelector(state => state.layerSettings)
   const layerOrder = useSelector(state => state.layerOrder)
+  const layerCounter = useSelector(state => state.layerCounter)
+  const selectionPath = useSelector(state => state.selectionPath)
   const {primary, secondary} = useSelector(state => state.colorSettings)
 
   const [isDragging, setIsDragging] = useState(false);
@@ -148,11 +153,11 @@ export default function Workspace() {
     dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}))
   }
 
-  const handleKeyPress = ev => {
+  const handleKeyDown = ev => {
+    if (ev.key === "Shift" || ev.key === "Control") return;
+    ev.preventDefault();
     let keyCombo;
-    if (ev.ctrlKey && ev.shiftKey) { 
-      keyCombo = hotkeyCtrlShift[ev.key]
-    } else if (ev.ctrlKey) {
+    if (ev.ctrlKey) {
       keyCombo = hotkeyCtrl[ev.key]
     } else {
       keyCombo = hotkey[ev.key]
@@ -165,12 +170,66 @@ export default function Workspace() {
         case "switchColors":
           dispatch(updateColor("primary", secondary))
           dispatch(updateColor("secondary", primary))
+          break;
+        case "deselect":
+          dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
+          dispatch(updateSelectionPath(null))
+          break;
+        case "duplicate":
+          const sourceCtx = layerData[activeLayer].ctx;
+          const newLayerId = layerCounter;
+          dispatch(createLayer(activeLayer));
+          dispatch(updateLayerQueue(newLayerId, {
+            type: "manipulate",
+            action: "paste",
+            params: {
+              sourceCtx,
+              dest: [0, 0],
+              clip: selectionPath
+            }
+          }))
+          break;
+        case "copy":
+          dispatch(updateLayerQueue("clipboard", {
+            type: "manipulate",
+            action: "paste",
+            params: {
+              sourceCtx: layerData[activeLayer].ctx,
+              dest: [0, 0],
+              clip: selectionPath,
+              clearFirst: true
+            }
+          }))
+          break;
+        case "paste":
+          dispatch(updateLayerQueue(activeLayer, {
+            type: "manipulate",
+            action: "paste",
+            params: {
+              sourceCtx: layerData.clipboard.ctx,
+              dest: [0, 0],
+            }
+          }))
+          break;
+        case "pasteToNew":
+          const newLayerPasteId = layerCounter;
+          dispatch(createLayer(activeLayer));
+          dispatch(updateLayerQueue(newLayerPasteId, {
+            type: "manipulate",
+            action: "paste",
+            params: {
+              sourceCtx: layerData.clipboard.ctx,
+              dest: [0, 0],
+              clearFirst: true
+            }
+          }))
+          break;
       }
     }
   }
 
   return(
-    <WorkspaceSC ref={workspaceRef} width={width} height={height} onKeyPress={handleKeyPress}>
+    <WorkspaceSC ref={workspaceRef} width={width} height={height} onKeyDown={handleKeyDown}>
       <CanvasPaneSC onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onMouseOut={handleMouseOut} onMouseMove={handleMouseMove} translateX={translateX} translateY={translateY} width={canvasWidth} height={canvasHeight} zoomPct={zoomPct}>
         <DrawSpace overrideCursor={isDragging ? "grabbing" : null} index={layerOrder.length + 2}/>
         <LayerRenderer layerOrder={layerOrder} layerData={layerData} layerSettings={layerSettings} width={canvasWidth} height={canvasHeight} />

@@ -87,7 +87,7 @@ export default function LayerPanel() {
                   .slice()
                   .reverse()
                   .map((layerId, i) => {
-                    if (["staging", "selection"].includes(layerId)) return null;
+                    if (["staging", "selection", "clipboard"].includes(layerId)) return null;
                     let layer = layerSettings[layerId];
                     return (
                       <LayerCard

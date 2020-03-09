@@ -37,3 +37,17 @@ export function move(ctx, { orig, dest }) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   ctx.putImageData(data, x, y);  
 }
+
+export function paste(ctx, { sourceCtx, dest, clip, clearFirst=false }) {
+  if (clearFirst) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  }
+  if (clip) {
+    ctx.save()
+    ctx.clip(clip)
+  }
+  ctx.drawImage(sourceCtx.canvas, dest[0], dest[1]);
+  if (clip) {
+    ctx.restore()
+  }
+}
