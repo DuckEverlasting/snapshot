@@ -22,8 +22,8 @@ import {
 let selectionCanvas = document.createElement("canvas");
 let initCanvas = document.createElement("canvas");
 let clipboardCanvas = document.createElement("canvas");
-let initWidth = window.innerWidth * .7;
-let initHeight = window.innerHeight * .8;
+let initWidth = (window.innerWidth - 300) * .8;
+let initHeight = (window.innerHeight - 30) * .8;
 selectionCanvas.width = initWidth;
 selectionCanvas.height = initHeight;
 initCanvas.width = initWidth;
@@ -35,8 +35,6 @@ const initialState = {
   workspaceSettings: {
     canvasWidth: initWidth,
     canvasHeight: initHeight,
-    width: initWidth,
-    height: initHeight,
     translateX: 0,
     translateY: 0,
     zoomPct: 100

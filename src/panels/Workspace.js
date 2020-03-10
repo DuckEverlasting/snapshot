@@ -11,14 +11,11 @@ import { hotkey, hotkeyCtrl } from "../enums/hotkeys";
 
 import { createLayer, updateWorkspaceSettings, makeActiveTool, updateColor, updateSelectionPath, updateLayerQueue } from '../actions/redux';
 
-const WorkspaceSC = styled.div.attrs(props => ({
-  style: {
-    width: props.width,
-    height: props.height
-  }
-}))`
+const WorkspaceSC = styled.div`
   position: relative;
   display: flex;
+  width: 100%;
+  height: 100%;
   border: 3px solid black;
   overflow: hidden;
   z-index: 1;
@@ -230,7 +227,7 @@ export default function Workspace() {
   }
 
   return(
-    <WorkspaceSC ref={workspaceRef} width={width} height={height} onKeyDown={handleKeyDown}>
+    <WorkspaceSC ref={workspaceRef} onKeyDown={handleKeyDown}>
       <CanvasPaneSC onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onMouseOut={handleMouseOut} onMouseMove={handleMouseMove} translateX={translateX} translateY={translateY} width={canvasWidth} height={canvasHeight} zoomPct={zoomPct}>
         <DrawSpace overrideCursor={isDragging ? "grabbing" : null} index={layerOrder.length + 2}/>
         <LayerRenderer layerOrder={layerOrder} layerData={layerData} layerSettings={layerSettings} width={canvasWidth} height={canvasHeight} />

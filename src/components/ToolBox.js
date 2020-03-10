@@ -33,7 +33,7 @@ const ButtonSC = styled.button.attrs(props => ({
     borderColor: props.active ? "yellow" : "#e3e3e3"
   }
 }))`
-  width: 40%;
+  width: 35%;
   margin: 2%;
   outline: none;
 `;

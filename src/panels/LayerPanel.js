@@ -6,19 +6,14 @@ import styled from "styled-components";
 import LayerCard from "../components/LayerCard";
 import { createLayer, updateLayerOrder } from "../actions/redux";
 
-const LayerPanelSC = styled.div.attrs(props => ({
-  style: {
-    height: `${props.height}px`
-  }
-}))`
+const LayerPanelSC = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  width: 120px;
+  width: 200px;
+  height: 100%;
   border: 3px solid black;
-  border-bottom-right-radius: 10px;
-  border-top-right-radius: 10px;
   z-index: 1;
   background: #666666;
 `;
@@ -51,7 +46,6 @@ const ButtonSC = styled.button`
 `;
 
 export default function LayerPanel() {
-  const height = useSelector(state => state.workspaceSettings.height);
   const layerSettings = useSelector(state => state.layerSettings)
   const layerOrder = useSelector(state => state.layerOrder)
   const dispatch = useDispatch();
@@ -73,7 +67,7 @@ export default function LayerPanel() {
   }
 
   return (
-    <LayerPanelSC height={height}>
+    <LayerPanelSC>
       <TitleSC>Layers</TitleSC>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId={"layersDroppable"}>

@@ -14,7 +14,7 @@ const ColorBoxSC = styled.div`
 
 const TitleSC = styled.p`
   margin: 0 0 5px;
-  padding: 3px 0;
+  padding: 3px;
   border-top: 1px solid black;
   border-bottom: 1px dotted black;
 `
@@ -25,8 +25,8 @@ const ColorPickerSC = styled.input`
 
 const PrimaryColorSC = styled.div`
   position: absolute;
-  left: 23%;
-  bottom: 26%;
+  left: 40px;
+  bottom: 26px;
   width: 40px;
   height: 28px;
   background: ${props => props.color};
@@ -38,8 +38,8 @@ const PrimaryColorSC = styled.div`
 
 const SecondaryColorSC = styled.div`
   position: absolute;
-  left: 39%;
-  bottom: 10%;
+  right: 47px;
+  bottom: 9px;
   width: 40px;
   height: 28px;
   background: ${props => props.color};
@@ -51,7 +51,7 @@ const SecondaryColorSC = styled.div`
 
 const FontAwesomeIconSC = styled(FontAwesomeIcon)`
   position: absolute;
-  right: 28%;
+  right: 49px;
   bottom: 44%;
   font-size: 12px;
   cursor: pointer;

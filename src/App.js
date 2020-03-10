@@ -13,16 +13,20 @@ import { updateWorkspaceSettings } from './actions/redux'
 const AppSC = styled.div`
   text-align: center;
   display: flex;
+  width: 100%;
+  height: ${window.innerHeight}px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: 2vh;
 `
 
 const AppContainerSC = styled.div`
   text-align: center;
+  width: 100%;
+  height: 100%;
+  flex-shrink: 1;
   display: flex;
-  justify-content: center;
+  justify-content: center;  
   user-select: none;
 `
 
@@ -60,7 +64,7 @@ function App() {
         <Workspace />
         <LayerPanel />
       </AppContainerSC>
-      <AboutButtonSC onClick={handleModalButton}>About this project</AboutButtonSC>
+      {/* <AboutButtonSC onClick={handleModalButton}>About this project</AboutButtonSC> */}
     </AppSC>
   );
 }

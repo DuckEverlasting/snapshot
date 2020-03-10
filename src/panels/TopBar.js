@@ -1,79 +1,72 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useState } from "react";
 
 import styled from "styled-components";
 
-const TopBarSC = styled.div.attrs(props => ({
-  style: {
-    width: `${props.width}px`
-  }
-}))`
-  height: 80px;
+const TopBarSC = styled.div`
+  width: 100%;
+  height: 30px;
+  flex-shrink: 0;
   margin: auto;
   position: relative;
   display: flex;
   justify-content: space-between;
-`
+`;
 
 const LeftBoxSC = styled.div`
   display: flex;
   align-items: flex-end;
   width: 30%;
-`
+  padding-left: 20px;
+`;
 
 const RightBoxSC = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
   width: 30%;
-`
+`;
 
 const MenuSC = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  background: #666666;
-  padding: 5px;
+  padding: 5px 15px;
   font-size: 1rem;
   max-width: 5rem;
   font-weight: bold;
-  border: 2px solid black;
   border-bottom: none;
   flex-grow: 1;
   user-select: none;
-
-  &:first-child {
-    border-top-left-radius: 10px;
-  }
-
-  &:last-child {
-    border-top-right-radius: 10px;
-  }
-`
+`;
 
 const TitleSC = styled.h1`
-  background: #666666;
   margin: 0;
   padding: 3px 10px;
   font-size: 1.6rem;
   font-weight: bold;
-  border: 2px solid black;
-  border-bottom: none;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
   white-space: nowrap;
   user-select: none;
-`
+`;
 
 export default function TopBar() {
-  const width = useSelector(state => state.workspaceSettings.width);
+  const [menuIsOpen, setMenuIsOpen] = useState(false);
+  const [menuTree, setMenuTree] = useState(null);
 
   return (
-    <TopBarSC width={width}>
+    <TopBarSC>
       <LeftBoxSC>
-        <MenuSC>File</MenuSC>
-        <MenuSC>Edit</MenuSC>
-        <MenuSC>Layer</MenuSC>
+        <MenuSC>
+          File
+          <div />
+        </MenuSC>
+        <MenuSC>
+          Edit
+          <div />
+        </MenuSC>
+        <MenuSC>
+          Layer
+          <div />
+        </MenuSC>
       </LeftBoxSC>
       <RightBoxSC>
         <TitleSC>PhotoSmith Image Editor</TitleSC>
