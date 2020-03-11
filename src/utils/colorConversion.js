@@ -55,3 +55,18 @@ export function addOpacity(rgba, opacity) {
   // stitch it all together with opacity
   return `${rgb}, ${opacity})`
 }
+
+export function toArrayFromRgba(rgba, opacity=1) {
+  const redStart = rgba.indexOf("(") + 1,
+    greenStart = rgba.indexOf(",") + 1,
+    blueStart = rgba.indexOf(",", greenStart) + 1,
+    alphaStart = rgba.indexOf(",", blueStart) + 1
+
+  const redDec = rgba.substring(redStart, greenStart - 1),
+    greenDec = rgba.substring(greenStart, blueStart - 1),
+    blueDec = rgba.substring(blueStart, alphaStart - 1)
+
+  opacity = Math.floor(Number(opacity * 255));
+  
+  return [Number(redDec), Number(greenDec), Number(blueDec), opacity]
+}

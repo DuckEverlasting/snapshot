@@ -4,7 +4,7 @@ import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
-import { addOpacity } from '../utils/colorConversion.js';
+import { addOpacity, toArrayFromRgba } from '../utils/colorConversion.js';
 import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
@@ -103,7 +103,9 @@ export default function DrawSpace(props) {
     */
 
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
-    if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
+    if (layerOrder.includes("staging")) {
+      dispatch(deleteLayer("staging"))
+    }
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     state = {
       ...state,
@@ -409,9 +411,10 @@ export default function DrawSpace(props) {
 
     if (!state.mouseDown) return;
 
-    const { opacity, width } = toolSettings[state.tool];
+    const { opacity, width, tolerance } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
     const color = addOpacity(primary, opacity / 100)
+    const colorArray = toArrayFromRgba(primary, opacity / 100)
 
     state = {
       ...state,
@@ -563,13 +566,27 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         break;
 
+      case "bucketFill":
+        dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "fill",
+            type: "manipulate",
+            params: {
+              orig: state.origin,
+              colorArray,
+              tolerance,
+              clip: selectionPath
+            }
+          })
+        );
+        break;
+
       case "selectRect":
         let path;
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
           path = null;
         } else if (selectionPath !== null && state.heldShift) {
-          console.log(selectionPath)
-          path = selectionPath;
+          path = new Path2D(selectionPath);
         } else {
           path = new Path2D();
         }

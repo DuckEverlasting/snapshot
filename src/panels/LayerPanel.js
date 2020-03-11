@@ -98,7 +98,7 @@ export default function LayerPanel() {
             </LayerBoxSC>)}
         </Droppable>
       </DragDropContext>
-      <ButtonSC title="New Layer" onClick={() => dispatch(createLayer(layerOrder.length - 1))}>
+      <ButtonSC title="New Layer" onClick={() => dispatch(createLayer(layerOrder.length - 2))}>
         NEW LAYER
       </ButtonSC>
     </LayerPanelSC>

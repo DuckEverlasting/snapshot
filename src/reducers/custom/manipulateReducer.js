@@ -1,6 +1,7 @@
 import {
   move,
-  paste
+  paste,
+  fill
 } from '../../actions/custom/ctxActions.js'
 
 export default function(ctx, { action, params }) {
@@ -9,7 +10,9 @@ export default function(ctx, { action, params }) {
       move(ctx, params);
       break;
     case "paste":
-      paste(ctx, params)
+      paste(ctx, params);
+    case "fill":
+      fill(ctx, params);
     default:
       return "error: invalid draw action";
   }

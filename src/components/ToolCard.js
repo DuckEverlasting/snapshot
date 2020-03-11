@@ -49,12 +49,23 @@ const LabelSC = styled.label.attrs(props => ({
 export default function ToolCard() {
   const activeTool = useSelector(state => state.activeTool)
   const toolSettings = useSelector(state => state.toolSettings)
-  const { width, opacity } = toolSettings[activeTool];
+  const { width, opacity, tolerance } = toolSettings[activeTool];
   const dispatch = useDispatch();
 
   const toolName = toolSettings[activeTool].name
 
-  const inputWidthHandler = ev => {
+  const inputHandler = (ev, property, min=null, max=null) => {
+    let value = Number(ev.target.value);
+    if (min !== null && value < min) {
+      value = min
+    };
+    if (max !== null && value > max) {
+      value = max
+    };
+    dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], [property]: value}))
+  }
+
+  const inputWidthHandler = (ev, property, min=null, max=null) => {
     let value = Number(ev.target.value);
     if (value < 1) {
       value = 1
@@ -73,16 +84,31 @@ export default function ToolCard() {
     dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "opacity": value}))
   }
 
+  const inputToleranceHandler = ev => {
+    let value = Number(ev.target.value);
+    if (value < 0) {
+      value = 0
+    };
+    if (value > 255) {
+      value = 100
+    };
+    dispatch(updateToolSettings(activeTool, { ...toolSettings[activeTool], "tolerance": value}))
+  }
+
   return (
     <ToolCardSC>
       <TitleSC>{toolName}</TitleSC>
       <LabelSC visible={width !== undefined}>Width
-        <WidthPickerSC value={width} onChange={inputWidthHandler} type="number" min="1" max="255" step="1"/>
-        <WidthSliderSC value={width} onChange={inputWidthHandler} type="range" min="1" max="255" step="1"/>
+        <WidthPickerSC value={width} onChange={ev => inputHandler(ev, "width", 1)} type="number" min="1" max="255" step="1"/>
+        <WidthSliderSC value={width} onChange={ev => inputHandler(ev, "width", 1)} type="range" min="1" max="255" step="1"/>
       </LabelSC>
       <LabelSC visible={opacity !== undefined}>Opacity
-        <OpacityPickerSC value={opacity} onChange={inputOpacityHandler} type="number" min="0" max="100" step="1"/>
-        <OpacitySliderSC value={opacity} onChange={inputOpacityHandler} type="range" min="0" max="100" step="1"/>
+        <OpacityPickerSC value={opacity} onChange={ev => inputHandler(ev, "opacity", 0, 100)} type="number" min="0" max="100" step="1"/>
+        <OpacitySliderSC value={opacity} onChange={ev => inputHandler(ev, "opacity", 0, 100)} type="range" min="0" max="100" step="1"/>
+      </LabelSC>
+      <LabelSC visible={tolerance !== undefined}>Tolerance
+        <OpacityPickerSC value={tolerance} onChange={ev => inputHandler(ev, "tolerance", 0, 255)} type="number" min="0" max="255" step="1"/>
+        <OpacitySliderSC value={tolerance} onChange={ev => inputHandler(ev, "tolerance", 0, 255)} type="range" min="0" max="255" step="1"/>
       </LabelSC>
     </ToolCardSC>
   )

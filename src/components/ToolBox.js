@@ -10,7 +10,8 @@ import {
   faArrowsAlt,
   faEyeDropper,
   faVectorSquare,
-  faSearch
+  faSearch,
+  faFillDrip
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faHandPaper
@@ -54,6 +55,7 @@ function ToolBox() {
       <ToolButton title="Fill Circle" name="fillCirc" icon="⚫"/>
       <ToolButton title="Draw Circle" name="drawCirc" icon="⚪"/>
       <ToolButton title="Eye Dropper (I)" name="eyeDropper" faIcon={faEyeDropper}/>
+      <ToolButton title="Paint Bucket (G)" name="bucketFill" faIcon={faFillDrip}/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" faIcon={faVectorSquare}/>
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
