@@ -136,7 +136,7 @@ export default function DrawSpace(props) {
         let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
         return eyeDropper(x, y, modifier ? "secondary" : "primary")
       case "selectRect":
-        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
+        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw", params: {ignoreHistory: true}}))
         return dispatch(createLayer(layerOrder.length, "staging", true));
       case "move":
         break;
@@ -186,7 +186,8 @@ export default function DrawSpace(props) {
       width: width,
       strokeColor: color,
       fillColor: color,
-      clip: selectionPath
+      clip: selectionPath,
+      ignoreHistory: true
     };
 
     if (state.lockedAxis && !ev.shiftKey) {
@@ -607,8 +608,16 @@ export default function DrawSpace(props) {
         );
 
       case "move":
-        break;
-
+        return dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "move",
+            type: "manipulate",
+            params: {
+              ...params,
+              orig: state.destArray[state.destArray.length - 1] || state.origin,
+            }
+          })
+        );
       case "hand":
         break;
 

@@ -55,7 +55,7 @@ export function paste(ctx, { sourceCtx, dest, clip, clearFirst = false }) {
     ctx.save();
     ctx.clip(clip);
   }
-  ctx.drawImage(sourceCtx.canvas, dest[0], dest[1]);
+  ctx.drawImage(sourceCtx.canvas, Math.floor(dest[0]), Math.floor(dest[1]));
   if (clip) {
     ctx.restore();
   }

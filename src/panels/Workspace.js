@@ -206,7 +206,7 @@ export default function Workspace() {
           break;
         case "deselect":
           dispatch(
-            updateLayerQueue("selection", { action: "clear", type: "draw" })
+            updateLayerQueue("selection", { action: "clear", type: "draw", params: {selectionPath: null} })
           );
           dispatch(updateSelectionPath(null));
           break;
