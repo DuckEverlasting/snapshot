@@ -6,6 +6,14 @@ class Node {
   }
 }
 
+class LinkedPair {
+  constructor(key, value, next=null) {
+    this.key = key;
+    this.value = value;
+    this.next = next;
+  }
+}
+
 export default class UndoStack {
   constructor(initNode=null) {
     this.current = initNode;
@@ -34,5 +42,42 @@ export default class UndoStack {
     const data = this.current.next.data;
     this.current = this.current.next;
     return data;
+  }
+}
+
+class HashTable {
+  constructor() {
+    this.storage = new Array(8);
+  }
+
+  hash(key) {
+
+  }
+
+  get(key) {
+    const hashedKey = this.hash(key);
+    let current = this.storage[hashedKey % this.storage.length];
+    while (current !== null) {
+      if (current.key === key) {
+        return current.value;
+      }
+      current = current.next;
+    }
+    throw new Error(`Key "${key}" not in hashtable`)
+  }
+
+  set(key, value) {
+    const hashedKey = this.hash(key);
+    let prev;
+    let current = this.storage[hashedKey % this.storage.length];
+    while (current !== null) {
+      if (current.key === key) {
+        current.value = value;
+        return;
+      }
+      prev = current;
+      current = current.next;
+    };
+    prev.next = new LinkedPair(key, value)
   }
 }

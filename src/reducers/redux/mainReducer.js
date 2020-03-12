@@ -25,6 +25,7 @@ const addToHistory = (history, data) => ({
 })
 
 const mainReducer = (state, {type, payload}) => {
+  console.log("\ntype: ", type, " payload: ", payload, "\n\n")
   let undoData;
   switch (type) {
     case CREATE_LAYER:

@@ -148,9 +148,12 @@ const rootReducer = (state = initialState, {type, payload}) => {
       }
 
     case REDO:
+      if (!future.length) {
+        return state;
+      }
       const redoAction = {
         type: future[future.length - 1].type,
-        payload: future[future.length - 1].payload
+        payload: {...future[future.length - 1].payload}
       }
       const newState = {
         ...state,
@@ -165,6 +168,7 @@ const rootReducer = (state = initialState, {type, payload}) => {
       if (state.history.future.length) {
         state = {...state, history: {...state.history, future: []}}
       }
+      console.log("type: ", type, " payload: ", payload)
       return mainReducer(state, {type, payload});
   }
 };

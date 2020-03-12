@@ -51,13 +51,13 @@ function Layer(props) {
   }
 
   function drawHandler(ctx, queue) {
-    const prevImgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
+    const prevImgData = ignoreHistory(queue) ? null : ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
     draw(ctx, queue);
     dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, ignoreHistory(queue)))
   }
 
   function manipulateHandler(ctx, queue) {
-    const prevImgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
+    const prevImgData = ignoreHistory(queue) ? null : ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
     manipulate(ctx, queue);
     dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, ignoreHistory(queue)))
   }
