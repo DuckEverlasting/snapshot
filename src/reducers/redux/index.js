@@ -1,22 +1,8 @@
+import mainReducer from "./mainReducer";
+
 import {
-  CREATE_LAYER,
-  DELETE_LAYER,
-  HIDE_LAYER,
-  UPDATE_LAYER_DATA,
-  UPDATE_LAYER_QUEUE,
-  CLEAR_LAYER_QUEUE,
-  UPDATE_SELECTION_PATH,
-  UPDATE_LAYER_OPACITY,
-  UPDATE_LAYER_ORDER,
-  ENABLE_LAYER_RENAME,
-  UPDATE_LAYER_NAME,
-  DRAG_LAYERCARD,
-  END_DRAG_LAYERCARD,
-  MAKE_ACTIVE_LAYER,
-  MAKE_ACTIVE_TOOL,
-  UPDATE_TOOL_SETTINGS,
-  UPDATE_COLOR,
-  UPDATE_WORKSPACE_SETTINGS,
+  UNDO,
+  REDO,
 } from "../../actions/redux";
 
 let selectionCanvas = document.createElement("canvas");
@@ -58,7 +44,8 @@ const initialState = {
     move: { name: "Move", width: undefined, opacity: undefined },
     hand: { name: "Hand", width: undefined, opacity: undefined },
     zoom: { name: "Zoom", width: undefined, opacity: undefined },
-    bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 }
+    bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
+    TEST: { name: "TEST" }
   },
   layerData: {
     1: {
@@ -102,231 +89,83 @@ const initialState = {
   draggedLayercard: null,
   activeLayer: 1,
   layerCounter: 2,
-  activeTool: "pencil"
+  activeTool: "pencil",
+  history: {
+    past: [],
+    future: [],
+    undoLimit: 20
+  }
 };
 
 const rootReducer = (state = initialState, {type, payload}) => {
+  let past = state.history.past;
+  let future = state.history.future; 
   switch (type) {
-    case CREATE_LAYER:
-      let { position, special } = payload;
-      let canvas = document.createElement("canvas");
-      canvas.width = state.workspaceSettings.canvasWidth;
-      canvas.height = state.workspaceSettings.canvasHeight;
-      canvas.getContext("2d").imageSmoothingEnabled = false;
-      const layerID = special ? special : state.layerCounter;
-      const newLayerData = {
-        data: canvas,
-        queue: null,
-        ctx: canvas.getContext("2d")
-      };
-      const newLayerSettings = {
-        name: special ? undefined : `layer ${state.layerCounter}`,
-        nameEditable: false,
-        hidden: false,
-        opacity: 1,
-      };
-      let orderAfterCreate = state.layerOrder.slice(0);
-      orderAfterCreate.splice(position + 1, 0, layerID);
-      console.log(orderAfterCreate)
-
-      return {
-        ...state,
-        layerData: {...state.layerData, [layerID]: newLayerData},
-        layerSettings: {...state.layerSettings, [layerID]: newLayerSettings},
-        layerOrder: orderAfterCreate,
-        activeLayer: special ? state.activeLayer : state.layerCounter,
-        layerCounter: special ? state.layerCounter : state.layerCounter + 1,
-      };
-    
-    case DELETE_LAYER:
-      let afterDeleteData = {...state.layerData, [payload]: undefined}
-      let afterDeleteSettings = {...state.layerSettings, [payload]: undefined}
-      let afterDeleteOrder = state.layerOrder.filter(id => {
-        return id !== payload;
-      });
-      let afterDeleteActive = state.activeLayer === payload ? null : state.activeLayer
-      return {
-        ...state,
-        layerData: afterDeleteData,
-        layerSettings: afterDeleteSettings,
-        layerOrder: afterDeleteOrder,
-        activeLayer: afterDeleteActive
-      };
-    
-    case HIDE_LAYER:
-      let afterHiddenSettings = {
-        ...state.layerSettings, 
-        [payload]: {
-          ...state.layerSettings[payload],
-          hidden: !state.layerSettings[payload].hidden
-        }
+    case UNDO:
+      if (!past.length) {
+        return state;
       }
-      
-      let activeLayer = state.activeLayer;
-      if (activeLayer === payload) activeLayer = null;
-      return {
-        ...state,
-        layerSettings: afterHiddenSettings,
-        activeLayer
-      }
+      const undoObject = past[past.length - 1];
+      const newPast = past.slice(0, past.length - 1);
+      const newFuture = [...future, undoObject]
+      const { undoPayload } = undoObject;
 
-    case UPDATE_LAYER_DATA:
-        let afterUpdateData = {
-          ...state.layerData, 
-          [payload.id]: {
-            ...state.layerData[payload.id],
-            data: payload.changes,
-            ctx: payload.changes.getContext('2d')
-          }
-        }
-        
+      if (undoPayload.canvasData) {
         return {
           ...state,
-          layerData: afterUpdateData
+          layerData: {
+            ...state.layerData,
+            [undoPayload.canvasData.id]: {
+              ...state.layerData[undoPayload.canvasData.id],
+              queue: {
+                type: "manipulate",
+                action: "replace",
+                params: {
+                  source: undoPayload.canvasData.data,
+                  ignoreHistory: true
+                }
+              }
+            }
+          },
+          history: {
+            ...state.history,
+            past: [...newPast],
+            future: [...newFuture]
+          }
+        }
+      } else {
+        const { layerData={}, ...rest } = undoPayload.state;
+        return {
+          ...state,
+          ...rest,
+          layerData: {...state.layerData, ...layerData},
+          history: {
+            ...state.history,
+            past: newPast,
+            future: newFuture
+          }
         };
-
-    case UPDATE_LAYER_QUEUE:
-      let afterUpdateQueue = {
-        ...state.layerData, 
-        [payload.id]: {
-          ...state.layerData[payload.id],
-          queue: payload.changes,
-        }
-      }
-      
-      return {
-        ...state,
-        layerData: afterUpdateQueue
-      };
-    
-    case CLEAR_LAYER_QUEUE:
-      let afterClearQueue = {
-        ...state.layerData, 
-        [payload.id]: {
-          ...state.layerData[payload.id],
-          queue: {update: null, get: null},
-        }
-      }
-      
-      return {
-        ...state,
-        layerData: afterClearQueue
-      };
-    
-    case UPDATE_SELECTION_PATH:
-      return {
-        ...state,
-        selectionPath: payload
       }
 
-    case UPDATE_LAYER_OPACITY:
-      let afterOpacitySettings = {
-        ...state.layerSettings, 
-        [payload.id]: {
-          ...state.layerSettings[payload.id],
-          opacity: payload.opacity,
+    case REDO:
+      const redoAction = {
+        type: future[future.length - 1].type,
+        payload: future[future.length - 1].payload
+      }
+      const newState = {
+        ...state,
+        history: {
+          ...state.history,
+          future: future.slice(0, future.length - 1)
         }
       }
-
-      return {
-        ...state,
-        layerSettings: afterOpacitySettings
-      };
-
-    case UPDATE_LAYER_ORDER:
-      let { from, to } = payload;
-      let newLayerOrder = state.layerOrder.slice(0);
-      newLayerOrder.splice(to, 0, newLayerOrder.splice(from, 1)[0]);
-      return {
-        ...state,
-        layerOrder: newLayerOrder
-      };
-
-    case ENABLE_LAYER_RENAME:
-      let afterEnableSettings =  {
-        ...state.layerSettings, 
-        [payload.id]: {
-          ...state.layerSettings[payload.id],
-          nameEditable: true
-        }
-      }
-
-      return {
-        ...state,
-        layerSettings: afterEnableSettings
-      };
-
-    case UPDATE_LAYER_NAME:
-      let afterRenameSettings = {
-        ...state.layerSettings, 
-        [payload.id]: {
-          ...state.layerSettings[payload.id],
-          name: payload.name,
-          nameEditable: false
-        }
-      }
-
-      return {
-        ...state,
-        layerSettings: afterRenameSettings
-      };
-
-    case DRAG_LAYERCARD:
-      return {
-        ...state,
-        draggedLayercard: payload
-      };
-
-    case END_DRAG_LAYERCARD:
-      return {
-        ...state,
-        draggedLayercard: null,
-      }
-
-    case MAKE_ACTIVE_LAYER:
-      return {
-        ...state,
-        activeLayer: payload
-      };
-
-    case MAKE_ACTIVE_TOOL:
-      return {
-        ...state,
-        activeTool: payload
-      };
-
-    case UPDATE_TOOL_SETTINGS:
-      let { tool, changes: toolChanges } = payload;
-      return {
-        ...state,
-        toolSettings: {
-          ...state.toolSettings,
-          [tool]: toolChanges
-        }
-      };
-
-    case UPDATE_COLOR:
-      let { key, value } = payload;
-      return {
-        ...state,
-        colorSettings: {
-          ...state.colorSettings,
-          [key]: value
-        }
-      };
-
-    case UPDATE_WORKSPACE_SETTINGS:
-      let workspaceSettingsChanges = payload;
-      return {
-        ...state,
-        workspaceSettings: {
-          ...state.workspaceSettings,
-          ...workspaceSettingsChanges
-        }
-      };
+      return mainReducer(newState, redoAction);
 
     default:
-      return state;
+      if (state.history.future.length) {
+        state = {...state, history: {...state.history, future: []}}
+      }
+      return mainReducer(state, {type, payload});
   }
 };
 

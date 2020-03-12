@@ -5,7 +5,7 @@ import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity, toArrayFromRgba } from '../utils/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath, undo } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
 const DrawSpaceSC = styled.div.attrs(props => ({
@@ -104,7 +104,7 @@ export default function DrawSpace(props) {
 
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
     if (layerOrder.includes("staging")) {
-      dispatch(deleteLayer("staging"))
+      dispatch(deleteLayer("staging", true))
     }
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     state = {
@@ -117,27 +117,27 @@ export default function DrawSpace(props) {
     };
     switch (state.tool) {
       case "pencil":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "brush":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "line":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "fillRect":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "drawRect":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "fillCirc":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "drawCirc":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "eraser":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "eyeDropper":
         let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
         return eyeDropper(x, y, modifier ? "secondary" : "primary")
       case "selectRect":
         if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
-        return dispatch(createLayer(layerOrder.length, "staging"));
+        return dispatch(createLayer(layerOrder.length, "staging", true));
       case "move":
         break;
       case "hand":
@@ -145,6 +145,7 @@ export default function DrawSpace(props) {
       case "zoom":
         break;
       case "TEST":
+        dispatch(undo());
         break;
       default:
         break;
@@ -429,7 +430,7 @@ export default function DrawSpace(props) {
         hold: false,
         tool: null
       };
-      dispatch(deleteLayer("staging"))
+      dispatch(deleteLayer("staging", true))
     }, 0);
     
     const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];

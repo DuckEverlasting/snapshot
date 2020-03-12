@@ -46,14 +46,20 @@ function Layer(props) {
     else if (queue.type === "manipulate") manipulateHandler(ctx, queue)
   }, [props.data, props.queue, props.id]);
 
+  function ignoreHistory(queue) {
+    return props.id === "staging" || queue.params.ignoreHistory === true;
+  }
+
   function drawHandler(ctx, queue) {
+    const prevImgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
     draw(ctx, queue);
-    dispatch(updateLayerData(props.id, canvasRef.current))
+    dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, ignoreHistory(queue)))
   }
 
   function manipulateHandler(ctx, queue) {
+    const prevImgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
     manipulate(ctx, queue);
-    dispatch(updateLayerData(props.id, canvasRef.current))
+    dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, ignoreHistory(queue)))
   }
 
   return <LayerWrapperSC width={props.width} height={props.height}>

@@ -1,4 +1,6 @@
 export const [
+  UNDO,
+  REDO,
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
@@ -18,6 +20,8 @@ export const [
   UPDATE_COLOR,
   UPDATE_WORKSPACE_SETTINGS
 ] = [
+  "UNDO",
+  "REDO",
   "CREATE_LAYER",
   "DELETE_LAYER",
   "HIDE_LAYER",
@@ -38,17 +42,29 @@ export const [
   "UPDATE_WORKSPACE_SETTINGS"
 ];
 
-export const createLayer = (position, special = null, source = null) => {
+export const undo = () => {
   return {
-    type: CREATE_LAYER,
-    payload: {position, special, source}
+    type: UNDO,
   };
 };
 
-export const deleteLayer = id => {
+export const redo = () => {
+  return {
+    type: REDO,
+  };
+};
+
+export const createLayer = (position, special = null, ignoreHistory = false) => {
+  return {
+    type: CREATE_LAYER,
+    payload: {position, special, ignoreHistory}
+  };
+};
+
+export const deleteLayer = (id, ignoreHistory = false) => {
   return {
     type: DELETE_LAYER,
-    payload: id
+    payload: {id, ignoreHistory}
   };
 };
 
@@ -59,10 +75,10 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerData = (id, changes) => {
+export const updateLayerData = (id, changes, prevImgData, ignoreHistory = false) => {
   return {
     type: UPDATE_LAYER_DATA,
-    payload: {id, changes}
+    payload: {id, changes, prevImgData, ignoreHistory}
   };
 };
 

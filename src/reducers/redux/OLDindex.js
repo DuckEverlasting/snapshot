@@ -19,16 +19,96 @@ import {
   UPDATE_WORKSPACE_SETTINGS,
 } from "../../actions/redux";
 
-const addToHistory = (history, data) => ({
-  ...history,  
-  past: [...history.past, data],
-})
+let selectionCanvas = document.createElement("canvas");
+let initCanvas = document.createElement("canvas");
+let clipboardCanvas = document.createElement("canvas");
+let initWidth = (window.innerWidth - 300) * .8;
+let initHeight = (window.innerHeight - 30) * .8;
+selectionCanvas.width = initWidth;
+selectionCanvas.height = initHeight;
+initCanvas.width = initWidth;
+initCanvas.height = initHeight;
+clipboardCanvas.width = initWidth;
+clipboardCanvas.height = initWidth;
 
-const mainReducer = (state, {type, payload}) => {
-  let undoData;
+const initialState = {
+  workspaceSettings: {
+    canvasWidth: initWidth,
+    canvasHeight: initHeight,
+    translateX: 0,
+    translateY: 0,
+    zoomPct: 100
+  },
+  colorSettings: {
+    primary: "rgba(0, 0, 0, 1)",
+    secondary: "rgba(255, 255, 255, 1)"
+  },
+  // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. This is so the number input component won't get confused. Opacity is converted to 0 - 1 format in DrawSpace.
+  toolSettings: {
+    pencil: { name: "Pencil", width: 5, opacity: 100 },
+    brush: { name: "Brush", width: 15, opacity: 100 },
+    line: { name: "Line", width: 5, opacity: 100 },
+    fillRect: { name: "Fill Rectangle", width: undefined, opacity: 100 },
+    drawRect: { name: "Draw Rectangle", width: 5, opacity: 100 },
+    fillCirc: { name: "Fill Circle", width: undefined, opacity: 100 },
+    drawCirc: { name: "Draw Circle", width: 5, opacity: 100 },
+    eraser: { name: "Eraser", width: 5, opacity: undefined },
+    eyeDropper: { name: "Eye Dropper", width: undefined, opacity: undefined },
+    selectRect: { name: "Select Rectangle", width: undefined, opacity: undefined },
+    move: { name: "Move", width: undefined, opacity: undefined },
+    hand: { name: "Hand", width: undefined, opacity: undefined },
+    zoom: { name: "Zoom", width: undefined, opacity: undefined },
+    bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 }
+  },
+  layerData: {
+    1: {
+      data: initCanvas,
+      queue: null,
+      ctx: initCanvas.getContext("2d")
+    },
+    selection: {
+      data: selectionCanvas,
+      queue: null,
+      ctx: selectionCanvas.getContext("2d")
+    },
+    clipboard: {
+      data: clipboardCanvas,
+      queue: null,
+      ctx: clipboardCanvas.getContext("2d")  
+    }
+  },
+  layerSettings: {
+    1: {
+      name: "layer 1",
+      nameEditable: false,
+      hidden: false,
+      opacity: 1
+    },
+    selection: {
+      name: undefined,
+      nameEditable: false,
+      hidden: false,
+      opacity: 1
+    },
+    clipboard: {
+      name: undefined,
+      nameEditable: false,
+      hidden: true,
+      opacity: 1
+    }
+  },
+  selectionPath: null,
+  layerOrder: ["clipboard", 1, "selection"],
+  draggedLayercard: null,
+  activeLayer: 1,
+  layerCounter: 2,
+  activeTool: "pencil"
+};
+
+const rootReducer = (state = initialState, {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
-      let { position, special, ignoreHistory } = payload;
+      let { position, special } = payload;
       let canvas = document.createElement("canvas");
       canvas.width = state.workspaceSettings.canvasWidth;
       canvas.height = state.workspaceSettings.canvasHeight;
@@ -46,16 +126,8 @@ const mainReducer = (state, {type, payload}) => {
         opacity: 1,
       };
       let orderAfterCreate = state.layerOrder.slice(0);
-      orderAfterCreate.splice(position, 0, layerID);
-      undoData = {
-        state: {
-          layerData: {[layerID]: undefined},
-          layerSettings: {...state.layerSettings, [layerID]: {...state.layerSettings[layerID]}},
-          activeLayer: state.activeLayer,
-          layerCounter: state.layerCounter,
-          layerOrder: [...state.layerOrder]
-        }
-      }
+      orderAfterCreate.splice(position + 1, 0, layerID);
+      console.log(orderAfterCreate)
 
       return {
         ...state,
@@ -64,52 +136,29 @@ const mainReducer = (state, {type, payload}) => {
         layerOrder: orderAfterCreate,
         activeLayer: special ? state.activeLayer : state.layerCounter,
         layerCounter: special ? state.layerCounter : state.layerCounter + 1,
-        history: ignoreHistory ? {...state.history} : addToHistory(state.history, {
-          type: CREATE_LAYER,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
       };
     
     case DELETE_LAYER:
-      undoData = {
-        state: {
-          layerData: {[payload.id]: {...state.layerData[payload.id]}},
-          layerSettings: {...state.layerSettings, [payload.id]: {...state.layerSettings[payload.id]}},
-          layerOrder: [...state.layerOrder]
-        }
-      }
-      let afterDeleteData = {...state.layerData, [payload.id]: undefined}
-      let afterDeleteSettings = {...state.layerSettings, [payload.id]: undefined}
+      let afterDeleteData = {...state.layerData, [payload]: undefined}
+      let afterDeleteSettings = {...state.layerSettings, [payload]: undefined}
       let afterDeleteOrder = state.layerOrder.filter(id => {
-        return id !== payload.id;
+        return id !== payload;
       });
-      let afterDeleteActive = state.activeLayer === payload.id ? null : state.activeLayer
+      let afterDeleteActive = state.activeLayer === payload ? null : state.activeLayer
       return {
         ...state,
         layerData: afterDeleteData,
         layerSettings: afterDeleteSettings,
         layerOrder: afterDeleteOrder,
-        activeLayer: afterDeleteActive,
-        history: payload.ignoreHistory ? {...state.history} : addToHistory(state.history, {
-          type: DELETE_LAYER,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        activeLayer: afterDeleteActive
       };
     
     case HIDE_LAYER:
-      undoData = { 
-        state: {
-          layerSettings: {...state.layerSettings, [payload]: {...state.layerSettings[payload]}},
-          activeLayer: state.activeLayer
-        }
-      };
       let afterHiddenSettings = {
         ...state.layerSettings, 
         [payload]: {
           ...state.layerSettings[payload],
-          hidden: !state.layerSettings[payload].hidden,
+          hidden: !state.layerSettings[payload].hidden
         }
       }
       
@@ -118,39 +167,23 @@ const mainReducer = (state, {type, payload}) => {
       return {
         ...state,
         layerSettings: afterHiddenSettings,
-        activeLayer,
-        history: addToHistory(state.history, {
-          type: HIDE_LAYER,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        activeLayer
       }
 
     case UPDATE_LAYER_DATA:
-      undoData = payload.ignoreHistory ? null : {
-        canvasData: {
-          id: payload.id,
-          data: payload.prevImgData, 
-        },
-      }
-      let afterUpdateData = {
-        ...state.layerData, 
-        [payload.id]: {
-          ...state.layerData[payload.id],
-          data: payload.changes,
-          ctx: payload.changes.getContext('2d')
+        let afterUpdateData = {
+          ...state.layerData, 
+          [payload.id]: {
+            ...state.layerData[payload.id],
+            data: payload.changes,
+            ctx: payload.changes.getContext('2d')
+          }
         }
-      }
-      
-      return {
-        ...state,
-        layerData: afterUpdateData,
-        history: payload.ignoreHistory ? {...state.history} : addToHistory(state.history, {
-          type: UPDATE_LAYER_DATA,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
-      };
+        
+        return {
+          ...state,
+          layerData: afterUpdateData
+        };
 
     case UPDATE_LAYER_QUEUE:
       let afterUpdateQueue = {
@@ -181,26 +214,12 @@ const mainReducer = (state, {type, payload}) => {
       };
     
     case UPDATE_SELECTION_PATH:
-      undoData = {
-        state: {
-          selectionPath: state.selectionPath ? new Path2D(state.selectionPath) : null
-        }
-      }
       return {
         ...state,
-        selectionPath: payload,
-        history: addToHistory(state.history, {
-          type: UPDATE_SELECTION_PATH,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        selectionPath: payload
       }
 
     case UPDATE_LAYER_OPACITY:
-      undoData = {
-        state: {
-          layerSettings: {...state.layerSettings, [payload.id]: {...state.layerSettings[payload.id]}}        }
-      }
       let afterOpacitySettings = {
         ...state.layerSettings, 
         [payload.id]: {
@@ -211,31 +230,16 @@ const mainReducer = (state, {type, payload}) => {
 
       return {
         ...state,
-        layerSettings: afterOpacitySettings,
-        history: addToHistory(state.history, {
-          type: UPDATE_LAYER_OPACITY,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        layerSettings: afterOpacitySettings
       };
 
     case UPDATE_LAYER_ORDER:
       let { from, to } = payload;
-      undoData = {
-        state: {
-          layerOrder: [...state.layerOrder]
-        }
-      }
       let newLayerOrder = state.layerOrder.slice(0);
       newLayerOrder.splice(to, 0, newLayerOrder.splice(from, 1)[0]);
       return {
         ...state,
-        layerOrder: newLayerOrder,
-        history: addToHistory(state.history, {
-          type: UPDATE_LAYER_ORDER,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        layerOrder: newLayerOrder
       };
 
     case ENABLE_LAYER_RENAME:
@@ -253,10 +257,6 @@ const mainReducer = (state, {type, payload}) => {
       };
 
     case UPDATE_LAYER_NAME:
-      undoData = {
-        state: {
-          layerSettings: {...state.layerSettings, [payload.id]: {...state.layerSettings[payload.id]}}        }
-      }
       let afterRenameSettings = {
         ...state.layerSettings, 
         [payload.id]: {
@@ -268,12 +268,7 @@ const mainReducer = (state, {type, payload}) => {
 
       return {
         ...state,
-        layerSettings: afterRenameSettings,
-        history: addToHistory(state.history, {
-          type: UPDATE_LAYER_NAME,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        layerSettings: afterRenameSettings
       };
 
     case DRAG_LAYERCARD:
@@ -291,7 +286,7 @@ const mainReducer = (state, {type, payload}) => {
     case MAKE_ACTIVE_LAYER:
       return {
         ...state,
-        activeLayer: payload,
+        activeLayer: payload
       };
 
     case MAKE_ACTIVE_TOOL:
@@ -312,18 +307,12 @@ const mainReducer = (state, {type, payload}) => {
 
     case UPDATE_COLOR:
       let { key, value } = payload;
-      undoData = {state: { colorSettings: {...state.colorSettings} }}
       return {
         ...state,
         colorSettings: {
           ...state.colorSettings,
           [key]: value
-        },
-        history: addToHistory(state.history, {
-          type: UPDATE_COLOR,
-          undoPayload: undoData,
-          redoPayload: payload
-        })
+        }
       };
 
     case UPDATE_WORKSPACE_SETTINGS:
@@ -341,4 +330,4 @@ const mainReducer = (state, {type, payload}) => {
   }
 };
 
-export default mainReducer;
+export default rootReducer;

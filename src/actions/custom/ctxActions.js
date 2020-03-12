@@ -61,6 +61,11 @@ export function paste(ctx, { sourceCtx, dest, clip, clearFirst = false }) {
   }
 }
 
+export function replace(ctx, { source }) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.putImageData(source, 0, 0);
+}
+
 export function fill(ctx, { orig, colorArray, clip, tolerance = 100 }) {
   const viewWidth = Math.ceil(ctx.canvas.width / 3);
   const viewHeight = Math.ceil(ctx.canvas.height / 3);
