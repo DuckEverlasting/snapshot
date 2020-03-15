@@ -46,8 +46,8 @@ const ButtonSC = styled.button`
 `;
 
 export default function LayerPanel() {
-  const layerSettings = useSelector(state => state.layerSettings)
-  const layerOrder = useSelector(state => state.layerOrder)
+  const layerSettings = useSelector(state => state.main.present.layerSettings)
+  const layerOrder = useSelector(state => state.main.present.layerOrder)
   const dispatch = useDispatch();
 
   const onDragEnd = result => {
@@ -76,7 +76,7 @@ export default function LayerPanel() {
               ref={provided.innerRef}
               {...provided.droppableProps}
             >
-              {layerOrder.length !== 0 &&
+              {layerOrder && layerOrder.length !== 0 &&
                 layerOrder
                   .slice()
                   .reverse()

@@ -47,8 +47,8 @@ const LabelSC = styled.label.attrs(props => ({
 `
 
 export default function ToolCard() {
-  const activeTool = useSelector(state => state.activeTool)
-  const toolSettings = useSelector(state => state.toolSettings)
+  const activeTool = useSelector(state => state.ui.activeTool)
+  const toolSettings = useSelector(state => state.ui.toolSettings)
   const { width, opacity, tolerance } = toolSettings[activeTool];
   const dispatch = useDispatch();
 

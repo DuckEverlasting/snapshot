@@ -1,6 +1,4 @@
 export const [
-  UNDO,
-  REDO,
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
@@ -20,8 +18,6 @@ export const [
   UPDATE_COLOR,
   UPDATE_WORKSPACE_SETTINGS
 ] = [
-  "UNDO",
-  "REDO",
   "CREATE_LAYER",
   "DELETE_LAYER",
   "HIDE_LAYER",
@@ -41,18 +37,6 @@ export const [
   "UPDATE_COLOR",
   "UPDATE_WORKSPACE_SETTINGS"
 ];
-
-export const undo = () => {
-  return {
-    type: UNDO,
-  };
-};
-
-export const redo = () => {
-  return {
-    type: REDO,
-  };
-};
 
 export const createLayer = (position, special = null, ignoreHistory = false) => {
   return {
@@ -85,14 +69,14 @@ export const updateLayerData = (id, changes, prevImgData, ignoreHistory = false)
 export const updateLayerQueue = (id, changes) => {
   return {
     type: UPDATE_LAYER_QUEUE,
-    payload: {id, changes}
+    payload: {id, changes, ignoreHistory: true}
   };
 };
 
 export const clearLayerQueue = id => {
   return {
     type: CLEAR_LAYER_QUEUE,
-    payload: id
+    payload: {id, ignoreHistory: true}
   };
 };
 
@@ -120,7 +104,7 @@ export const updateLayerOrder = (from, to) => {
 export const enableLayerRename = id => {
   return {
     type: ENABLE_LAYER_RENAME,
-    payload: id
+    payload: {id, ignoreHistory: true}
   };
 };
 
@@ -147,7 +131,7 @@ export const endDragLayercard = () => {
 export const makeActiveLayer = layerId => {
   return {
     type: MAKE_ACTIVE_LAYER,
-    payload: layerId
+    payload: {layerId, ignoreHistory: true}
   };
 };
 

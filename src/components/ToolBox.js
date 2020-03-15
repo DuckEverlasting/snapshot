@@ -66,7 +66,7 @@ function ToolBox() {
 }
 
 function ToolButton({ title, name, faIcon, icon }) {
-  const activeTool = useSelector(state => state.activeTool);
+  const activeTool = useSelector(state => state.ui.activeTool);
   const dispatch = useDispatch();
   const changeToolHandler = ev => {
     ev.preventDefault();

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { ActionCreators } from 'redux-undo';
+
 import styled from "styled-components";
 
 import DrawSpace from "../components/DrawSpace";
@@ -14,8 +16,6 @@ import {
   updateColor,
   updateSelectionPath,
   updateLayerQueue,
-  undo,
-  redo
 } from "../actions/redux";
 
 const WorkspaceSC = styled.div`
@@ -49,19 +49,19 @@ let lastFrame = 0;
 
 export default function Workspace() {
   const {
-    canvasWidth,
-    canvasHeight,
     translateX,
     translateY,
     zoomPct
-  } = useSelector(state => state.workspaceSettings);
-  const activeLayer = useSelector(state => state.activeLayer);
-  const layerData = useSelector(state => state.layerData);
-  const layerSettings = useSelector(state => state.layerSettings);
-  const layerOrder = useSelector(state => state.layerOrder);
-  const layerCounter = useSelector(state => state.layerCounter);
-  const selectionPath = useSelector(state => state.selectionPath);
-  const { primary, secondary } = useSelector(state => state.colorSettings);
+  } = useSelector(state => state.ui.workspaceSettings);
+  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
+  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const layerData = useSelector(state => state.main.present.layerData);
+  const layerQueue = useSelector(state => state.main.present.layerQueue);
+  const layerSettings = useSelector(state => state.main.present.layerSettings);
+  const layerOrder = useSelector(state => state.main.present.layerOrder);
+  const layerCounter = useSelector(state => state.main.present.layerCounter);
+  const selectionPath = useSelector(state => state.main.present.selectionPath);
+  const { primary, secondary } = useSelector(state => state.ui.colorSettings);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -143,9 +143,10 @@ export default function Workspace() {
     workspaceElement.addEventListener("wheel", mouseWheelHandler);
     window.addEventListener("keydown", handleKeyDown);
 
-    return () =>
+    return () => {
       workspaceElement.removeEventListener("wheel", mouseWheelHandler);
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown)
+    }
   }, [dispatch, translateX, translateY, zoomPct]);
 
   const handleMouseDown = ev => {
@@ -211,7 +212,7 @@ export default function Workspace() {
           dispatch(updateSelectionPath(null));
           break;
         case "duplicate":
-          const sourceCtx = layerData[activeLayer].ctx;
+          const sourceCtx = layerData[activeLayer].getContext("2d");
           const newLayerId = layerCounter;
           dispatch(createLayer(activeLayer));
           dispatch(
@@ -232,7 +233,7 @@ export default function Workspace() {
               type: "manipulate",
               action: "paste",
               params: {
-                sourceCtx: layerData[activeLayer].ctx,
+                sourceCtx: layerData[activeLayer].getContext("2d"),
                 dest: [0, 0],
                 clip: selectionPath,
                 clearFirst: true
@@ -246,7 +247,7 @@ export default function Workspace() {
               type: "manipulate",
               action: "paste",
               params: {
-                sourceCtx: layerData.clipboard.ctx,
+                sourceCtx: layerData.clipboard.getContext("2d"),
                 dest: [0, 0]
               }
             })
@@ -260,7 +261,7 @@ export default function Workspace() {
               type: "manipulate",
               action: "paste",
               params: {
-                sourceCtx: layerData.clipboard.ctx,
+                sourceCtx: layerData.clipboard.getContext("2d"),
                 dest: [0, 0],
                 clearFirst: true
               }
@@ -268,10 +269,10 @@ export default function Workspace() {
           );
           break;
         case "undo":
-          dispatch(undo());
+          dispatch(ActionCreators.undo());
           break;
         case "redo":
-          dispatch(redo());
+          dispatch(ActionCreators.redo());
           break;
         default:
           break;
@@ -299,6 +300,7 @@ export default function Workspace() {
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
+          layerQueue={layerQueue}
           layerSettings={layerSettings}
           width={canvasWidth}
           height={canvasHeight}
@@ -311,6 +313,7 @@ export default function Workspace() {
 function LayerRenderer({
   layerOrder,
   layerData,
+  layerQueue,
   layerSettings,
   width,
   height
@@ -334,6 +337,7 @@ function LayerRenderer({
         layerOrder.map((layerId, i) => {
           let layerDat = layerData[layerId];
           let layerSet = layerSettings[layerId];
+          let layerQue = layerQueue[layerId];
           return (
             <Layer
               key={layerId}
@@ -342,10 +346,10 @@ function LayerRenderer({
               width={width}
               height={height}
               index={i + 1}
-              data={layerDat.data}
+              data={layerDat}
               hidden={layerSet.hidden}
               opacity={layerSet.opacity}
-              queue={layerDat.queue}
+              queue={layerQue}
             />
           );
         })}

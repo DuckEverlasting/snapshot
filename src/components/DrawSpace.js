@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { ActionCreators } from 'redux-undo';
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity, toArrayFromRgba } from '../utils/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath, undo } from "../actions/redux";
+import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
 const DrawSpaceSC = styled.div.attrs(props => ({
@@ -34,10 +35,11 @@ let state = {
 
 export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
-  const { activeTool, activeLayer, selectionPath, toolSettings, layerData, layerOrder } = useSelector(state => state);
-  const primary = useSelector(state => state.colorSettings.primary);
-  const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
-  const layerCounter = useSelector(state => state.layerCounter);
+  const { activeTool, toolSettings } = useSelector(state => state.ui);
+  const { activeLayer, selectionPath, layerData, layerOrder } = useSelector(state => state.main.present);
+  const primary = useSelector(state => state.ui.colorSettings.primary);
+  const { zoomPct, translateX, translateY } = useSelector(state => state.ui.workspaceSettings);
+  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -145,7 +147,7 @@ export default function DrawSpace(props) {
       case "zoom":
         break;
       case "TEST":
-        dispatch(undo());
+        dispatch(ActionCreators.undo());
         break;
       default:
         break;

@@ -66,7 +66,7 @@ const SecondaryColorLabelSC = styled.label`
 `
 
 export default function ColorBox() {
-  const { primary: primaryRgba, secondary: secondaryRgba } = useSelector(state => state.colorSettings);
+  const { primary: primaryRgba, secondary: secondaryRgba } = useSelector(state => state.ui.colorSettings);
   const dispatch = useDispatch();
 
   const { hex: primaryHex, opacity: primaryOpacity } = toHex(primaryRgba);
