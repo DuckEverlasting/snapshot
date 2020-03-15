@@ -137,3 +137,39 @@ export function fill(ctx, { orig, colorArray, clip, tolerance = 100 }) {
     return diff <= tolerance;
   }
 }
+
+export function getDiff(ctx, { prevImgData }) {
+  const viewWidth = Math.ceil(ctx.canvas.width / 3);
+  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const imgData = ctx.getImageData(
+    viewWidth,
+    viewHeight,
+    viewWidth,
+    viewHeight
+  );
+  const diff = {}
+  imgData.data.forEach((datum, index) => {
+    if (datum !== prevImgData.data[index]) {
+      diff[index] = datum
+    }
+  })
+  return diff
+}
+
+export function swapData(ctx, { changeData }) {
+  const viewWidth = Math.ceil(ctx.canvas.width / 3);
+  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const imgData = ctx.getImageData(
+    viewWidth,
+    viewHeight,
+    viewWidth,
+    viewHeight
+  );
+  for (let index in changeData) {
+    let placeholder = imgData.data[index]; 
+    imgData.data[index] = changeData[index];
+    changeData[index] = placeholder;
+  };
+  ctx.putImageData(imgData, viewWidth, viewHeight);
+  return changeData;
+}

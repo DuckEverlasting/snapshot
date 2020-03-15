@@ -4,7 +4,6 @@ export const [
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
   UPDATE_LAYER_QUEUE,
-  CLEAR_LAYER_QUEUE,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
@@ -23,7 +22,6 @@ export const [
   "HIDE_LAYER",
   "UPDATE_LAYER_DATA",
   "UPDATE_LAYER_QUEUE",
-  "CLEAR_LAYER_QUEUE",
   "UPDATE_SELECTION_PATH",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
@@ -70,13 +68,6 @@ export const updateLayerQueue = (id, changes) => {
   return {
     type: UPDATE_LAYER_QUEUE,
     payload: {id, changes, ignoreHistory: true}
-  };
-};
-
-export const clearLayerQueue = id => {
-  return {
-    type: CLEAR_LAYER_QUEUE,
-    payload: {id, ignoreHistory: true}
   };
 };
 

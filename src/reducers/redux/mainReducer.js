@@ -4,7 +4,6 @@ import {
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
   UPDATE_LAYER_QUEUE,
-  CLEAR_LAYER_QUEUE,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
@@ -19,6 +18,9 @@ const mainReducer = (state = initMainState, {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
       let { position, special } = payload;
+      if (state.layerOrder.length > 51 && !special) {
+        return state
+      };
       let canvas = document.createElement("canvas");
       canvas.width = state.documentSettings.canvasWidth;
       canvas.height = state.documentSettings.canvasHeight;
@@ -83,10 +85,15 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         ...state.layerData, 
         [payload.id]: payload.changes
       }
+      let clearedQueue = {
+        ...state.layerQueue, 
+        [payload.id]: payload.ignoreHistory ? state.layerQueue[payload.id] : null
+      }
       
       return {
         ...state,
         layerData: afterUpdateData,
+        layerQueue: clearedQueue
       };
 
     case UPDATE_LAYER_QUEUE:
@@ -98,17 +105,6 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         layerQueue: afterUpdateQueue
-      };
-    
-    case CLEAR_LAYER_QUEUE:
-      let afterClearQueue = {
-        ...state.layerQueue, 
-        [payload.id]: {update: null, get: null},
-      }
-      
-      return {
-        ...state,
-        layerQueue: afterClearQueue
       };
     
     case UPDATE_SELECTION_PATH:

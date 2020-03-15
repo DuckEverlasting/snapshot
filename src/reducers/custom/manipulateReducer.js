@@ -2,7 +2,9 @@ import {
   move,
   paste,
   replace,
-  fill
+  fill,
+  getDiff,
+  swapData
 } from '../../actions/custom/ctxActions.js'
 
 export default function(ctx, { action, params }) {
@@ -19,6 +21,10 @@ export default function(ctx, { action, params }) {
     case "fill":
       fill(ctx, params);
       break;
+    case "getDiff":
+      return getDiff(ctx, params);
+    case "swapData":
+      return swapData(ctx, params);
     default:
       return "error: invalid draw action";
   }

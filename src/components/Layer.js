@@ -6,6 +6,8 @@ import { updateLayerData } from '../actions/redux'
 import draw from "../reducers/custom/drawingReducer.js";
 import manipulate from "../reducers/custom/manipulateReducer.js";
 
+import { getDiff } from "../actions/custom/ctxActions"
+
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
     width: `${props.width}px`,
@@ -38,21 +40,31 @@ function Layer(props) {
   useEffect(() => {
     // if (lastFrame === props.frame) return;
     // setLastFrame(props.frame);
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
     let queue = props.queue;
     if (queue === null) return;
-    if (queue.type === "draw") drawHandler(ctx, queue)
-    else if (queue.type === "manipulate") manipulateHandler(ctx, queue)
-  }, [props.data, props.queue, props.id]);
+    if (queue.type === "draw") drawHandler(queue)
+    else if (queue.type === "manipulate") manipulateHandler(queue)
+  }, [props.queue, props.id]);
 
-  function drawHandler(ctx, queue) {
-    const prevImgData = queue.params.ignoreHistory ? null : ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
+  function drawHandler(queue) {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const viewWidth = Math.ceil(ctx.canvas.width / 3);
+    const viewHeight = Math.ceil(ctx.canvas.height / 3);
+    const prevImgData = queue.params.ignoreHistory ? null :  ctx.getImageData(
+      viewWidth,
+      viewHeight,
+      viewWidth,
+      viewHeight
+    );
     draw(ctx, queue);
+    if (prevImgData) getDiff(ctx, {prevImgData})
     dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, queue.params.ignoreHistory))
   }
 
-  function manipulateHandler(ctx, queue) {
+  function manipulateHandler(queue) {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
     const prevImgData = queue.params.ignoreHistory ? null : ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
     manipulate(ctx, queue);
     dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, queue.params.ignoreHistory))

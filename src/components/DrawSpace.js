@@ -55,7 +55,7 @@ export default function DrawSpace(props) {
 
     let color;
     for (let i = layerOrder.length - 1; i >= 0; i--) {
-      let ctx = layerData[layerOrder[i]].ctx;
+      let ctx = layerData[layerOrder[i]].getContext("2d");
       const pixel = ctx.getImageData(x, y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
