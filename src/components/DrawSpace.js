@@ -433,7 +433,6 @@ export default function DrawSpace(props) {
         hold: false,
         tool: null
       };
-      dispatch(deleteLayer("staging", true))
     }, 0);
     
     const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
@@ -446,6 +445,8 @@ export default function DrawSpace(props) {
       fillColor: color,
       clip: selectionPath
     };
+
+    dispatch(deleteLayer("staging", true))
 
     switch (state.tool) {
       case "pencil":

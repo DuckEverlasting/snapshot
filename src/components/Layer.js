@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useDispatch } from "react-redux";
-import { updateLayerData } from '../actions/redux'
+import { updateLayerData, updateAfterUndo, updateAfterRedo } from '../actions/redux'
 
 import draw from "../reducers/custom/drawingReducer.js";
 import manipulate from "../reducers/custom/manipulateReducer.js";
@@ -58,16 +58,31 @@ function Layer(props) {
       viewHeight
     );
     draw(ctx, queue);
-    if (prevImgData) getDiff(ctx, {prevImgData})
-    dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, queue.params.ignoreHistory))
+    let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
+    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory));
   }
 
   function manipulateHandler(queue) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const prevImgData = queue.params.ignoreHistory ? null : ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
-    manipulate(ctx, queue);
-    dispatch(updateLayerData(props.id, canvasRef.current, prevImgData, queue.params.ignoreHistory))
+    const viewWidth = Math.ceil(ctx.canvas.width / 3);
+    const viewHeight = Math.ceil(ctx.canvas.height / 3);
+    const prevImgData = queue.params.ignoreHistory ? null : ctx.getImageData(
+      viewWidth,
+      viewHeight,
+      viewWidth,
+      viewHeight
+    );
+    const result = manipulate(ctx, queue);
+    if (queue.params.changeData) {
+      if (queue.params.direction === "undo") {
+        return dispatch(updateAfterUndo(props.id, result))
+      } else if (queue.params.direction === "redo") {
+        return dispatch(updateAfterRedo(props.id, result))
+      }
+    }
+    let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
+    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory))
   }
 
   return <LayerWrapperSC width={props.width} height={props.height}>

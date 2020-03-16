@@ -12,7 +12,6 @@ clipboardCanvas.width = initWidth;
 clipboardCanvas.height = initWidth;
 
 export const initMainState = {
-  lastAction: null,
   documentSettings: {
     canvasWidth: initWidth,
     canvasHeight: initHeight,

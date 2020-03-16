@@ -1,7 +1,7 @@
 import {
   move,
   paste,
-  replace,
+  undelete,
   fill,
   getDiff,
   swapData
@@ -15,8 +15,8 @@ export default function(ctx, { action, params }) {
     case "paste":
       paste(ctx, params);
       break;
-    case "replace":
-      replace(ctx, params);
+    case "undelete":
+      undelete(ctx, params);
       break;
     case "fill":
       fill(ctx, params);

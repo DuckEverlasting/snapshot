@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { ActionCreators } from 'redux-undo';
 
 import styled from "styled-components";
 
@@ -10,6 +9,8 @@ import Layer from "../components/Layer";
 import { hotkey, hotkeyCtrl } from "../enums/hotkeys";
 
 import {
+  undo,
+  redo,
   createLayer,
   updateWorkspaceSettings,
   makeActiveTool,
@@ -269,10 +270,10 @@ export default function Workspace() {
           );
           break;
         case "undo":
-          dispatch(ActionCreators.undo());
+          dispatch(undo());
           break;
         case "redo":
-          dispatch(ActionCreators.redo());
+          dispatch(redo());
           break;
         default:
           break;

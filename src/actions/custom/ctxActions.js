@@ -61,8 +61,7 @@ export function paste(ctx, { sourceCtx, dest, clip, clearFirst = false }) {
   }
 }
 
-export function replace(ctx, { source }) {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+export function undelete(ctx, { source }) {
   ctx.putImageData(source, 0, 0);
 }
 
@@ -90,12 +89,9 @@ export function fill(ctx, { orig, colorArray, clip, tolerance = 100 }) {
   let current;
   let visited = new Set();
   visited.add(originIndex);
-  let counter = 0;
 
   while (stack.length) {
-    counter++;
     current = stack.pop();
-    // console.log(stack)
     if (colorMatch(current)) {
       for (let i = 0; i < 4; i++) {
         data[current + i] = colorArray[i];
@@ -150,13 +146,14 @@ export function getDiff(ctx, { prevImgData }) {
   const diff = {}
   imgData.data.forEach((datum, index) => {
     if (datum !== prevImgData.data[index]) {
-      diff[index] = datum
+      diff[index] = prevImgData.data[index]
     }
   })
   return diff
 }
 
 export function swapData(ctx, { changeData }) {
+  console.log("SWAP DATA CALLED")
   const viewWidth = Math.ceil(ctx.canvas.width / 3);
   const viewHeight = Math.ceil(ctx.canvas.height / 3);
   const imgData = ctx.getImageData(

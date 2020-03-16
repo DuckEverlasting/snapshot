@@ -25,7 +25,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       canvas.width = state.documentSettings.canvasWidth;
       canvas.height = state.documentSettings.canvasHeight;
       canvas.getContext("2d").imageSmoothingEnabled = false;
-      const layerID = special ? special : state.layerCounter;
+      const layerId = special ? special : state.layerCounter;
       const newLayerData = canvas;
       const newLayerSettings = {
         name: special ? undefined : `layer ${state.layerCounter}`,
@@ -34,13 +34,13 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         opacity: 1,
       };
       let orderAfterCreate = state.layerOrder.slice(0);
-      orderAfterCreate.splice(position, 0, layerID);
+      orderAfterCreate.splice(position, 0, layerId);
 
       return {
         ...state,
-        layerData: {...state.layerData, [layerID]: newLayerData},
-        layerQueue: {...state.layerQueue, [layerID]: null},
-        layerSettings: {...state.layerSettings, [layerID]: newLayerSettings},
+        layerData: {...state.layerData, [layerId]: newLayerData},
+        layerQueue: {...state.layerQueue, [layerId]: null},
+        layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: special ? state.activeLayer : state.layerCounter,
         layerCounter: special ? state.layerCounter : state.layerCounter + 1,
@@ -81,19 +81,33 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       }
 
     case UPDATE_LAYER_DATA:
-      let afterUpdateData = {
-        ...state.layerData, 
+      let afterUpdateLayerData = {
+        ...state.layerData,
+        staging: payload.deleteStaging ? undefined : {...state.layerData.staging},
         [payload.id]: payload.changes
       }
-      let clearedQueue = {
-        ...state.layerQueue, 
+      let afterUpdateLayerQueue = {
+        ...state.layerQueue,
+        staging: payload.deleteStaging ? undefined : {...state.layerQueue.staging},
         [payload.id]: payload.ignoreHistory ? state.layerQueue[payload.id] : null
+      }
+      let afterUpdateLayerSettings = {
+        ...state.layerSettings,
+        staging: payload.deleteStaging ? undefined : {...state.layerSettings.staging}
+      }
+      let afterUpdateLayerOrder = [...state.layerOrder]
+      if (payload.deleteStaging) {
+        afterUpdateLayerOrder = afterUpdateLayerOrder.filter(id => {
+          return id !== "staging";
+        });
       }
       
       return {
         ...state,
-        layerData: afterUpdateData,
-        layerQueue: clearedQueue
+        layerData: afterUpdateLayerData,
+        layerQueue: afterUpdateLayerQueue,
+        layerSettings: afterUpdateLayerSettings,
+        layerOrder: afterUpdateLayerOrder
       };
 
     case UPDATE_LAYER_QUEUE:
