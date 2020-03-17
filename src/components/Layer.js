@@ -80,10 +80,10 @@ function Layer(props) {
       } else if (queue.params.direction === "redo") {
         return dispatch(updateAfterRedo(props.id, result))
       }
-    }
+    };
     let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
-    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory))
-  }
+    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory));
+  };
 
   return <LayerWrapperSC width={props.width} height={props.height}>
     <LayerSC width={props.width * 3} height={props.height * 3} hidden={props.hidden} index={props.index} ref={canvasRef} />

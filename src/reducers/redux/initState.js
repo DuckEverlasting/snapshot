@@ -84,4 +84,6 @@ export const initUiState = {
   },
   draggedLayercard: null,
   activeTool: "pencil",
+  menuIsActive: false,
+  activeMenuList: null
 }

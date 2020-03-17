@@ -19,7 +19,9 @@ export const [
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_COLOR,
-  UPDATE_WORKSPACE_SETTINGS
+  UPDATE_WORKSPACE_SETTINGS,
+  TOGGLE_MENU,
+  SET_ACTIVE_MENU_LIST
 ] = [
   "UNDO",
   "REDO",
@@ -41,7 +43,9 @@ export const [
   "MAKE_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
   "UPDATE_COLOR",
-  "UPDATE_WORKSPACE_SETTINGS"
+  "UPDATE_WORKSPACE_SETTINGS",
+  "TOGGLE_MENU",
+  "SET_ACTIVE_MENU_LIST"
 ];
 
 export const undo = () => {
@@ -185,5 +189,18 @@ export const updateWorkspaceSettings = (changes) => {
   return {
     type: UPDATE_WORKSPACE_SETTINGS,
     payload: changes
+  }
+}
+
+export const toggleMenu = () => {
+  return {
+    type: TOGGLE_MENU
+  }
+}
+
+export const setActiveMenuList = (id) => {
+  return {
+    type: SET_ACTIVE_MENU_LIST,
+    payload: id
   }
 }

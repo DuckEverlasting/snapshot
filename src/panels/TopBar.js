@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import styled from "styled-components";
+import { MenuContainer, MenuList, MenuSubList, MenuItem } from "../components/Menu"
 
 const TopBarSC = styled.div`
   width: 100%;
@@ -54,23 +55,61 @@ export default function TopBar() {
 
   return (
     <TopBarSC>
-      <LeftBoxSC>
-        <MenuSC>
-          File
-          <div />
-        </MenuSC>
-        <MenuSC>
-          Edit
-          <div />
-        </MenuSC>
-        <MenuSC>
-          Layer
-          <div />
-        </MenuSC>
-      </LeftBoxSC>
+      <MenuContainer>
+        <MenuList id="File" name="File">
+          <MenuItem onClick={() => console.log("TEST1")}>
+            Test1
+          </MenuItem>
+          <MenuItem onClick={() => console.log("TEST2")}>
+            Test2
+          </MenuItem>
+          <MenuItem onClick={() => console.log("TEST3")}>
+            Test3
+          </MenuItem>
+          <MenuSubList name="Sub Thing">
+            <MenuItem onClick={() => console.log("TEST4")}>
+              Test4
+            </MenuItem>
+            <MenuItem onClick={() => console.log("TEST5")}>
+              Test5
+            </MenuItem>
+            <MenuItem onClick={() => console.log("TEST6!!!")}>
+              Test6
+            </MenuItem>
+          </MenuSubList>
+        </MenuList>
+        <MenuList id="Edit" name="Edit">
+          <MenuItem>
+            Other Test
+          </MenuItem>
+        </MenuList>
+        <MenuList id="Layer" name="Layer">
+          <MenuItem>
+            Other Test
+          </MenuItem>
+        </MenuList>
+        <MenuList id="Selection" name="Selection">
+          <MenuItem>
+            Other Test
+          </MenuItem>
+        </MenuList>
+      </MenuContainer>
       <RightBoxSC>
         <TitleSC>PhotoSmith Image Editor</TitleSC>
       </RightBoxSC>
     </TopBarSC>
   );
 }
+
+// <MenuSC>
+// File
+// <div />
+// </MenuSC>
+// <MenuSC>
+// Edit
+// <div />
+// </MenuSC>
+// <MenuSC>
+// Layer
+// <div />
+// </MenuSC>

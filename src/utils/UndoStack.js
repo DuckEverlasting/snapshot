@@ -81,3 +81,33 @@ class HashTable {
     prev.next = new LinkedPair(key, value)
   }
 }
+
+class ListNode {
+  constructor(data) {
+    this.data = data;
+    this.next = null;
+  }
+}
+
+// LIST A: 1 => 4 => 7 => 9
+// LIST B: 3 => 5 => 8 => 11
+
+/*
+
+pointerA = smallest head
+
+pointerB = largest head
+
+let head = pointerA;
+
+nextB = pointerB.next
+
+if pointerB < pointerA.next:
+  pointerB.next = pointerA.next
+  pointerA.next = pointerB
+  pointerB = nextB
+  pointerA = pointerB
+else pointerB > pointerA.next:
+  pointerA = pointerA.next
+
+*/

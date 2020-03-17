@@ -4,7 +4,9 @@ import {
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_WORKSPACE_SETTINGS,
-  UPDATE_COLOR
+  UPDATE_COLOR,
+  TOGGLE_MENU,
+  SET_ACTIVE_MENU_LIST
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -57,6 +59,16 @@ const uiReducer = (state = initUiState, {type, payload}) => {
           [key]: value
         },
       };
+    case TOGGLE_MENU:
+      return {
+        ...state,
+        menuIsActive: !state.menuIsActive
+      }
+    case SET_ACTIVE_MENU_LIST:
+      return {
+        ...state,
+        activeMenuList: payload
+      }
 
     default:
       return state;
