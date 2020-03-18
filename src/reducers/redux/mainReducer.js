@@ -124,7 +124,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
     case UPDATE_SELECTION_PATH:
       return {
         ...state,
-        selectionPath: payload,
+        selectionPath: payload.path,
       }
 
     case UPDATE_LAYER_OPACITY:

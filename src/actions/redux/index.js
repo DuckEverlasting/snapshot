@@ -19,6 +19,7 @@ export const [
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_COLOR,
+  SWITCH_COLORS,
   UPDATE_WORKSPACE_SETTINGS,
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST
@@ -43,6 +44,7 @@ export const [
   "MAKE_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
   "UPDATE_COLOR",
+  "SWITCH_COLORS",
   "UPDATE_WORKSPACE_SETTINGS",
   "TOGGLE_MENU",
   "SET_ACTIVE_MENU_LIST"
@@ -112,7 +114,7 @@ export const updateLayerQueue = (id, changes) => {
 export const updateSelectionPath = path => {
   return {
     type: UPDATE_SELECTION_PATH,
-    payload: path
+    payload: {path, ignoreHistory: false}
   };
 };
 
@@ -182,6 +184,12 @@ export const updateColor = (key, value) => {
   return {
     type: UPDATE_COLOR,
     payload: {key, value}
+  };
+};
+
+export const switchColors = () => {
+  return {
+    type: SWITCH_COLORS
   };
 };
 

@@ -13,7 +13,7 @@ const LayerPanelSC = styled.div`
   position: relative;
   width: 200px;
   height: 100%;
-  border: 3px solid black;
+  border-top: 1px solid black;
   z-index: 1;
   background: #666666;
 `;
@@ -23,8 +23,8 @@ const LayerBoxSC = styled.div`
   flex-direction: column;
   position: relative;
   width: 100%;
-  height: 70%;
   margin: 0 0 10px;
+  flex-grow: 1;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
   overflow-y: scroll;
@@ -34,9 +34,15 @@ const TitleSC = styled.h3`
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 12%;
+  padding: 30px 0 20px;
+  font-size: 24px;
   margin: 0;
 `;
+
+const BottomBoxSC = styled.div`
+  height: 20%;
+  width: 100%;
+`
 
 const ButtonSC = styled.button`
   outline: none;
@@ -98,9 +104,11 @@ export default function LayerPanel() {
             </LayerBoxSC>)}
         </Droppable>
       </DragDropContext>
-      <ButtonSC title="New Layer" onClick={() => dispatch(createLayer(layerOrder.length - 2))}>
-        NEW LAYER
-      </ButtonSC>
+      <BottomBoxSC>
+        <ButtonSC title="New Layer" onClick={() => dispatch(createLayer(layerOrder.length - 2))}>
+          NEW LAYER
+        </ButtonSC>
+      </BottomBoxSC>
     </LayerPanelSC>
   );
 }

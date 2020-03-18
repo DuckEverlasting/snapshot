@@ -54,6 +54,8 @@ export const initMainState = {
 
 export const initUiState = {
   workspaceSettings: {
+    height: window.innerHeight,
+    width: window.innerWidth,
     translateX: 0,
     translateY: 0,
     zoomPct: 100

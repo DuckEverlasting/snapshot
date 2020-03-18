@@ -5,6 +5,7 @@ import {
   UPDATE_TOOL_SETTINGS,
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_COLOR,
+  SWITCH_COLORS,
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST
 } from "../../actions/redux";
@@ -57,6 +58,15 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         colorSettings: {
           ...state.colorSettings,
           [key]: value
+        },
+      };
+    case SWITCH_COLORS:
+      return {
+        ...state,
+        colorSettings: {
+          ...state.colorSettings,
+          primary: state.colorSettings.secondary,
+          secondary: state.colorSettings.primary,
         },
       };
     case TOGGLE_MENU:

@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSync } from '@fortawesome/free-solid-svg-icons'
 
-import { updateColor } from "../actions/redux";
+import { updateColor, switchColors } from "../actions/redux";
 import { toRgbaFromHex as toRgba, toHexFromRgba as toHex } from '../utils/colorConversion.js';
 
 const ColorBoxSC = styled.div`
@@ -83,9 +83,7 @@ export default function ColorBox() {
   }
 
   const switchColorsHandler = () => {
-    let [ primary, secondary ] = [ toRgba(primaryHex, primaryOpacity), toRgba(secondaryHex, secondaryOpacity) ];
-    dispatch(updateColor("primary", secondary))
-    dispatch(updateColor("secondary", primary))
+    dispatch(switchColors())
   }
 
   return (

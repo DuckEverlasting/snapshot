@@ -1,39 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
-import { useSelector, useDispatch } from "react-redux";
-import { toggleMenu, setActiveMenuList } from "../actions/redux";
 import PropTypes from "prop-types";
 
 const MenuSC = styled.div`
-  position: relative;
   display: flex;
-  background: #222222;
+  height: 100%;
+  background: ${props => props.color};
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: flex-end;
   overflow: visible;
   cursor: pointer;
+  user-select: none;
   z-index: 99;
 `;
 const MenuItemSC = styled.div`
-  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 5px;
+  background: ${props => props.active ? props.color : "none"};
 
   &:hover {
-    background: #444444;
+    background: ${props => props.color};
   }
 `;
+const MenuItemSectionSC = styled.p`
+  &:first-child {
+    padding-left: 20px;
+    padding-right: 40px;
+  }
+
+  &:last-child {
+    padding-right: 20px;
+  }
+`
 const MenuListSC = styled.div`
   width: 100%;
-  background: ${props => (props.active ? "#303030" : "#222222")};
+  background: ${props =>
+    props.active ? props.colors.secondary : props.colors.primary
+  };
 `;
 const MenuListPanelSC = styled.div`
   position: absolute;
-  background: #303030;
-`
-const MenuNameSC = styled.p`
-  padding: 10px 10px;
+  background: ${props => props.color};
+  padding: 5px 0;
+`;
+const MenuListNameSC = styled.p`
+  padding: 13px 10px 7px;
+  font-size: 16px;
 
   &:hover {
-    background: #303030;
+    background: ${props => props.color};
   }
 `;
 const MenuSubListSC = styled.div`
@@ -42,14 +58,65 @@ const MenuSubListSC = styled.div`
 const MenuSubListPanelSC = styled.div`
   position: absolute;
   width: 100%;
-  background: #303030;
+  background: ${props => props.color};
   left: 100%;
-  top: 0;
+  top: -5px;
+  padding: 5px 0;
 `;
 
-export function MenuContainer({ children }) {
-  const isActive = useSelector(state => state.ui.menuIsActive);
-  const dispatch = useDispatch();
+const MenuSettings = React.createContext();
+
+const initMenuState = {
+  menuIsActive: false,
+  activeMenuList: null,
+  colors: {
+    primary: "#303030",
+    secondary: "#444444",
+    terciary: "#555555"
+  }
+};
+
+function MenuSettingsProvider({ overwriteInit, children }) {
+  const [state, setState] = useState({ ...initMenuState, ...overwriteInit });
+
+  const actions = {
+    toggle: () =>
+      setState({
+        ...state,
+        menuIsActive: !state.menuIsActive
+      }),
+    setActiveMenuList: listId =>
+      setState({
+        ...state,
+        activeMenuList: listId
+      }),
+    setColors: newColors =>
+      setState({
+        ...state,
+        colors: {
+          ...state.colors,
+          ...newColors
+        }
+      })
+  };
+
+  return (
+    <MenuSettings.Provider value={{ ...state, ...actions }}>
+      <Menu>{children}</Menu>
+    </MenuSettings.Provider>
+  );
+}
+
+export function MenuContainer({ colors: initColors, children }) {
+  return (
+    <MenuSettingsProvider overwriteInit={initColors}>
+      <Menu>{children}</Menu>
+    </MenuSettingsProvider>
+  );
+}
+
+function Menu({ children }) {
+  const { menuIsActive, toggle, colors } = useContext(MenuSettings);
 
   useEffect(() => {
     window.addEventListener("click", handleClickOutside);
@@ -60,39 +127,51 @@ export function MenuContainer({ children }) {
 
   function handleClickInside(ev) {
     ev.stopPropagation();
-    dispatch(toggleMenu());
+    toggle();
   }
 
-  function handleClickOutside() {
-    if (isActive) {
-      dispatch(toggleMenu());
+  function handleClickOutside(ev) {
+    if (menuIsActive) {
+      toggle();
     }
   }
 
-  return <MenuSC onClick={handleClickInside}>{children}</MenuSC>;
+  return (
+    <MenuSC color={colors.primary} onClick={handleClickInside}>
+      {children}
+    </MenuSC>
+  );
 }
 
 export function MenuList({ id, name, children }) {
-  const dispatch = useDispatch();
-  const activeMenuList = useSelector(state => state.ui.activeMenuList === id);
-  const menuIsActive = useSelector(state => state.ui.menuIsActive);
+  const {
+    menuIsActive,
+    activeMenuList,
+    setActiveMenuList,
+    colors
+  } = useContext(MenuSettings);
+  const isActiveList = activeMenuList === id;
 
   function handleMouseOver() {
-    dispatch(setActiveMenuList(id));
+    setActiveMenuList(id);
   }
 
   return (
-    <MenuListSC active={activeMenuList && menuIsActive}>
-      <MenuNameSC onMouseOver={handleMouseOver}>{name}</MenuNameSC>
-      {menuIsActive && activeMenuList && (
-        <MenuListPanelSC>{children}</MenuListPanelSC>
+    <MenuListSC colors={colors} active={menuIsActive && isActiveList}>
+      <MenuListNameSC color={colors.secondary} onMouseOver={handleMouseOver}>
+        {name}
+      </MenuListNameSC>
+      {menuIsActive && isActiveList && (
+        <MenuListPanelSC color={colors.secondary}>{children}</MenuListPanelSC>
       )}
     </MenuListSC>
   );
 }
 
 export function MenuSubList({ name, children }) {
+  const { colors } = useContext(MenuSettings);
   const [isOpen, setIsOpen] = useState(false);
+  const [isActive, setIsActive] = useState(false);
   let delay;
 
   function handleMouseEnter() {
@@ -103,21 +182,49 @@ export function MenuSubList({ name, children }) {
     clearTimeout(delay);
   }
 
+  function handleMouseEnterChildren() {
+    setIsActive(true);
+  }
+
+  function handleMouseLeaveChildren() {
+    setIsActive(false);
+  }
+
   return (
     <MenuSubListSC
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <MenuItemSC>{name}</MenuItemSC>
-      {isOpen && <MenuSubListPanelSC>{children}</MenuSubListPanelSC>}
+      <MenuItemSC color={colors.terciary} active={isActive}>
+        <MenuItemSectionSC>{name}</MenuItemSectionSC>
+        <MenuItemSectionSC>{">"}</MenuItemSectionSC>
+      </MenuItemSC>
+      {isOpen && (
+        <MenuSubListPanelSC 
+          onMouseEnter={handleMouseEnterChildren}
+          onMouseLeave={handleMouseLeaveChildren}
+          color={colors.secondary}
+        >
+          {children}
+        </MenuSubListPanelSC>
+      )}
     </MenuSubListSC>
   );
 }
 
-export function MenuItem({ onClick = () => null, children }) {
+export function MenuItem({ onClick = () => null, name, hotkey, children }) {
+  const { colors } = useContext(MenuSettings);
+
   return (
-    <MenuItemSC onClick={onClick}>
-      {typeof children === "string" ? <p>{children}</p> : children}
+    <MenuItemSC color={colors.terciary} onClick={onClick}>
+      {children ? (
+        <MenuItemSectionSC>{children}</MenuItemSectionSC>
+      ) : (
+        <>
+          <MenuItemSectionSC>{name}</MenuItemSectionSC>
+          <MenuItemSectionSC>{hotkey}</MenuItemSectionSC>
+        </>
+      )}
     </MenuItemSC>
   );
 }

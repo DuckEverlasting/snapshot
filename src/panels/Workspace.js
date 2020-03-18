@@ -6,25 +6,15 @@ import styled from "styled-components";
 import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
-import { hotkey, hotkeyCtrl } from "../enums/hotkeys";
-
-import {
-  undo,
-  redo,
-  createLayer,
-  updateWorkspaceSettings,
-  makeActiveTool,
-  updateColor,
-  updateSelectionPath,
-  updateLayerQueue,
-} from "../actions/redux";
+import { updateWorkspaceSettings, makeActiveTool } from "../actions/redux";
+import menuAction from "../actions/redux/menuAction";
 
 const WorkspaceSC = styled.div`
   position: relative;
   display: flex;
   width: 100%;
   height: 100%;
-  border: 3px solid black;
+  border: 1px solid black;
   overflow: hidden;
   z-index: 1;
   background: rgb(175, 175, 175);
@@ -55,14 +45,10 @@ export default function Workspace() {
     zoomPct
   } = useSelector(state => state.ui.workspaceSettings);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
-  const activeLayer = useSelector(state => state.main.present.activeLayer);
   const layerData = useSelector(state => state.main.present.layerData);
   const layerQueue = useSelector(state => state.main.present.layerQueue);
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
-  const layerCounter = useSelector(state => state.main.present.layerCounter);
-  const selectionPath = useSelector(state => state.main.present.selectionPath);
-  const { primary, secondary } = useSelector(state => state.ui.colorSettings);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -142,11 +128,9 @@ export default function Workspace() {
 
     let workspaceElement = workspaceRef.current;
     workspaceElement.addEventListener("wheel", mouseWheelHandler);
-    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       workspaceElement.removeEventListener("wheel", mouseWheelHandler);
-      window.removeEventListener("keydown", handleKeyDown)
     }
   }, [dispatch, translateX, translateY, zoomPct]);
 
@@ -184,101 +168,6 @@ export default function Workspace() {
         translateY: translateY - deltaY
       })
     );
-  };
-
-  const handleKeyDown = ev => {
-    ev.preventDefault();
-    let keyCombo;
-    let modifier = window.navigator.platform.includes("Mac")
-      ? ev.metaKey
-      : ev.ctrlKey;
-    if (modifier) {
-      keyCombo = hotkeyCtrl[ev.key];
-    } else {
-      keyCombo = hotkey[ev.key];
-    }
-    if (keyCombo === undefined) return;
-    if (keyCombo.type === "activeTool") {
-      dispatch(makeActiveTool(keyCombo.payload));
-    } else {
-      switch (keyCombo.payload) {
-        case "switchColors":
-          dispatch(updateColor("primary", secondary));
-          dispatch(updateColor("secondary", primary));
-          break;
-        case "deselect":
-          dispatch(
-            updateLayerQueue("selection", { action: "clear", type: "draw", params: {selectionPath: null} })
-          );
-          dispatch(updateSelectionPath(null));
-          break;
-        case "duplicate":
-          const sourceCtx = layerData[activeLayer].getContext("2d");
-          const newLayerId = layerCounter;
-          dispatch(createLayer(activeLayer));
-          dispatch(
-            updateLayerQueue(newLayerId, {
-              type: "manipulate",
-              action: "paste",
-              params: {
-                sourceCtx,
-                dest: [0, 0],
-                clip: selectionPath
-              }
-            })
-          );
-          break;
-        case "copy":
-          dispatch(
-            updateLayerQueue("clipboard", {
-              type: "manipulate",
-              action: "paste",
-              params: {
-                sourceCtx: layerData[activeLayer].getContext("2d"),
-                dest: [0, 0],
-                clip: selectionPath,
-                clearFirst: true
-              }
-            })
-          );
-          break;
-        case "paste":
-          dispatch(
-            updateLayerQueue(activeLayer, {
-              type: "manipulate",
-              action: "paste",
-              params: {
-                sourceCtx: layerData.clipboard.getContext("2d"),
-                dest: [0, 0]
-              }
-            })
-          );
-          break;
-        case "pasteToNew":
-          const newLayerPasteId = layerCounter;
-          dispatch(createLayer(activeLayer));
-          dispatch(
-            updateLayerQueue(newLayerPasteId, {
-              type: "manipulate",
-              action: "paste",
-              params: {
-                sourceCtx: layerData.clipboard.getContext("2d"),
-                dest: [0, 0],
-                clearFirst: true
-              }
-            })
-          );
-          break;
-        case "undo":
-          dispatch(undo());
-          break;
-        case "redo":
-          dispatch(redo());
-          break;
-        default:
-          break;
-      }
-    }
   };
 
   return (

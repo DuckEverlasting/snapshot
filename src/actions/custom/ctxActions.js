@@ -153,7 +153,6 @@ export function getDiff(ctx, { prevImgData }) {
 }
 
 export function swapData(ctx, { changeData }) {
-  console.log("SWAP DATA CALLED")
   const viewWidth = Math.ceil(ctx.canvas.width / 3);
   const viewHeight = Math.ceil(ctx.canvas.height / 3);
   const imgData = ctx.getImageData(
