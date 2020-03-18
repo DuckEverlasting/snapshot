@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
-import PropTypes from "prop-types";
 
-const MenuSC = styled.div`
+const MenuGroupSC = styled.div`
   display: flex;
   height: 100%;
   background: ${props => props.color};
@@ -33,18 +32,18 @@ const MenuItemSectionSC = styled.p`
     padding-right: 20px;
   }
 `
-const MenuListSC = styled.div`
+const MenuSC = styled.div`
   width: 100%;
   background: ${props =>
     props.active ? props.colors.secondary : props.colors.primary
   };
 `;
-const MenuListPanelSC = styled.div`
+const MenuPanelSC = styled.div`
   position: absolute;
   background: ${props => props.color};
   padding: 5px 0;
 `;
-const MenuListNameSC = styled.p`
+const MenuNameSC = styled.p`
   padding: 13px 10px 7px;
   font-size: 16px;
 
@@ -52,10 +51,10 @@ const MenuListNameSC = styled.p`
     background: ${props => props.color};
   }
 `;
-const MenuSubListSC = styled.div`
+const MenuBranchSC = styled.div`
   position: relative;
 `;
-const MenuSubListPanelSC = styled.div`
+const MenuBranchPanelSC = styled.div`
   position: absolute;
   width: 100%;
   background: ${props => props.color};
@@ -68,7 +67,7 @@ const MenuSettings = React.createContext();
 
 const initMenuState = {
   menuIsActive: false,
-  activeMenuList: null,
+  activeMenu: null,
   colors: {
     primary: "#303030",
     secondary: "#444444",
@@ -85,10 +84,10 @@ function MenuSettingsProvider({ overwriteInit, children }) {
         ...state,
         menuIsActive: !state.menuIsActive
       }),
-    setActiveMenuList: listId =>
+    setActiveMenu: listId =>
       setState({
         ...state,
-        activeMenuList: listId
+        activeMenu: listId
       }),
     setColors: newColors =>
       setState({
@@ -102,20 +101,20 @@ function MenuSettingsProvider({ overwriteInit, children }) {
 
   return (
     <MenuSettings.Provider value={{ ...state, ...actions }}>
-      <Menu>{children}</Menu>
+      <MenuGroup>{children}</MenuGroup>
     </MenuSettings.Provider>
   );
 }
 
-export function MenuContainer({ colors: initColors, children }) {
+export function MenuBar({ colors: initColors, children }) {
   return (
     <MenuSettingsProvider overwriteInit={initColors}>
-      <Menu>{children}</Menu>
+      <MenuGroup>{children}</MenuGroup>
     </MenuSettingsProvider>
   );
 }
 
-function Menu({ children }) {
+function MenuGroup({ children }) {
   const { menuIsActive, toggle, colors } = useContext(MenuSettings);
 
   useEffect(() => {
@@ -130,45 +129,45 @@ function Menu({ children }) {
     toggle();
   }
 
-  function handleClickOutside(ev) {
+  function handleClickOutside() {
     if (menuIsActive) {
       toggle();
     }
   }
 
   return (
-    <MenuSC color={colors.primary} onClick={handleClickInside}>
+    <MenuGroupSC color={colors.primary} onClick={handleClickInside}>
       {children}
+    </MenuGroupSC>
+  );
+}
+
+export function Menu({ id, name, children }) {
+  const {
+    menuIsActive,
+    activeMenu,
+    setActiveMenu,
+    colors
+  } = useContext(MenuSettings);
+  const isActiveMenu = activeMenu === id;
+
+  function handleMouseOver() {
+    setActiveMenu(id);
+  }
+
+  return (
+    <MenuSC colors={colors} active={menuIsActive && isActiveMenu}>
+      <MenuNameSC color={colors.secondary} onMouseOver={handleMouseOver}>
+        {name}
+      </MenuNameSC>
+      {menuIsActive && isActiveMenu && (
+        <MenuPanelSC color={colors.secondary}>{children}</MenuPanelSC>
+      )}
     </MenuSC>
   );
 }
 
-export function MenuList({ id, name, children }) {
-  const {
-    menuIsActive,
-    activeMenuList,
-    setActiveMenuList,
-    colors
-  } = useContext(MenuSettings);
-  const isActiveList = activeMenuList === id;
-
-  function handleMouseOver() {
-    setActiveMenuList(id);
-  }
-
-  return (
-    <MenuListSC colors={colors} active={menuIsActive && isActiveList}>
-      <MenuListNameSC color={colors.secondary} onMouseOver={handleMouseOver}>
-        {name}
-      </MenuListNameSC>
-      {menuIsActive && isActiveList && (
-        <MenuListPanelSC color={colors.secondary}>{children}</MenuListPanelSC>
-      )}
-    </MenuListSC>
-  );
-}
-
-export function MenuSubList({ name, children }) {
+export function MenuBranch({ name, children }) {
   const { colors } = useContext(MenuSettings);
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(false);
@@ -191,7 +190,7 @@ export function MenuSubList({ name, children }) {
   }
 
   return (
-    <MenuSubListSC
+    <MenuBranchSC
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -200,15 +199,15 @@ export function MenuSubList({ name, children }) {
         <MenuItemSectionSC>{">"}</MenuItemSectionSC>
       </MenuItemSC>
       {isOpen && (
-        <MenuSubListPanelSC 
+        <MenuBranchPanelSC 
           onMouseEnter={handleMouseEnterChildren}
           onMouseLeave={handleMouseLeaveChildren}
           color={colors.secondary}
         >
           {children}
-        </MenuSubListPanelSC>
+        </MenuBranchPanelSC>
       )}
-    </MenuSubListSC>
+    </MenuBranchSC>
   );
 }
 
@@ -228,9 +227,3 @@ export function MenuItem({ onClick = () => null, name, hotkey, children }) {
     </MenuItemSC>
   );
 }
-
-MenuList.propTypes = {
-  activeList: PropTypes.string,
-  handleHover: PropTypes.func,
-  name: PropTypes.string.isRequired
-};

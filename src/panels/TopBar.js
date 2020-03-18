@@ -4,9 +4,9 @@ import styled from "styled-components";
 import { useDispatch } from "react-redux";
 
 import {
-  MenuContainer,
-  MenuList,
-  MenuSubList,
+  MenuBar,
+  Menu,
+  MenuBranch,
   MenuItem
 } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
@@ -43,14 +43,14 @@ export default function TopBar() {
   let mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
   return (
     <TopBarSC>
-      <MenuContainer>
-        <MenuList id="File" name="File">
+      <MenuBar>
+        <Menu id="File" name="File">
           <MenuItem>New</MenuItem>
           <MenuItem>Save</MenuItem>
           <MenuItem>Import</MenuItem>
           <MenuItem>Export</MenuItem>
-        </MenuList>
-        <MenuList id="Edit" name="Edit">
+        </Menu>
+        <Menu id="Edit" name="Edit">
           <MenuItem
             name="Undo"
             hotkey={`${mod}+Z`}
@@ -71,8 +71,8 @@ export default function TopBar() {
             hotkey={`${mod}+V`}
             onClick={() => dispatch(menuAction("paste"))}
           />
-        </MenuList>
-        <MenuList id="Layer" name="Layer">
+        </Menu>
+        <Menu id="Layer" name="Layer">
           <MenuItem
             name="New Layer"
             hotkey={`${mod}+Shift+N`}
@@ -86,15 +86,15 @@ export default function TopBar() {
           <MenuItem name="Delete Layer" onClick={() => dispatch(menuAction("deleteLayer"))} />
           <MenuItem name="Hide Layer" onClick={() => dispatch(menuAction("hideLayer"))} />
           <MenuItem name="Rename Layer" onClick={() => dispatch(menuAction("renameLayer"))} />
-        </MenuList>
-        <MenuList id="Selection" name="Selection">
+        </Menu>
+        <Menu id="Selection" name="Selection">
           <MenuItem
             name="Deselect"
             hotkey={`${mod}+D`}
             onClick={() => dispatch(menuAction("deselect"))}
           />
-        </MenuList>
-      </MenuContainer>
+        </Menu>
+      </MenuBar>
       <RightBoxSC>
         <TitleSC>PhotoSmith Image Editor</TitleSC>
       </RightBoxSC>
