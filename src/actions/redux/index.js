@@ -1,10 +1,13 @@
 export const [
+  UNDO,
+  REDO,
+  UPDATE_AFTER_UNDO,
+  UPDATE_AFTER_REDO,
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
   UPDATE_LAYER_QUEUE,
-  CLEAR_LAYER_QUEUE,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
@@ -16,14 +19,20 @@ export const [
   MAKE_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_COLOR,
-  UPDATE_WORKSPACE_SETTINGS
+  SWITCH_COLORS,
+  UPDATE_WORKSPACE_SETTINGS,
+  TOGGLE_MENU,
+  SET_ACTIVE_MENU_LIST
 ] = [
+  "UNDO",
+  "REDO",
+  "UPDATE_AFTER_UNDO",
+  "UPDATE_AFTER_REDO",
   "CREATE_LAYER",
   "DELETE_LAYER",
   "HIDE_LAYER",
   "UPDATE_LAYER_DATA",
   "UPDATE_LAYER_QUEUE",
-  "CLEAR_LAYER_QUEUE",
   "UPDATE_SELECTION_PATH",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
@@ -35,20 +44,49 @@ export const [
   "MAKE_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
   "UPDATE_COLOR",
-  "UPDATE_WORKSPACE_SETTINGS"
+  "SWITCH_COLORS",
+  "UPDATE_WORKSPACE_SETTINGS",
+  "TOGGLE_MENU",
+  "SET_ACTIVE_MENU_LIST"
 ];
 
-export const createLayer = (position, special = null, source = null) => {
+export const undo = () => {
   return {
-    type: CREATE_LAYER,
-    payload: {position, special, source}
+    type: UNDO
   };
 };
 
-export const deleteLayer = id => {
+export const redo = () => {
+  return {
+    type: REDO
+  };
+};
+
+export const updateAfterUndo = (id, changeData) => {
+  return {
+    type: UPDATE_AFTER_UNDO,
+    payload: {id, changeData}
+  }
+}
+
+export const updateAfterRedo = (id, changeData) => {
+  return {
+    type: UPDATE_AFTER_REDO,
+    payload: {id, changeData}
+  }
+}
+
+export const createLayer = (position, special = null, ignoreHistory = false) => {
+  return {
+    type: CREATE_LAYER,
+    payload: {position, special, ignoreHistory}
+  };
+};
+
+export const deleteLayer = (id, ignoreHistory = false) => {
   return {
     type: DELETE_LAYER,
-    payload: id
+    payload: {id, ignoreHistory}
   };
 };
 
@@ -59,31 +97,24 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerData = (id, changes) => {
+export const updateLayerData = (id, changes, changeData, ignoreHistory = false) => {
   return {
     type: UPDATE_LAYER_DATA,
-    payload: {id, changes}
+    payload: {id, changes, changeData, ignoreHistory}
   };
 };
 
 export const updateLayerQueue = (id, changes) => {
   return {
     type: UPDATE_LAYER_QUEUE,
-    payload: {id, changes}
-  };
-};
-
-export const clearLayerQueue = id => {
-  return {
-    type: CLEAR_LAYER_QUEUE,
-    payload: id
+    payload: {id, changes, ignoreHistory: true}
   };
 };
 
 export const updateSelectionPath = path => {
   return {
     type: UPDATE_SELECTION_PATH,
-    payload: path
+    payload: {path, ignoreHistory: false}
   };
 };
 
@@ -104,7 +135,7 @@ export const updateLayerOrder = (from, to) => {
 export const enableLayerRename = id => {
   return {
     type: ENABLE_LAYER_RENAME,
-    payload: id
+    payload: {id, ignoreHistory: true}
   };
 };
 
@@ -131,7 +162,7 @@ export const endDragLayercard = () => {
 export const makeActiveLayer = layerId => {
   return {
     type: MAKE_ACTIVE_LAYER,
-    payload: layerId
+    payload: {layerId, ignoreHistory: true}
   };
 };
 
@@ -156,9 +187,28 @@ export const updateColor = (key, value) => {
   };
 };
 
+export const switchColors = () => {
+  return {
+    type: SWITCH_COLORS
+  };
+};
+
 export const updateWorkspaceSettings = (changes) => {
   return {
     type: UPDATE_WORKSPACE_SETTINGS,
     payload: changes
+  }
+}
+
+export const toggleMenu = () => {
+  return {
+    type: TOGGLE_MENU
+  }
+}
+
+export const setActiveMenuList = (id) => {
+  return {
+    type: SET_ACTIVE_MENU_LIST,
+    payload: id
   }
 }

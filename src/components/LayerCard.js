@@ -58,10 +58,10 @@ const RenameSC = styled.input`
 
 export default function LayerCard(props) { 
   const nameBox = useRef();
-  const activeLayer = useSelector(state => state.activeLayer);
+  const activeLayer = useSelector(state => state.main.present.activeLayer);
   const dispatch = useDispatch();
 
-  const clickHandler = ev => {
+  const clickHandler = () => {
     if (props.hidden) return;
     dispatch(makeActiveLayer(props.id));
   };

@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { ActionCreators } from 'redux-undo';
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
-import { addOpacity } from '../utils/colorConversion.js';
+import { addOpacity, toArrayFromRgba } from '../utils/colorConversion.js';
 import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
@@ -34,10 +35,11 @@ let state = {
 
 export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
-  const { activeTool, activeLayer, selectionPath, toolSettings, layerData, layerOrder } = useSelector(state => state);
-  const primary = useSelector(state => state.colorSettings.primary);
-  const { zoomPct, translateX, translateY, canvasWidth, canvasHeight } = useSelector(state => state.workspaceSettings);
-  const layerCounter = useSelector(state => state.layerCounter);
+  const { activeTool, toolSettings } = useSelector(state => state.ui);
+  const { activeLayer, selectionPath, layerData, layerOrder } = useSelector(state => state.main.present);
+  const primary = useSelector(state => state.ui.colorSettings.primary);
+  const { zoomPct, translateX, translateY } = useSelector(state => state.ui.workspaceSettings);
+  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function DrawSpace(props) {
 
     let color;
     for (let i = layerOrder.length - 1; i >= 0; i--) {
-      let ctx = layerData[layerOrder[i]].ctx;
+      let ctx = layerData[layerOrder[i]].getContext("2d");
       const pixel = ctx.getImageData(x, y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
@@ -103,7 +105,9 @@ export default function DrawSpace(props) {
     */
 
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
-    if (layerOrder.includes("staging")) dispatch(deleteLayer("staging"))
+    if (layerOrder.includes("staging")) {
+      dispatch(deleteLayer("staging", true))
+    }
     let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     state = {
       ...state,
@@ -115,27 +119,27 @@ export default function DrawSpace(props) {
     };
     switch (state.tool) {
       case "pencil":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "brush":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "line":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "fillRect":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "drawRect":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "fillCirc":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "drawCirc":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "eraser":
-        return dispatch(createLayer(activeLayer, "staging"));
+        return dispatch(createLayer(activeLayer, "staging", true));
       case "eyeDropper":
         let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
         return eyeDropper(x, y, modifier ? "secondary" : "primary")
       case "selectRect":
-        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw"}))
-        return dispatch(createLayer(layerOrder.length, "staging"));
+        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw", params: {ignoreHistory: true}}))
+        return dispatch(createLayer(layerOrder.length, "staging", true));
       case "move":
         break;
       case "hand":
@@ -143,6 +147,7 @@ export default function DrawSpace(props) {
       case "zoom":
         break;
       case "TEST":
+        dispatch(ActionCreators.undo());
         break;
       default:
         break;
@@ -183,7 +188,8 @@ export default function DrawSpace(props) {
       width: width,
       strokeColor: color,
       fillColor: color,
-      clip: selectionPath
+      clip: selectionPath,
+      ignoreHistory: true
     };
 
     if (state.lockedAxis && !ev.shiftKey) {
@@ -409,9 +415,10 @@ export default function DrawSpace(props) {
 
     if (!state.mouseDown) return;
 
-    const { opacity, width } = toolSettings[state.tool];
+    const { opacity, width, tolerance } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
     const color = addOpacity(primary, opacity / 100)
+    const colorArray = toArrayFromRgba(primary, opacity / 100)
 
     state = {
       ...state,
@@ -426,7 +433,6 @@ export default function DrawSpace(props) {
         hold: false,
         tool: null
       };
-      dispatch(deleteLayer("staging"))
     }, 0);
     
     const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
@@ -439,6 +445,8 @@ export default function DrawSpace(props) {
       fillColor: color,
       clip: selectionPath
     };
+
+    dispatch(deleteLayer("staging", true))
 
     switch (state.tool) {
       case "pencil":
@@ -563,13 +571,27 @@ export default function DrawSpace(props) {
       case "eyeDropper":
         break;
 
+      case "bucketFill":
+        dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "fill",
+            type: "manipulate",
+            params: {
+              orig: state.origin,
+              colorArray,
+              tolerance,
+              clip: selectionPath
+            }
+          })
+        );
+        break;
+
       case "selectRect":
         let path;
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
           path = null;
         } else if (selectionPath !== null && state.heldShift) {
-          console.log(selectionPath)
-          path = selectionPath;
+          path = new Path2D(selectionPath);
         } else {
           path = new Path2D();
         }
@@ -589,8 +611,16 @@ export default function DrawSpace(props) {
         );
 
       case "move":
-        break;
-
+        return dispatch(
+          updateLayerQueue(activeLayer, {
+            action: "move",
+            type: "manipulate",
+            params: {
+              ...params,
+              orig: state.destArray[state.destArray.length - 1] || state.origin,
+            }
+          })
+        );
       case "hand":
         break;
 

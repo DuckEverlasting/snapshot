@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSync } from '@fortawesome/free-solid-svg-icons'
 
-import { updateColor } from "../actions/redux";
+import { updateColor, switchColors } from "../actions/redux";
 import { toRgbaFromHex as toRgba, toHexFromRgba as toHex } from '../utils/colorConversion.js';
 
 const ColorBoxSC = styled.div`
@@ -14,7 +14,7 @@ const ColorBoxSC = styled.div`
 
 const TitleSC = styled.p`
   margin: 0 0 5px;
-  padding: 3px 0;
+  padding: 3px;
   border-top: 1px solid black;
   border-bottom: 1px dotted black;
 `
@@ -25,8 +25,8 @@ const ColorPickerSC = styled.input`
 
 const PrimaryColorSC = styled.div`
   position: absolute;
-  left: 23%;
-  bottom: 26%;
+  left: 40px;
+  bottom: 26px;
   width: 40px;
   height: 28px;
   background: ${props => props.color};
@@ -38,8 +38,8 @@ const PrimaryColorSC = styled.div`
 
 const SecondaryColorSC = styled.div`
   position: absolute;
-  left: 39%;
-  bottom: 10%;
+  right: 47px;
+  bottom: 9px;
   width: 40px;
   height: 28px;
   background: ${props => props.color};
@@ -51,7 +51,7 @@ const SecondaryColorSC = styled.div`
 
 const FontAwesomeIconSC = styled(FontAwesomeIcon)`
   position: absolute;
-  right: 28%;
+  right: 49px;
   bottom: 44%;
   font-size: 12px;
   cursor: pointer;
@@ -66,7 +66,7 @@ const SecondaryColorLabelSC = styled.label`
 `
 
 export default function ColorBox() {
-  const { primary: primaryRgba, secondary: secondaryRgba } = useSelector(state => state.colorSettings);
+  const { primary: primaryRgba, secondary: secondaryRgba } = useSelector(state => state.ui.colorSettings);
   const dispatch = useDispatch();
 
   const { hex: primaryHex, opacity: primaryOpacity } = toHex(primaryRgba);
@@ -83,9 +83,7 @@ export default function ColorBox() {
   }
 
   const switchColorsHandler = () => {
-    let [ primary, secondary ] = [ toRgba(primaryHex, primaryOpacity), toRgba(secondaryHex, secondaryOpacity) ];
-    dispatch(updateColor("primary", secondary))
-    dispatch(updateColor("secondary", primary))
+    dispatch(switchColors())
   }
 
   return (

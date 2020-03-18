@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useDispatch } from "react-redux";
-import { updateLayerData } from '../actions/redux'
+import { updateLayerData, updateAfterUndo, updateAfterRedo } from '../actions/redux'
 
 import draw from "../reducers/custom/drawingReducer.js";
 import manipulate from "../reducers/custom/manipulateReducer.js";
+
+import { getDiff } from "../actions/custom/ctxActions"
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
@@ -38,23 +40,50 @@ function Layer(props) {
   useEffect(() => {
     // if (lastFrame === props.frame) return;
     // setLastFrame(props.frame);
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
     let queue = props.queue;
     if (queue === null) return;
-    if (queue.type === "draw") drawHandler(ctx, queue)
-    else if (queue.type === "manipulate") manipulateHandler(ctx, queue)
-  }, [props.data, props.queue, props.id]);
+    if (queue.type === "draw") drawHandler(queue)
+    else if (queue.type === "manipulate") manipulateHandler(queue)
+  }, [props.queue, props.id]);
 
-  function drawHandler(ctx, queue) {
+  function drawHandler(queue) {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const viewWidth = Math.ceil(ctx.canvas.width / 3);
+    const viewHeight = Math.ceil(ctx.canvas.height / 3);
+    const prevImgData = queue.params.ignoreHistory ? null :  ctx.getImageData(
+      viewWidth,
+      viewHeight,
+      viewWidth,
+      viewHeight
+    );
     draw(ctx, queue);
-    dispatch(updateLayerData(props.id, canvasRef.current))
+    let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
+    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory));
   }
 
-  function manipulateHandler(ctx, queue) {
-    manipulate(ctx, queue);
-    dispatch(updateLayerData(props.id, canvasRef.current))
-  }
+  function manipulateHandler(queue) {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const viewWidth = Math.ceil(ctx.canvas.width / 3);
+    const viewHeight = Math.ceil(ctx.canvas.height / 3);
+    const prevImgData = queue.params.ignoreHistory ? null : ctx.getImageData(
+      viewWidth,
+      viewHeight,
+      viewWidth,
+      viewHeight
+    );
+    const result = manipulate(ctx, queue);
+    if (queue.params.changeData) {
+      if (queue.params.direction === "undo") {
+        return dispatch(updateAfterUndo(props.id, result))
+      } else if (queue.params.direction === "redo") {
+        return dispatch(updateAfterRedo(props.id, result))
+      }
+    };
+    let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
+    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory));
+  };
 
   return <LayerWrapperSC width={props.width} height={props.height}>
     <LayerSC width={props.width * 3} height={props.height * 3} hidden={props.hidden} index={props.index} ref={canvasRef} />

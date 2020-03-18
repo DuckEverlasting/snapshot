@@ -1,80 +1,100 @@
 import React from "react";
-import { useSelector } from "react-redux";
 
 import styled from "styled-components";
+import { useDispatch } from "react-redux";
 
-const TopBarSC = styled.div.attrs(props => ({
-  style: {
-    width: `${props.width}px`
-  }
-}))`
-  height: 80px;
+import {
+  MenuBar,
+  Menu,
+  MenuBranch,
+  MenuItem
+} from "../components/Menu";
+import menuAction from "../actions/redux/menuAction";
+
+const TopBarSC = styled.div`
+  width: 100%;
+  height: 35px;
+  flex-shrink: 0;
+  flex-grow: 0;
   margin: auto;
   position: relative;
   display: flex;
   justify-content: space-between;
-`
-
-const LeftBoxSC = styled.div`
-  display: flex;
-  align-items: flex-end;
-  width: 30%;
-`
+`;
 
 const RightBoxSC = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
   width: 30%;
-`
-
-const MenuSC = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  background: #666666;
-  padding: 5px;
-  font-size: 1rem;
-  max-width: 5rem;
-  font-weight: bold;
-  border: 2px solid black;
-  border-bottom: none;
-  flex-grow: 1;
-  user-select: none;
-
-  &:first-child {
-    border-top-left-radius: 10px;
-  }
-
-  &:last-child {
-    border-top-right-radius: 10px;
-  }
-`
+`;
 
 const TitleSC = styled.h1`
-  background: #666666;
   margin: 0;
   padding: 3px 10px;
   font-size: 1.6rem;
   font-weight: bold;
-  border: 2px solid black;
-  border-bottom: none;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
   white-space: nowrap;
   user-select: none;
-`
+`;
 
 export default function TopBar() {
-  const width = useSelector(state => state.workspaceSettings.width);
-
+  const dispatch = useDispatch();
+  let mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
   return (
-    <TopBarSC width={width}>
-      <LeftBoxSC>
-        <MenuSC>File</MenuSC>
-        <MenuSC>Edit</MenuSC>
-        <MenuSC>Layer</MenuSC>
-      </LeftBoxSC>
+    <TopBarSC>
+      <MenuBar>
+        <Menu id="File" name="File">
+          <MenuItem>New</MenuItem>
+          <MenuItem>Save</MenuItem>
+          <MenuItem>Import</MenuItem>
+          <MenuItem>Export</MenuItem>
+        </Menu>
+        <Menu id="Edit" name="Edit">
+          <MenuItem
+            name="Undo"
+            hotkey={`${mod}+Z`}
+            onClick={() => {dispatch(menuAction("undo"))}}
+          />
+          <MenuItem
+            name="Redo"
+            hotkey={`${mod}+Shift+Z`}
+            onClick={() => dispatch(menuAction("redo"))}
+          />
+          <MenuItem
+            name="Copy"
+            hotkey={`${mod}+C`}
+            onClick={() => dispatch(menuAction("copy"))}
+          />
+          <MenuItem
+            name="Paste"
+            hotkey={`${mod}+V`}
+            onClick={() => dispatch(menuAction("paste"))}
+          />
+        </Menu>
+        <Menu id="Layer" name="Layer">
+          <MenuItem
+            name="New Layer"
+            hotkey={`${mod}+Shift+N`}
+            onClick={() => dispatch(menuAction("newLayer"))}
+          />
+          <MenuItem
+            name="Duplicate Layer"
+            hotkey={`${mod}+J`}
+            onClick={() => dispatch(menuAction("duplicate"))}
+          />
+          <MenuItem name="Delete Layer" onClick={() => dispatch(menuAction("deleteLayer"))} />
+          <MenuItem name="Hide Layer" onClick={() => dispatch(menuAction("hideLayer"))} />
+          <MenuItem name="Rename Layer" onClick={() => dispatch(menuAction("renameLayer"))} />
+        </Menu>
+        <Menu id="Selection" name="Selection">
+          <MenuItem
+            name="Deselect"
+            hotkey={`${mod}+D`}
+            onClick={() => dispatch(menuAction("deselect"))}
+          />
+        </Menu>
+      </MenuBar>
       <RightBoxSC>
         <TitleSC>PhotoSmith Image Editor</TitleSC>
       </RightBoxSC>

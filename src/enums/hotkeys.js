@@ -18,5 +18,7 @@ export const hotkeyCtrl = {
   "j": {type: "special", payload: "duplicate"},
   "z": {type: "special", payload: "undo"},
   "Z": {type: "special", payload: "redo"},
-  "d": {type: "special", payload: "deselect"}
+  "d": {type: "special", payload: "deselect"},
+  "N": {type: "special", payload: "newLayer"},
+  "n": {type: "special", payload: "newLayer"},
 }
