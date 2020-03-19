@@ -6,6 +6,7 @@ import pencilImg from "../cursors/pencil.png"
 import dropperImg from "../cursors/dropper.png"
 
 import { addOpacity, toArrayFromRgba } from '../utils/colorConversion.js';
+import getZoomAmount from "../utils/getZoomAmount";
 import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
@@ -480,7 +481,7 @@ export default function DrawSpace(props) {
         if (!state.destArray.length) {
           break
         };
-        
+
         let num;
         if (width <= 5) num = 0
         else num = 1
@@ -617,7 +618,9 @@ export default function DrawSpace(props) {
 
       case "zoom":
         if (mouseOut) break;
-        return dispatch(updateWorkspaceSettings({zoomPct: zoomPct * (ev.altKey ? 2/3 : 3/2)}));
+        return dispatch(updateWorkspaceSettings({
+          zoomPct: ev.altKey ? getZoomAmount(-1, zoomPct) : getZoomAmount(1, zoomPct)
+        }));
 
       default:
         break;

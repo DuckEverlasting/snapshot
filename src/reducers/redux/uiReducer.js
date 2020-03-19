@@ -43,12 +43,18 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       };
 
     case UPDATE_WORKSPACE_SETTINGS:
-      let workspaceSettingsChanges = payload;
+      if (payload.zoomPct) {
+        if (payload.zoomPct < 12.5) {
+          payload.zoomPct = 12.5;
+        } else if (payload.zoomPct > 600) {
+          payload.zoomPct = 600;
+        }
+      }
       return {
         ...state,
         workspaceSettings: {
           ...state.workspaceSettings,
-          ...workspaceSettingsChanges
+          ...payload
         }
       };
     case UPDATE_COLOR:

@@ -34,12 +34,12 @@ const ButtonSC = styled.button`
   outline: none;
   cursor: pointer;
   padding: 3px 0;
-  background: ${props => props.active ? "yellow" : "#e3e3e3"};
+  background: ${props => props.active ? "#ffe312" : "#e3e3e3"};
   border: 1px solid #333333;
   border-radius: 2px;
 
   &:hover{
-    background: ${props => props.active ? "yellow" : "#d6d6d6"};
+    background: ${props => props.active ? "#ffe312" : "#d6d6d6"};
   }
 
   &:active{

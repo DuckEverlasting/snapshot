@@ -48,7 +48,11 @@ export default function TopBar() {
           <MenuItem>New</MenuItem>
           <MenuItem>Save</MenuItem>
           <MenuItem>Import</MenuItem>
-          <MenuItem>Export</MenuItem>
+          <MenuBranch name="Export As">
+            <MenuItem>PDF</MenuItem>
+            <MenuItem>JPG</MenuItem>
+            <MenuItem>PNG</MenuItem>
+          </MenuBranch>
         </Menu>
         <Menu id="Edit" name="Edit">
           <MenuItem

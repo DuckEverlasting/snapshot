@@ -6,8 +6,9 @@ import styled from "styled-components";
 import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
-import { updateWorkspaceSettings, makeActiveTool } from "../actions/redux";
-import menuAction from "../actions/redux/menuAction";
+import getZoomAmount from "../utils/getZoomAmount";
+
+import { updateWorkspaceSettings } from "../actions/redux";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -19,6 +20,17 @@ const WorkspaceSC = styled.div`
   z-index: 1;
   background: rgb(175, 175, 175);
 `;
+
+const ZoomDisplaySC = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(0,0,0,.5);
+  color: rgb(235, 235, 235);
+  padding: 10px 20px;
+  border-bottom-left-radius: 3px;
+  z-index: 2;
+`
 
 const CanvasPaneSC = styled.div.attrs(props => ({
   style: {
@@ -69,8 +81,8 @@ export default function Workspace() {
   }
 
   useEffect(() => {
-    const zoom = amount => {
-      dispatch(updateWorkspaceSettings({ zoomPct: zoomPct * amount }));
+    const zoom = steps => {
+      dispatch(updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) }));
     };
     const translate = (deltaX, deltaY) => {
       dispatch(
@@ -83,19 +95,19 @@ export default function Workspace() {
     const mouseWheelHandler = async ev => {
       ev.preventDefault();
       if (ev.altKey) {
-        let amount;
+        let steps;
         if (ev.deltaY < 0) {
-          amount = ev.shiftKey ? 3 / 2 : 10 / 9;
-          zoom(amount);
-          if (zoomPct * amount >= 100) {
+          steps = ev.shiftKey ? 2 : 1;
+          zoom(steps);
+          if (zoomPct * steps >= 100) {
             // HANDLE ZOOM IN STUFF
           }
         } else {
-          amount = ev.shiftKey ? 2 / 3 : 9 / 10;
-          zoom(amount);
+          steps = ev.shiftKey ? -2 : -1;
+          zoom(steps);
 
           // Autocenter when zooming out
-          if (zoomPct * amount <= 100) {
+          if (getZoomAmount(steps, zoomPct) <= 100) {
             dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
           }
         }
@@ -172,6 +184,9 @@ export default function Workspace() {
 
   return (
     <WorkspaceSC ref={workspaceRef}>
+      <ZoomDisplaySC>
+        Zoom: {Math.ceil(zoomPct * 100) / 100}%
+      </ZoomDisplaySC>
       <CanvasPaneSC
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
