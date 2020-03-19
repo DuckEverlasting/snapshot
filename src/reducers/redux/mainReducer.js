@@ -25,8 +25,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         position = 0;
         for (let i = state.layerOrder.length; i > 0; i--) {
           if (typeof state.layerOrder[i - 1] === "number") {
-            console.log(i)
-            position = i;
+            position = i - 1;
             break;
           }
         }
@@ -44,7 +43,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         opacity: 1,
       };
       let orderAfterCreate = state.layerOrder.slice(0);
-      orderAfterCreate.splice(position, 0, layerId);
+      orderAfterCreate.splice(position + 1, 0, layerId);
 
       return {
         ...state,

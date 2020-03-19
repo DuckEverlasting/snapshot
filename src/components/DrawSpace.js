@@ -237,13 +237,13 @@ export default function DrawSpace(props) {
 
         dispatch(
           updateLayerQueue("staging", {
-            action: "drawLine",
+            action: "drawQuad",
             type: "draw",
             params: {
               ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin,
-              destArray: [[x, y]],
-              filter: `blur(${num}px)`
+              destArray: [...state.destArray, [x, y]],
+              filter: `blur(${num}px)`,
+              clearFirst: true
             }
           })
         );
@@ -328,21 +328,22 @@ export default function DrawSpace(props) {
           y = state.origin[1]
         };
 
+        const newDestArray = [...state.destArray, [x, y]]
+
         dispatch(
           updateLayerQueue("staging", {
-            action: "drawLine",
+            action: "drawQuad",
             type: "draw",
             params: {
               ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin,
-              destArray: [[x, y]],
+              destArray: newDestArray,
               strokeColor: "rgba(0, 0, 0, .5)"
             },
           })
         );
         return state = {
           ...state,
-          destArray: [...state.destArray, [x, y]]
+          destArray: newDestArray
         };
 
       case "eyeDropper":
@@ -476,30 +477,13 @@ export default function DrawSpace(props) {
         }
 
       case "brush":
-        // async function brushFeather(quality) {
-        //   for (let i = 1; i <= quality; i++) {
-        //     await dispatch(
-        //       updateLayerQueue(activeLayer, {
-        //         action: "drawLine",
-        //         type: "draw",
-        //         params: {
-        //           ...params,
-        //           width: width * (1.25 - ((1 / (quality - 1)) * (i - 1))),
-        //           strokeColor: addOpacity(primary, opacity * (1/quality) * i),
-        //           destArray: state.destArray
-        //         }
-        //       })
-        //     );
-        //   }
-        // }
-        // return brushFeather(50);
         let num;
         if (width <= 5) num = 0
         else num = 1
 
         return dispatch(
           updateLayerQueue(activeLayer, {
-            action: "drawLine",
+            action: "drawQuad",
             type: "draw",
             params: {
               ...params,
@@ -557,7 +541,7 @@ export default function DrawSpace(props) {
       case "eraser":
         return dispatch(
           updateLayerQueue(activeLayer, {
-            action: "drawLine",
+            action: "drawQuad",
             type: "draw",
             params: {
               ...params,

@@ -33,7 +33,7 @@ export default function menuAction(action) {
         const sourceCtx = getState().main.present.layerData[
           activeLayer
         ].getContext("2d");
-        dispatch(createLayer(activeLayer + 1));
+        dispatch(createLayer(activeLayer));
         dispatch(
           updateLayerQueue(newLayerId, {
             type: "manipulate",
@@ -89,7 +89,7 @@ export default function menuAction(action) {
         const sourceCtx = getState().main.present.layerData.clipboard.getContext(
           "2d"
         );
-        dispatch(createLayer(activeLayer + 1));
+        dispatch(createLayer(activeLayer));
         dispatch(
           updateLayerQueue(newLayerId, {
             type: "manipulate",
@@ -110,9 +110,9 @@ export default function menuAction(action) {
       return (dispatch, getState) => {
         const { activeLayer, layerOrder } = getState().main.present;
         if (activeLayer) {
-          dispatch(createLayer(activeLayer + 1))
+          dispatch(createLayer(activeLayer))
         } else {
-          dispatch(createLayer(layerOrder.length - 1))
+          dispatch(createLayer(layerOrder.length))
         }
       }
     case "deleteLayer":
