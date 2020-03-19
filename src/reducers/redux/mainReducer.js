@@ -21,6 +21,15 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       if (state.layerOrder.length > 51 && !special) {
         return state
       };
+      if (position === "top") {
+        position = 0;
+        for (let i = state.layerOrder.length; i > 0; i--) {
+          if (typeof state.layerOrder[i - 1] === "number") {
+            position = i - 1;
+            break;
+          }
+        }
+      }
       let canvas = document.createElement("canvas");
       canvas.width = state.documentSettings.canvasWidth;
       canvas.height = state.documentSettings.canvasHeight;
@@ -28,13 +37,13 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       const layerId = special ? special : state.layerCounter;
       const newLayerData = canvas;
       const newLayerSettings = {
-        name: special ? undefined : `layer ${state.layerCounter}`,
+        name: special ? undefined : `Layer ${state.layerCounter}`,
         nameEditable: false,
         hidden: false,
         opacity: 1,
       };
       let orderAfterCreate = state.layerOrder.slice(0);
-      orderAfterCreate.splice(position, 0, layerId);
+      orderAfterCreate.splice(position + 1, 0, layerId);
 
       return {
         ...state,

@@ -20,7 +20,7 @@ time, mark, audio, video {
 	padding: 0;
 	border: 0;
 	font-size: 100%;
-	font: inherit;
+  font: inherit;
   vertical-align: baseline;
   box-sizing: border-box;
 }
@@ -33,7 +33,6 @@ body {
   line-height: 1;
   background: rgb(48, 48, 48);
   color: rgb(235, 235, 235);
-  font-family: "Roboto", sans-serif;
 }
 ol, ul {
 	list-style: none;

@@ -112,7 +112,7 @@ export default function menuAction(action) {
         if (activeLayer) {
           dispatch(createLayer(activeLayer))
         } else {
-          dispatch(createLayer(layerOrder.length - 2))
+          dispatch(createLayer(layerOrder.length))
         }
       }
     case "deleteLayer":

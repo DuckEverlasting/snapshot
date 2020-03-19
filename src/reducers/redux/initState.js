@@ -28,7 +28,7 @@ export const initMainState = {
   },
   layerSettings: {
     1: {
-      name: "layer 1",
+      name: "Layer 1",
       nameEditable: false,
       hidden: false,
       opacity: 1

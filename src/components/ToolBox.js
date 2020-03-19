@@ -28,15 +28,23 @@ const ToolboxSC = styled.div`
   padding: 10px 0;
 `;
 
-const ButtonSC = styled.button.attrs(props => ({
-  style: {
-    background: props.active ? "yellow" : "#e3e3e3",
-    borderColor: props.active ? "yellow" : "#e3e3e3"
-  }
-}))`
+const ButtonSC = styled.button`
   width: 35%;
   margin: 2%;
   outline: none;
+  cursor: pointer;
+  padding: 3px 0;
+  background: ${props => props.active ? "yellow" : "#e3e3e3"};
+  border: 1px solid #333333;
+  border-radius: 2px;
+
+  &:hover{
+    background: ${props => props.active ? "yellow" : "#d6d6d6"};
+  }
+
+  &:active{
+    box-shadow: inset 0 .5px 3px #222222;
+  }
 `;
 
 const SpanSC = styled.span`

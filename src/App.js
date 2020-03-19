@@ -21,6 +21,7 @@ const AppSC = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  font-family: 'PT Sans', sans-serif;
 `
 
 const AppContainerSC = styled.div`
