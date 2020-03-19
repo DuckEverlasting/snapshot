@@ -477,6 +477,10 @@ export default function DrawSpace(props) {
         }
 
       case "brush":
+        if (!state.destArray.length) {
+          break
+        };
+        
         let num;
         if (width <= 5) num = 0
         else num = 1
@@ -539,6 +543,9 @@ export default function DrawSpace(props) {
         );
 
       case "eraser":
+        if (!state.destArray.length) {
+          break
+        };
         return dispatch(
           updateLayerQueue(activeLayer, {
             action: "drawQuad",
