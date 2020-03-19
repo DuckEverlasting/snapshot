@@ -210,12 +210,12 @@ export default function DrawSpace(props) {
 
         dispatch(
           updateLayerQueue("staging", {
-            action: "drawLine",
+            action: "drawQuad",
             type: "draw",
             params: {
               ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin,
-              destArray: [[x, y]],
+              destArray: [...state.destArray, [x, y]],
+              clearFirst: true
             }
           })
         );
@@ -465,7 +465,7 @@ export default function DrawSpace(props) {
         } else {
           return dispatch(
             updateLayerQueue(activeLayer, {
-              action: "drawLine",
+              action: "drawQuad",
               type: "draw",
               params: {
                 ...params,

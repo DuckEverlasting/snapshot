@@ -57,6 +57,7 @@ export default function(ctx, { action, params }) {
 
     case "drawLinePath":
       line(ctx, params);
+      ctx.closePath();
       ctx.stroke();
       break;
 

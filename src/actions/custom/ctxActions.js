@@ -1,3 +1,7 @@
+function midpoint(orig, dest) {
+  return [orig[0] + (dest[0] - orig[0]) / 2, orig[1] + (dest[1] - orig[1]) / 2];  
+}
+
 export function line(ctx, { destArray, translation }) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -8,10 +12,21 @@ export function line(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadratic(ctx, { destArray }) {
-  destArray.forEach(dest => {
-    ctx.quadraticCurveTo(dest[0], dest[1], dest[2], dest[3]);
+export function quadratic(ctx, { orig, destArray, translation }) {
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  if (translation) ctx.translate(translation, translation);
+  const firstMid = midpoint(orig, destArray[0]);
+  ctx.quadraticCurveTo(orig[0], orig[1], firstMid[0], firstMid[1]);
+  destArray.forEach((dest, i) => {
+    if (i < destArray.length - 1) {
+      const mid = midpoint(dest, destArray[i + 1])
+      ctx.quadraticCurveTo(dest[0], dest[1], mid[0], mid[1]);
+    } else {
+      ctx.lineTo(dest[0], dest[1]);
+    }
   });
+  if (translation) ctx.translate(-translation, -translation);
 }
 
 export function bezier(ctx, { destArray }) {
