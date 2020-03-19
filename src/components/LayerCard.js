@@ -15,7 +15,7 @@ import {
 
 const LayerCardSC = styled.div.attrs(props => ({
   style: {
-    background: props.active ? "yellow" : "white",
+    background: props.active ? "yellow" : "#f1f1f1",
     opacity: props.layerHidden ? 0.5 : 1
   }
 }))`
@@ -25,21 +25,33 @@ const LayerCardSC = styled.div.attrs(props => ({
   cursor: pointer;
 `;
 
-const DeleteButtonSC = styled.button`
+const ButtonSC = styled.button`
   position: absolute;
   padding: 0;
   width: 20px;
   height: 16px;
+  outline: none;
+  cursor: pointer;
+  background: #f1f1f1;
+  border: 1px solid #333333;
+  border-radius: 2px;
+
+  &:hover{
+    background: #e6e6e6;
+  }
+
+  &:active{
+    box-shadow: inset 0 .5px 3px #333333;
+  }
+`
+
+const DeleteButtonSC = styled(ButtonSC)`
   right: 3%;
   top: 5%;
   font-size: 10px;
 `;
 
-const HideButtonSC = styled.button`
-  position: absolute;
-  padding: 0;
-  width: 20px;
-  height: 16px;
+const HideButtonSC = styled(ButtonSC)`
   left: 3%;
   top: 5%;
   font-size: 12px;
