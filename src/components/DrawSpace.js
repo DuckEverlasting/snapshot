@@ -34,7 +34,7 @@ let state = {
   tool: null
 };
 
-export default function DrawSpace(props) {
+export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mouseDown}) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
   const { activeTool, toolSettings } = useSelector(state => state.ui);
   const { activeLayer, selectionPath, layerData, layerOrder } = useSelector(state => state.main.present);
@@ -42,6 +42,18 @@ export default function DrawSpace(props) {
   const { zoomPct, translateX, translateY } = useSelector(state => state.ui.workspaceSettings);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const dispatch = useDispatch();
+
+  // useEffect(() => {
+  //   mouseDownHandler(mouseDown)
+  // }, [mouseDown])
+
+  // useEffect(() => {
+  //   mouseMoveHandler(mouseMove)
+  // }, [mouseMove])
+
+  // useEffect(() => {
+  //   mouseUpHandler(mouseUp)
+  // }, [mouseUp])
 
   useEffect(() => {
     if (state.mouseDown) {
@@ -74,8 +86,8 @@ export default function DrawSpace(props) {
       Callback that handles which cursor is displayed over the component.
     */
 
-    if (props.overrideCursor !== null) {
-      return props.overrideCursor
+    if (overrideCursor !== null) {
+      return overrideCursor
     }
 
     switch (activeTool) {
@@ -109,7 +121,7 @@ export default function DrawSpace(props) {
     if (layerOrder.includes("staging")) {
       dispatch(deleteLayer("staging", true))
     }
-    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
+    let [x, y] = [ev.nativeEventOffsetX + canvasWidth, ev.nativeEventOffsetY + canvasHeight];
     state = {
       ...state,
       mouseDown: true,
@@ -179,7 +191,7 @@ export default function DrawSpace(props) {
     const { opacity, width } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
     const color = addOpacity(primary, opacity / 100)
-    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
+    let [x, y] = [ev.nativeEventOffsetX + canvasWidth, ev.nativeEventOffsetY + canvasHeight];
 
     // Default parameters
     let params = {
@@ -398,9 +410,12 @@ export default function DrawSpace(props) {
           state = {...state, throttle: false}
         }, 25)
 
-        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX + canvasWidth)
-        const deltaY = state.origin[1] - (ev.nativeEvent.offsetY + canvasHeight)
-        dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}));
+        const deltaX = state.origin[0] - (ev.nativeEventOffsetX + canvasWidth)
+        const deltaY = state.origin[1] - (ev.nativeEventOffsetY + canvasHeight)
+        return dispatch(updateWorkspaceSettings({
+          translateX: translateX - deltaX,
+          translateY: translateY - deltaY
+        }));
 
       case "zoom":
         break;
@@ -410,7 +425,7 @@ export default function DrawSpace(props) {
     }
   };
 
-  const mouseUpHandler = (ev, mouseOut=false) => {
+  const mouseUpHandler = ev => {
     /* 
       Handles what happens when mouse is released.
     */
@@ -437,7 +452,9 @@ export default function DrawSpace(props) {
       };
     }, 0);
     
-    const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
+    const [x, y] = [ev.nativeEventOffsetX + canvasWidth, ev.nativeEventOffsetY + canvasHeight];
+    const fullCanvasPath = new Path2D();
+    fullCanvasPath.rect(canvasWidth, canvasHeight, canvasWidth, canvasHeight)
     let params = {
       orig: state.origin,
       dest: [x, y],
@@ -445,7 +462,7 @@ export default function DrawSpace(props) {
       width: width,
       strokeColor: color,
       fillColor: color,
-      clip: selectionPath
+      clip: selectionPath === null ? fullCanvasPath : selectionPath
     };
 
     dispatch(deleteLayer("staging", true))
@@ -572,7 +589,7 @@ export default function DrawSpace(props) {
               orig: state.origin,
               colorArray,
               tolerance,
-              clip: selectionPath
+              clip: params.clip
             }
           })
         );
@@ -617,7 +634,6 @@ export default function DrawSpace(props) {
         break;
 
       case "zoom":
-        if (mouseOut) break;
         return dispatch(updateWorkspaceSettings({
           zoomPct: ev.altKey ? getZoomAmount(-1, zoomPct) : getZoomAmount(1, zoomPct)
         }));
@@ -629,7 +645,7 @@ export default function DrawSpace(props) {
 
   return (
     <DrawSpaceSC
-      index={props.index}
+      index={index}
       tabIndex="1"
       cursorHandler={cursorHandler}
       pencilImg={pencilImg}
@@ -637,7 +653,7 @@ export default function DrawSpace(props) {
       onMouseDown={mouseDownHandler}
       onMouseMove={mouseMoveHandler}
       onMouseUp={mouseUpHandler}
-      onMouseOut={ev => mouseUpHandler(ev, true)}
+      onMouseOut={mouseUpHandler}
     />
   );
 }

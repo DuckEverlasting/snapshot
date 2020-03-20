@@ -29,16 +29,16 @@ const ZoomDisplaySC = styled.div`
   color: rgb(235, 235, 235);
   padding: 10px 20px;
   border-bottom-left-radius: 3px;
-  z-index: 2;
+  z-index: 55;
 `
 
 const CanvasPaneSC = styled.div.attrs(props => ({
   style: {
     width: props.width,
     height: props.height,
-    transform: `translateX(${props.translateX}px) translateY(${
-      props.translateY
-    }px) scale(${props.zoomPct / 100})`
+    transform: `translateX(${props.translateX}px)
+      translateY(${props.translateY}px)
+      scale(${props.zoomPct / 100})`
   }
 }))`
   position: relative;
@@ -64,6 +64,22 @@ export default function Workspace() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
+
+  const passEventData = ev => {
+    return {
+      buttons: ev.buttons,
+      nativeEventOffsetX: ev.nativeEvent ? ev.nativeEvent.offsetX : undefined,
+      nativeEventOffsetY: ev.nativeEvent ? ev.nativeEvent.offsetY : undefined,
+      shiftKey: ev.shiftKey,
+      altKey: ev.altKey,
+      metaKey: ev.metaKey,
+      ctrlKey: ev.ctrlKey
+    }
+  }
+
+  const [mouseDown, setMouseDown] = useState(passEventData({}))
+  const [mouseMove, setMouseMove] = useState(passEventData({}))
+  const [mouseUp, setMouseUp] = useState(passEventData({}))
 
   const workspaceRef = useRef(null);
 
@@ -147,6 +163,7 @@ export default function Workspace() {
   }, [dispatch, translateX, translateY, zoomPct]);
 
   const handleMouseDown = ev => {
+    setMouseDown(passEventData(ev))
     if (ev.button !== 1) return;
     setIsDragging(true);
     setDragOrigin({
@@ -156,12 +173,14 @@ export default function Workspace() {
   };
 
   const handleMouseUp = ev => {
+    setMouseUp(passEventData(ev))
     if (ev.button !== 1) return;
     setIsDragging(false);
     setDragOrigin({ x: null, y: null });
   };
 
   const handleMouseOut = ev => {
+    setMouseUp(passEventData(ev))
     if (isDragging) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
@@ -169,6 +188,7 @@ export default function Workspace() {
   };
 
   const handleMouseMove = ev => {
+    setMouseMove(passEventData(ev))
     if (!isDragging) return;
     if (animationFrame === lastFrame) return;
     lastFrame = animationFrame;
@@ -201,6 +221,9 @@ export default function Workspace() {
         <DrawSpace
           overrideCursor={isDragging ? "grabbing" : null}
           index={layerOrder.length + 2}
+          mouseDown={mouseDown}
+          mouseMove={mouseMove}
+          mouseUp={mouseUp}
         />
         <LayerRenderer
           layerOrder={layerOrder}
