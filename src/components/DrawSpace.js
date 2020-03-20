@@ -34,7 +34,7 @@ let state = {
   tool: null
 };
 
-export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mouseDown}) {
+export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
   const { activeTool, toolSettings } = useSelector(state => state.ui);
   const { activeLayer, selectionPath, layerData, layerOrder } = useSelector(state => state.main.present);
@@ -42,18 +42,6 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
   const { zoomPct, translateX, translateY } = useSelector(state => state.ui.workspaceSettings);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   mouseDownHandler(mouseDown)
-  // }, [mouseDown])
-
-  // useEffect(() => {
-  //   mouseMoveHandler(mouseMove)
-  // }, [mouseMove])
-
-  // useEffect(() => {
-  //   mouseUpHandler(mouseUp)
-  // }, [mouseUp])
 
   useEffect(() => {
     if (state.mouseDown) {
@@ -86,8 +74,8 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
       Callback that handles which cursor is displayed over the component.
     */
 
-    if (overrideCursor !== null) {
-      return overrideCursor
+    if (props.overrideCursor !== null) {
+      return props.overrideCursor
     }
 
     switch (activeTool) {
@@ -121,7 +109,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
     if (layerOrder.includes("staging")) {
       dispatch(deleteLayer("staging", true))
     }
-    let [x, y] = [ev.nativeEventOffsetX + canvasWidth, ev.nativeEventOffsetY + canvasHeight];
+    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     state = {
       ...state,
       mouseDown: true,
@@ -191,7 +179,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
     const { opacity, width } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
     const color = addOpacity(primary, opacity / 100)
-    let [x, y] = [ev.nativeEventOffsetX + canvasWidth, ev.nativeEventOffsetY + canvasHeight];
+    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
 
     // Default parameters
     let params = {
@@ -410,12 +398,9 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
           state = {...state, throttle: false}
         }, 25)
 
-        const deltaX = state.origin[0] - (ev.nativeEventOffsetX + canvasWidth)
-        const deltaY = state.origin[1] - (ev.nativeEventOffsetY + canvasHeight)
-        return dispatch(updateWorkspaceSettings({
-          translateX: translateX - deltaX,
-          translateY: translateY - deltaY
-        }));
+        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX + canvasWidth)
+        const deltaY = state.origin[1] - (ev.nativeEvent.offsetY + canvasHeight)
+        dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}));
 
       case "zoom":
         break;
@@ -425,7 +410,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
     }
   };
 
-  const mouseUpHandler = ev => {
+  const mouseUpHandler = (ev, mouseOut=false) => {
     /* 
       Handles what happens when mouse is released.
     */
@@ -452,9 +437,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
       };
     }, 0);
     
-    const [x, y] = [ev.nativeEventOffsetX + canvasWidth, ev.nativeEventOffsetY + canvasHeight];
-    const fullCanvasPath = new Path2D();
-    fullCanvasPath.rect(canvasWidth, canvasHeight, canvasWidth, canvasHeight)
+    const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
     let params = {
       orig: state.origin,
       dest: [x, y],
@@ -462,7 +445,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
       width: width,
       strokeColor: color,
       fillColor: color,
-      clip: selectionPath === null ? fullCanvasPath : selectionPath
+      clip: selectionPath
     };
 
     dispatch(deleteLayer("staging", true))
@@ -589,7 +572,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
               orig: state.origin,
               colorArray,
               tolerance,
-              clip: params.clip
+              clip: selectionPath
             }
           })
         );
@@ -634,6 +617,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
         break;
 
       case "zoom":
+        if (mouseOut) break;
         return dispatch(updateWorkspaceSettings({
           zoomPct: ev.altKey ? getZoomAmount(-1, zoomPct) : getZoomAmount(1, zoomPct)
         }));
@@ -645,7 +629,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
 
   return (
     <DrawSpaceSC
-      index={index}
+      index={props.index}
       tabIndex="1"
       cursorHandler={cursorHandler}
       pencilImg={pencilImg}
@@ -653,7 +637,7 @@ export default function DrawSpace({overrideCursor, index, mouseUp, mouseMove, mo
       onMouseDown={mouseDownHandler}
       onMouseMove={mouseMoveHandler}
       onMouseUp={mouseUpHandler}
-      onMouseOut={mouseUpHandler}
+      onMouseOut={ev => mouseUpHandler(ev, true)}
     />
   );
 }

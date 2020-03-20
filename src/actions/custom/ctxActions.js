@@ -107,7 +107,7 @@ export function fill(ctx, { orig, colorArray, clip, tolerance = 100 }) {
 
   while (stack.length) {
     current = stack.pop();
-    if (colorMatch(current) && pointInPath(current)) {
+    if (colorMatch(current)) {
       for (let i = 0; i < 4; i++) {
         data[current + i] = colorArray[i];
       }
@@ -136,21 +136,16 @@ export function fill(ctx, { orig, colorArray, clip, tolerance = 100 }) {
     return (origin[0] + origin[1] * viewWidth) * 4;
   }
 
-  function colorMatch(index) {
-    if (index < 0 || index + 4 - 1 > data.length) {
+  function colorMatch(pixel) {
+    // console.log([data[pixel], data[pixel + 1], data[pixel + 2], data[pixel + 3]])
+    if (pixel < 0 || pixel + 4 - 1 > data.length) {
       return false;
     }
     let diff = 0;
     for (let i = 0; i < 4; i++) {
-      diff += Math.abs(data[index + i] - originColor[i]);
+      diff += Math.abs(data[pixel + i] - originColor[i]);
     }
     return diff <= tolerance;
-  }
-
-  function pointInPath(index) {
-    const x = ((index / 4) % viewWidth) + viewWidth;
-    const y = Math.floor((index / 4) / viewWidth) + viewHeight;
-    return ctx.isPointInPath(clip, x, y);
   }
 }
 
