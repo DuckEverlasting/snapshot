@@ -38,6 +38,10 @@ function Layer(props) {
   // const [lastFrame, setLastFrame] = useState(props.frame)
 
   useEffect(() => {
+    dispatch(updateLayerData(props.id, canvasRef.current, true, true));
+  })
+
+  useEffect(() => {
     // if (lastFrame === props.frame) return;
     // setLastFrame(props.frame);
     let queue = props.queue;
@@ -49,30 +53,15 @@ function Layer(props) {
   function drawHandler(queue) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const viewWidth = Math.ceil(ctx.canvas.width / 3);
-    const viewHeight = Math.ceil(ctx.canvas.height / 3);
-    const prevImgData = queue.params.ignoreHistory ? null :  ctx.getImageData(
-      viewWidth,
-      viewHeight,
-      viewWidth,
-      viewHeight
-    );
     draw(ctx, queue);
-    let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
-    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory));
+    // if (!queue.params.ignoreHistory) {
+    //   dispatch(updateLayerData(props.id, canvasRef.current));
+    // }   
   }
 
   function manipulateHandler(queue) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const viewWidth = Math.ceil(ctx.canvas.width / 3);
-    const viewHeight = Math.ceil(ctx.canvas.height / 3);
-    const prevImgData = queue.params.ignoreHistory ? null : ctx.getImageData(
-      viewWidth,
-      viewHeight,
-      viewWidth,
-      viewHeight
-    );
     const result = manipulate(ctx, queue);
     if (queue.params.changeData) {
       if (queue.params.direction === "undo") {
@@ -81,8 +70,9 @@ function Layer(props) {
         return dispatch(updateAfterRedo(props.id, result))
       }
     };
-    let changeData = prevImgData ? getDiff(ctx, {prevImgData}) : null;
-    dispatch(updateLayerData(props.id, canvasRef.current, changeData, queue.params.ignoreHistory));
+    // if (!queue.params.ignoreHistory) {
+    //   dispatch(updateLayerData(props.id, canvasRef.current, queue.params.prevCtx));
+    // }    
   };
 
   return <LayerWrapperSC width={props.width} height={props.height}>

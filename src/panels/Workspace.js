@@ -30,15 +30,15 @@ const ZoomDisplaySC = styled.div`
   padding: 10px 20px;
   border-bottom-left-radius: 3px;
   z-index: 2;
-`
+`;
 
 const CanvasPaneSC = styled.div.attrs(props => ({
   style: {
     width: props.width,
     height: props.height,
-    transform: `translateX(${props.translateX}px) translateY(${
-      props.translateY
-    }px) scale(${props.zoomPct / 100})`
+    transform: `translateX(${props.translateX}px)
+      translateY(${props.translateY}px)
+      scale(${props.zoomPct / 100})`
   }
 }))`
   position: relative;
@@ -223,19 +223,6 @@ function LayerRenderer({
   width,
   height
 }) {
-  // const [animationFrame, setAnimationFrame] = useState(0)
-
-  // useEffect(() => {
-  //   const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-
-  //   return () => cancelAnimationFrame(reqFrame);
-  // }, [])
-
-  // function updateAnimatedLayers() {
-  //   const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-  //   setAnimationFrame(reqFrame)
-  // }
-
   return (
     <>
       {layerOrder.length !== 0 &&
@@ -247,7 +234,6 @@ function LayerRenderer({
             <Layer
               key={layerId}
               id={layerId}
-              // frame={animationFrame}
               width={width}
               height={height}
               index={i + 1}

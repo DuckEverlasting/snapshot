@@ -1,6 +1,9 @@
+import { getDiff } from "../custom/ctxActions";
+
 export const [
   UNDO,
   REDO,
+  INSERT_LAYER_HISTORY,
   UPDATE_AFTER_UNDO,
   UPDATE_AFTER_REDO,
   CREATE_LAYER,
@@ -26,6 +29,7 @@ export const [
 ] = [
   "UNDO",
   "REDO",
+  "INSERT_LAYER_HISTORY",
   "UPDATE_AFTER_UNDO",
   "UPDATE_AFTER_REDO",
   "CREATE_LAYER",
@@ -62,6 +66,13 @@ export const redo = () => {
   };
 };
 
+export const insertLayerHistory = (id, changeData) => {
+  return {
+    type: INSERT_LAYER_HISTORY,
+    payload: {id, changeData}
+  }
+}
+
 export const updateAfterUndo = (id, changeData) => {
   return {
     type: UPDATE_AFTER_UNDO,
@@ -97,11 +108,37 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerData = (id, changes, changeData, ignoreHistory = false) => {
-  return {
-    type: UPDATE_LAYER_DATA,
-    payload: {id, changes, changeData, ignoreHistory}
-  };
+export const updateLayerData = (id, changes, ignoreHistory = false, init = false) => {
+  return (dispatch, getState) => {
+    if (init) {
+      return dispatch ({
+        type: UPDATE_LAYER_DATA,
+        payload: {id, changes, ignoreHistory}
+      });
+    }
+    const prevCtx = getState().main.present.layerData[id].getContext("2d");
+    const newCtx = changes.getContext("2d");
+    const viewWidth = Math.ceil(prevCtx.canvas.width / 3);
+    const viewHeight = Math.ceil(prevCtx.canvas.height / 3);
+    const prevImgData = prevCtx.getImageData(
+      viewWidth,
+      viewHeight,
+      viewWidth,
+      viewHeight
+    );
+    const changeData = getDiff(newCtx, {prevImgData});
+    dispatch ({
+      type: UPDATE_LAYER_DATA,
+      payload: {id, changes, changeData, ignoreHistory}
+    });
+    return dispatch ({
+      type: DELETE_LAYER,
+      payload: {
+        id: "staging",
+        ignoreHistory: true
+      }
+    })
+  }
 };
 
 export const updateLayerQueue = (id, changes) => {

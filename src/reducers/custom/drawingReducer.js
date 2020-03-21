@@ -1,6 +1,7 @@
 import {
   line,
   quadratic,
+  quadraticPoints,
   bezier,
   rectangle,
   circle
@@ -53,6 +54,10 @@ export default function(ctx, { action, params }) {
     case "drawBezier":
       bezier(ctx, params);
       ctx.stroke();
+      break;
+
+    case "drawQuadPoints":
+      quadraticPoints(ctx, params);
       break;
 
     case "drawLinePath":
@@ -109,6 +114,9 @@ export default function(ctx, { action, params }) {
     case "fillCirc":
       circle(ctx, params);
       ctx.fill();
+      break;
+
+    case "null":
       break;
 
     default:

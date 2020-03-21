@@ -25,6 +25,7 @@ function undoable(reducer, {
 
   return function(state = initialState, {type, payload}) {
     const { past, present, future } = state
+    let newPresent;
 
     switch (type) {
       case UNDO:
@@ -73,7 +74,7 @@ function undoable(reducer, {
           }
         }
       default:
-        const newPresent = reducer(present, {type, payload})
+        newPresent = reducer(present, {type, payload})
         if (present === newPresent) {
           return state
         } else if (!filter({type, payload})) {

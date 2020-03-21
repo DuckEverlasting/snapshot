@@ -10,6 +10,8 @@ import getZoomAmount from "../utils/getZoomAmount";
 import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
+import draw from "../reducers/custom/drawingReducer";
+
 const DrawSpaceSC = styled.div.attrs(props => ({
   style: {
     zIndex: props.index
@@ -31,7 +33,8 @@ let state = {
   interrupt: false,
   lockedAxis: "",
   heldShift: false,
-  tool: null
+  tool: null,
+  prevLayerData: null
 };
 
 export default function DrawSpace(props) {
@@ -115,6 +118,7 @@ export default function DrawSpace(props) {
       mouseDown: true,
       origin: [x, y],
       destArray: [],
+      lastMid: null,
       heldShift: ev.shiftKey,
       tool: activeTool
     };
@@ -122,7 +126,8 @@ export default function DrawSpace(props) {
       case "pencil":
         return dispatch(createLayer(activeLayer, "staging", true));
       case "brush":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        // return dispatch(createLayer(activeLayer, "staging", true));
+        break;
       case "line":
         return dispatch(createLayer(activeLayer, "staging", true));
       case "fillRect":
@@ -201,6 +206,8 @@ export default function DrawSpace(props) {
       setLockedAxis(x, y)
     }
 
+    let ctx = layerData.staging.getContext("2d");
+
     switch (state.tool) {
       case "pencil":
         if (state.lockedAxis === "x") {
@@ -209,26 +216,38 @@ export default function DrawSpace(props) {
           y = state.origin[1]
         };
 
-        dispatch(
-          updateLayerQueue("staging", {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: [...state.destArray, [x, y]],
-              clearFirst: true
-            }
-          })
-        );
+        draw(ctx, {
+          action: "drawQuad",
+          params: {
+            ...params,
+            destArray: [...state.destArray, [x, y]],
+            clearFirst: true
+          }
+        });
         return state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
         };
 
       case "brush":
-        let num;
-        if (width <= 5) num = 0
-        else num = 1
+        function midpoint(orig, dest) {
+          return [orig[0] + (dest[0] - orig[0]) / 2, orig[1] + (dest[1] - orig[1]) / 2];
+        }
+
+        function getQuadLength(p1, p2, p3) {
+          const distA = Math.sqrt(Math.pow(p1[1] - p2[1], 2) + Math.pow(p1[0] - p2[0], 2));
+          const distB = Math.sqrt(Math.pow(p2[1] - p3[1], 2) + Math.pow(p2[0] - p3[0], 2));
+          return (distA + distB);
+        }
+        const lastDest = state.destArray[state.destArray.length - 1] || state.origin
+
+        const newMid = midpoint(lastDest, [x, y])
+
+        if (getQuadLength(state.lastMid || state.origin, lastDest, newMid) < width * .25) {
+          return
+        }
+
+        const gradientData = [[0, color], [1, color]]
 
         if (state.lockedAxis === "x") {
           x = state.origin[0]
@@ -237,20 +256,22 @@ export default function DrawSpace(props) {
         };
 
         dispatch(
-          updateLayerQueue("staging", {
-            action: "drawQuad",
+          updateLayerQueue(activeLayer, {
+            action: "drawQuadPoints",
             type: "draw",
             params: {
               ...params,
-              destArray: [...state.destArray, [x, y]],
-              filter: `blur(${num}px)`,
-              clearFirst: true
+              orig: state.lastMid || state.origin,
+              destArray: [lastDest, newMid],
+              gradient: gradientData,
+              clearFirst: false
             }
           })
         );
         return state = {
           ...state,
-          destArray: [...state.destArray, [x, y]]
+          destArray: [...state.destArray, [x, y]],
+          lastMid: newMid
         };
 
       case "line":
@@ -426,7 +447,7 @@ export default function DrawSpace(props) {
       ...state,
       mouseDown: false,
       hold: true,
-      interrupt: false
+      interrupt: false,
     };
 
     setTimeout(() => {
@@ -435,6 +456,7 @@ export default function DrawSpace(props) {
         hold: false,
         tool: null
       };
+      deleteLayer("staging", true)
     }, 0);
     
     const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
@@ -445,36 +467,30 @@ export default function DrawSpace(props) {
       width: width,
       strokeColor: color,
       fillColor: color,
-      clip: selectionPath
+      clip: selectionPath,
     };
 
-    dispatch(deleteLayer("staging", true))
+    let ctx = layerData[activeLayer].getContext("2d");
 
     switch (state.tool) {
       case "pencil":
         if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
-          return dispatch(
-            updateLayerQueue(activeLayer, {
-              action: "fillRect",
-              type: "draw",
-              params: {
-                ...params,
-                orig: [params.orig[0] - .5 * params.width, params.orig[1] - .5 * params.width],
-                dest: [params.dest[0] + .5 * params.width, params.dest[1] + .5 * params.width]
-              }
-            })
-          );
+          return draw(ctx, {
+            action: "fillRect",
+            params: {
+              ...params,
+              orig: [params.orig[0] - .5 * params.width, params.orig[1] - .5 * params.width],
+              dest: [params.dest[0] + .5 * params.width, params.dest[1] + .5 * params.width]
+            }
+          });
         } else {
-          return dispatch(
-            updateLayerQueue(activeLayer, {
-              action: "drawQuad",
-              type: "draw",
-              params: {
-                ...params,
-                destArray: state.destArray
-              }
-            })
-          );
+          return draw(ctx, {
+            action: "drawQuad",
+            params: {
+              ...params,
+              destArray: state.destArray
+            }
+          })
         }
 
       case "brush":
@@ -482,21 +498,14 @@ export default function DrawSpace(props) {
           break
         };
 
-        let num;
-        if (width <= 5) num = 0
-        else num = 1
-
-        return dispatch(
+        dispatch(
           updateLayerQueue(activeLayer, {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: state.destArray,
-              filter: `blur(${num}px)`
-            }
+            action: "null",
+            type: "manipulate",
+            params: {}
           })
         );
+        return state = { ...state, lastMid: null, prevLayerData: null }
 
       case "line":
         return dispatch(
@@ -598,6 +607,7 @@ export default function DrawSpace(props) {
               width: 1,
               strokeColor: "rgba(0, 0, 0, 1)",
               dashPattern: [5, 10],
+              prevCtx: layerData[activeLayer].getContext("2d")
             }
           })
         );

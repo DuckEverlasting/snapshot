@@ -10,7 +10,7 @@ export default function getZoomAmount(steps, zoomPct) {
   } else if (steps > 0 && !zoomSteps[firstLarger]) {
     amount = zoomSteps[zoomSteps.length - 1]
   } else {
-    amount = zoomSteps[firstLarger + steps] || zoomSteps[zoomSteps.length - 1]
+    amount = zoomSteps[firstLarger - 1 + steps] || zoomSteps[zoomSteps.length - 1]
   }
   console.log(amount)
   return amount

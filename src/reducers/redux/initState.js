@@ -1,15 +1,5 @@
-
-let selectionCanvas = document.createElement("canvas");
-let initCanvas = document.createElement("canvas");
-let clipboardCanvas = document.createElement("canvas");
 let initWidth = (window.innerWidth - 300) * .8;
 let initHeight = (window.innerHeight - 30) * .8;
-selectionCanvas.width = initWidth;
-selectionCanvas.height = initHeight;
-initCanvas.width = initWidth;
-initCanvas.height = initHeight;
-clipboardCanvas.width = initWidth;
-clipboardCanvas.height = initWidth;
 
 export const initMainState = {
   documentSettings: {
@@ -17,9 +7,9 @@ export const initMainState = {
     canvasHeight: initHeight,
   },
   layerData: {
-    1: initCanvas,
-    selection: selectionCanvas,
-    clipboard: clipboardCanvas,
+    1: null,
+    selection: null,
+    clipboard: null,
   },
   layerQueue: {
     1: null,

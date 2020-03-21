@@ -25,6 +25,8 @@ export default function(ctx, { action, params }) {
       return getDiff(ctx, params);
     case "swapData":
       return swapData(ctx, params);
+    case "null":
+      break;
     default:
       return "error: invalid draw action";
   }
