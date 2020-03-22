@@ -437,9 +437,9 @@ export default function DrawSpace(props) {
           state = { ...state, throttle: false };
         }, 25);
 
-        manipulate(activeLayer, {
+        manipulate(layerData[activeLayer].getContext("2d"), {
           action: "move",
-            params: {
+          params: {
             ...params,
             orig: state.destArray[state.destArray.length - 1] || state.origin
           }
