@@ -6,7 +6,7 @@ import styled from "styled-components";
 import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
-import getZoomAmount from "../utils/getZoomAmount";
+import { getZoomAmount } from "../utils/helpers";
 
 import { updateWorkspaceSettings } from "../actions/redux";
 

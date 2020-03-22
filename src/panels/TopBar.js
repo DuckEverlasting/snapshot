@@ -75,6 +75,11 @@ export default function TopBar() {
             hotkey={`${mod}+V`}
             onClick={() => dispatch(menuAction("paste"))}
           />
+          <MenuItem
+            name="Clear"
+            hotkey={`Delete`}
+            onClick={() => dispatch(menuAction("clear"))}
+          />
         </Menu>
         <Menu id="Layer" name="Layer">
           <MenuItem

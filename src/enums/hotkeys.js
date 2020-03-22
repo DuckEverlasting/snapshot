@@ -8,7 +8,9 @@ export const hotkey = {
   "m": {type: "activeTool", payload: "selectRect"},
   "h": {type: "activeTool", payload: "hand"},
   "z": {type: "activeTool", payload: "zoom"},
-  "x": {type: "special", payload: "switchColors"}
+  "x": {type: "special", payload: "switchColors"},
+  "Delete": {type: "special", payload: "clear"},
+  "Backspace": {type: "special", payload: "clear"}
 }
 
 export const hotkeyCtrl = {

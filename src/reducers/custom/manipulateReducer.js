@@ -8,6 +8,22 @@ import {
 } from '../../actions/custom/ctxActions.js'
 
 export default function(ctx, { action, params }) {
+  if (params.clearFirst) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+  ctx.save()
+  if (params.filter) {
+    ctx.filter = params.filter;
+  }
+  if (params.globalOpacity) {
+    ctx.globalOpacity = params.globalOpacity;
+  }
+  if (params.composite) {
+    ctx.globalCompositeOperation = params.composite;
+  }
+  if (params.clip) {
+    ctx.clip(params.clip);
+  }
   switch (action) {
     case "move":
       move(ctx, params);
@@ -21,13 +37,20 @@ export default function(ctx, { action, params }) {
     case "fill":
       fill(ctx, params);
       break;
+    case "clear":
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      break;
     case "getDiff":
-      return getDiff(ctx, params);
+      getDiff(ctx, params);
+      break;
     case "swapData":
-      return swapData(ctx, params);
+      swapData(ctx, params);
+      break;
     case "null":
       break;
     default:
-      return "error: invalid draw action";
+      console.log("error: invalid draw action");
+      break;
   }
+  ctx.restore()
 }

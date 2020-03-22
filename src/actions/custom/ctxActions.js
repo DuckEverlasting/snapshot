@@ -1,6 +1,4 @@
-function midpoint(orig, dest) {
-  return [orig[0] + (dest[0] - orig[0]) / 2, orig[1] + (dest[1] - orig[1]) / 2];
-}
+import { midpoint, getQuadLength } from "../../utils/helpers";
 
 function getPointInQuad(p1, p2, p3, t) {
   return [0, 1].map(
@@ -17,12 +15,6 @@ function getPointsAlongQuad(p1, p2, p3, numOfPoints) {
     points.push(getPointInQuad(p1, p2, p3, t));
   }
   return points;
-}
-
-function getQuadLength(p1, p2, p3) {
-  const distA = Math.sqrt(Math.pow(p1[1] - p2[1], 2) + Math.pow(p1[0] - p2[0], 2));
-  const distB = Math.sqrt(Math.pow(p2[1] - p3[1], 2) + Math.pow(p2[0] - p3[0], 2));
-  return (distA + distB);
 }
 
 export function line(ctx, { destArray, translation }) {
@@ -105,25 +97,15 @@ export function move(ctx, { orig, dest }) {
   ctx.putImageData(data, x, y);
 }
 
-export function paste(ctx, { sourceCtx, dest, clip, clearFirst = false }) {
-  if (clearFirst) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  }
-  if (clip) {
-    ctx.save();
-    ctx.clip(clip);
-  }
+export function paste(ctx, { sourceCtx, dest }) {
   ctx.drawImage(sourceCtx.canvas, Math.floor(dest[0]), Math.floor(dest[1]));
-  if (clip) {
-    ctx.restore();
-  }
 }
 
 export function undelete(ctx, { source }) {
   ctx.putImageData(source, 0, 0);
 }
 
-export function fill(ctx, { orig, colorArray, clip, tolerance = 100 }) {
+export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
   const viewWidth = Math.ceil(ctx.canvas.width / 3);
   const viewHeight = Math.ceil(ctx.canvas.height / 3);
   orig[0] -= viewWidth;

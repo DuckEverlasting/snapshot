@@ -17,7 +17,7 @@ export default function menuAction(action) {
     case "deselect":
       return (dispatch, getState) => {
         const ctx = getState().main.present.layerData.selection.getContext("2d");
-        draw(ctx, {
+        manipulate(ctx, {
           action: "clear",
           params: { selectionPath: null }
         })
@@ -110,6 +110,22 @@ export default function menuAction(action) {
         const { activeLayer } = getState().main.present;
         if (activeLayer) {
           dispatch(deleteLayer(activeLayer))
+        }
+      }
+    case "clear":
+      return (dispatch, getState) => {
+        const { activeLayer, selectionPath } = getState().main.present;
+        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        if (!selectionPath) {
+          return
+        } else {
+          manipulate(ctx, {
+            action: "clear",
+            params: {
+              clip: selectionPath,
+              
+            }
+          })
         }
       }
     default:

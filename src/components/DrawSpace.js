@@ -5,7 +5,7 @@ import pencilImg from "../cursors/pencil.png";
 import dropperImg from "../cursors/dropper.png";
 
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
-import getZoomAmount from "../utils/getZoomAmount";
+import { getZoomAmount, midpoint, getQuadLength, getGradient } from "../utils/helpers";
 import {
   updateColor,
   updateWorkspaceSettings,
@@ -153,7 +153,6 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "brush":
-        moveStaging();
         break;
       case "line":
         moveStaging();
@@ -171,7 +170,6 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "eraser":
-        moveStaging();
         break;
       case "eyeDropper":
         let modifier = window.navigator.platform.includes("Mac")
@@ -180,7 +178,7 @@ export default function DrawSpace(props) {
         return eyeDropper(x, y, modifier ? "secondary" : "primary");
       case "selectRect":
         if (!state.heldShift) {
-          draw(layerData.selection.getContext("2d"), {
+          manipulate(layerData.selection.getContext("2d"), {
             action: "clear",
             params: { selectionPath: null }
           })
@@ -272,57 +270,19 @@ export default function DrawSpace(props) {
         });
 
       case "brush":
-        function midpoint(orig, dest) {
-          return [
-            orig[0] + (dest[0] - orig[0]) / 2,
-            orig[1] + (dest[1] - orig[1]) / 2
-          ];
-        }
-
-        function getQuadLength(p1, p2, p3) {
-          const distA = Math.sqrt(
-            Math.pow(p1[1] - p2[1], 2) + Math.pow(p1[0] - p2[0], 2)
-          );
-          const distB = Math.sqrt(
-            Math.pow(p2[1] - p3[1], 2) + Math.pow(p2[0] - p3[0], 2)
-          );
-          return distA + distB;
-        }
-        const lastDest =
+        const lastBrushDest =
           state.destArray[state.destArray.length - 1] || state.origin;
 
-        const newMid = midpoint(lastDest, [x, y]);
+        const newBrushMid = midpoint(lastBrushDest, [x, y]);
 
         if (
-          getQuadLength(state.lastMid || state.origin, lastDest, newMid) <
+          getQuadLength(state.lastMid || state.origin, lastBrushDest, newBrushMid) <
           width * 0.125
         ) {
           return;
         }
         
-        const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` ${(opacity / 100) * .66})`
-        const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` ${(opacity / 100) * .33})`
-        const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
-
-        // const pct0 = 1 0
-        // const pct1 = 1 0
-        // const pct2 = .5 1
-
-        // const gradientData = [
-        //   [pct0, color],
-        //   [pct1, colorStep1],
-        //   [pct2, colorStep2],
-        //   [1, colorStep3]
-        // ];
-
-        const gradientData = [
-          [0 + hardness * .01, color],
-          [.25 + hardness * .0075, colorStep1],
-          [.5 + hardness * .005, colorStep2],
-          [1, colorStep3]
-        ];
-
-        console.log(gradientData)
+        const brushGrad = getGradient(color, opacity, hardness)
 
         if (state.lockedAxis === "x") {
           x = state.origin[0];
@@ -330,13 +290,13 @@ export default function DrawSpace(props) {
           y = state.origin[1];
         }
 
-        draw(ctx, {
+        draw(layerData[activeLayer].getContext("2d"), {
           action: "drawQuadPoints",
           params: {
             ...params,
             orig: state.lastMid || state.origin,
-            destArray: [lastDest, newMid],
-            gradient: gradientData,
+            destArray: [lastBrushDest, newBrushMid],
+            gradient: brushGrad,
             density: .125,
             clearFirst: false
           }
@@ -344,7 +304,7 @@ export default function DrawSpace(props) {
         return (state = {
           ...state,
           destArray: [...state.destArray, [x, y]],
-          lastMid: newMid
+          lastMid: newBrushMid
         });
 
       case "line":
@@ -407,25 +367,42 @@ export default function DrawSpace(props) {
         break;
 
       case "eraser":
+        const lastEraserDest =
+          state.destArray[state.destArray.length - 1] || state.origin;
+
+        const newEraserMid = midpoint(lastEraserDest, [x, y]);
+
+        if (
+          getQuadLength(state.lastMid || state.origin, lastEraserDest, newEraserMid) <
+          width * 0.125
+        ) {
+          return;
+        }
+        
+        const eraserGrad = getGradient("rgba(0, 0, 0, 1)", 100, hardness);
+
         if (state.lockedAxis === "x") {
           x = state.origin[0];
         } else if (state.lockedAxis === "y") {
           y = state.origin[1];
         }
 
-        const newDestArray = [...state.destArray, [x, y]];
-
-        draw(ctx, {
-          action: "drawQuad",
+        draw(layerData[activeLayer].getContext("2d"), {
+          action: "drawQuadPoints",
           params: {
             ...params,
-            destArray: newDestArray,
-            strokeColor: "rgba(0, 0, 0, .5)"
+            orig: state.lastMid || state.origin,
+            destArray: [lastEraserDest, newEraserMid],
+            gradient: eraserGrad,
+            density: .125,
+            clearFirst: false,
+            composite: "destination-out"
           }
         });
         return (state = {
           ...state,
-          destArray: newDestArray
+          destArray: [...state.destArray, [x, y]],
+          lastMid: newEraserMid
         });
 
       case "eyeDropper":
@@ -571,18 +548,6 @@ export default function DrawSpace(props) {
         }
 
       case "brush":
-        if (!state.destArray.length) {
-          break;
-        }
-        manipulate(ctx, {
-          action: "paste",
-          params: {
-            sourceCtx: layerData.staging.getContext("2d"),
-            dest: [0, 0],
-            clip: selectionPath,
-            ignoreHistory: true
-          }
-        })
         return (state = { ...state, lastMid: null });
 
       case "line":
@@ -621,19 +586,7 @@ export default function DrawSpace(props) {
         break;
 
       case "eraser":
-        if (!state.destArray.length) {
-          break;
-        }
-        draw(ctx, {
-          action: "drawQuad",
-          params: {
-            ...params,
-            destArray: state.destArray,
-            strokeColor: "rgba(0, 0, 0, 1)",
-            composite: "destination-out"
-          }
-        });
-        break;
+        return (state = { ...state, lastMid: null });
 
       case "eyeDropper":
         break;
