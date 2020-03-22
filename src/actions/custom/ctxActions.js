@@ -12,7 +12,7 @@ function getPointInQuad(p1, p2, p3, t) {
 function getPointsAlongQuad(p1, p2, p3, numOfPoints) {
   const points = [];
   const integer = Math.floor(numOfPoints)
-  for (let i = 1; i <= numOfPoints; i++) {
+  for (let i = 0; i < numOfPoints; i++) {
     const t = i / integer;
     points.push(getPointInQuad(p1, p2, p3, t));
   }
@@ -99,6 +99,7 @@ export function circle(ctx, { orig, dest }) {
 
 export function move(ctx, { orig, dest }) {
   let [x, y] = [dest[0] - orig[0], dest[1] - orig[1]];
+  console.log(ctx)
   const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.putImageData(data, x, y);

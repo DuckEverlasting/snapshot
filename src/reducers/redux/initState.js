@@ -57,7 +57,7 @@ export const initUiState = {
   // Opacity is converted to 0 - 1 format in DrawSpace.
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
-    brush: { name: "Brush", width: 15, opacity: 100 },
+    brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },
     line: { name: "Line", width: 5, opacity: 100 },
     fillRect: { name: "Fill Rectangle", width: undefined, opacity: 100 },
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 100 },

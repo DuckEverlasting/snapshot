@@ -220,7 +220,7 @@ export default function DrawSpace(props) {
       return mouseUpHandler(ev);
     }
     if (!state.mouseDown) return;
-    const { opacity, width } = toolSettings[state.tool];
+    const { opacity, width, hardness } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
     const color = addOpacity(primary, opacity / 100);
     let [x, y] = [
@@ -295,15 +295,34 @@ export default function DrawSpace(props) {
 
         if (
           getQuadLength(state.lastMid || state.origin, lastDest, newMid) <
-          width * 0.25
+          width * 0.125
         ) {
           return;
         }
+        
+        const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` ${(opacity / 100) * .66})`
+        const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` ${(opacity / 100) * .33})`
+        const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
+
+        // const pct0 = 1 0
+        // const pct1 = 1 0
+        // const pct2 = .5 1
+
+        // const gradientData = [
+        //   [pct0, color],
+        //   [pct1, colorStep1],
+        //   [pct2, colorStep2],
+        //   [1, colorStep3]
+        // ];
 
         const gradientData = [
-          [0, color],
-          [1, color]
+          [0 + hardness * .01, color],
+          [.25 + hardness * .0075, colorStep1],
+          [.5 + hardness * .005, colorStep2],
+          [1, colorStep3]
         ];
+
+        console.log(gradientData)
 
         if (state.lockedAxis === "x") {
           x = state.origin[0];
@@ -318,6 +337,7 @@ export default function DrawSpace(props) {
             orig: state.lastMid || state.origin,
             destArray: [lastDest, newMid],
             gradient: gradientData,
+            density: .125,
             clearFirst: false
           }
         });

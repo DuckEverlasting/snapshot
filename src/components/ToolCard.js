@@ -116,7 +116,7 @@ const LabelSC = styled.label.attrs(props => ({
 export default function ToolCard() {
   const activeTool = useSelector(state => state.ui.activeTool);
   const toolSettings = useSelector(state => state.ui.toolSettings);
-  const { width, opacity, tolerance } = toolSettings[activeTool];
+  const { width, opacity, hardness, tolerance } = toolSettings[activeTool];
   const dispatch = useDispatch();
 
   const toolName = toolSettings[activeTool].name;
@@ -182,6 +182,28 @@ export default function ToolCard() {
         <OpacitySliderSC
           value={opacity}
           onChange={ev => inputHandler(ev, "opacity", 0, 100)}
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+        />
+      </LabelSC>
+      <LabelSC visible={hardness !== undefined}>
+        <div>
+          <span>Hardness</span>
+          <OpacityPickerSC
+            value={hardness}
+            onKeyDown={keydownHandler}
+            onChange={ev => inputHandler(ev, "hardness", 0, 100)}
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+          />
+        </div>
+        <OpacitySliderSC
+          value={hardness}
+          onChange={ev => inputHandler(ev, "hardness", 0, 100)}
           type="range"
           min="0"
           max="100"
