@@ -60,19 +60,19 @@ function undoable(reducer, {
           ...state,
           past: [...past.slice(0, past.length - 1), implementLayerChanges(past[past.length - 1], payload, "undo")]
         }
-      case DELETE_LAYER:
-        if (!filter({type, payload})) {
-          return {
-            ...state,
-            present: reducer(present, {type, payload})
-          }
-        } else {
-          return {
-            past: [...past, implementLayerUndelete(present, payload)],
-            present: reducer(present, {type, payload}),
-            future: []
-          }
-        }
+      // case DELETE_LAYER:
+      //   if (!filter({type, payload})) {
+      //     return {
+      //       ...state,
+      //       present: reducer(present, {type, payload})
+      //     }
+      //   } else {
+      //     return {
+      //       past: [...past, implementLayerUndelete(present, payload)],
+      //       present: reducer(present, {type, payload}),
+      //       future: []
+      //     }
+      //   }
       default:
         newPresent = reducer(present, {type, payload})
         if (present === newPresent) {

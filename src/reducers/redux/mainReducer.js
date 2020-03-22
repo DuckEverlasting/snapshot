@@ -3,7 +3,6 @@ import {
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
-  UPDATE_LAYER_QUEUE,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
@@ -30,12 +29,8 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           }
         }
       }
-      let canvas = document.createElement("canvas");
-      canvas.width = state.documentSettings.canvasWidth;
-      canvas.height = state.documentSettings.canvasHeight;
-      canvas.getContext("2d").imageSmoothingEnabled = false;
+     
       const layerId = special ? special : state.layerCounter;
-      const newLayerData = canvas;
       const newLayerSettings = {
         name: special ? undefined : `Layer ${state.layerCounter}`,
         nameEditable: false,
@@ -47,8 +42,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
 
       return {
         ...state,
-        layerData: {...state.layerData, [layerId]: newLayerData},
-        layerQueue: {...state.layerQueue, [layerId]: null},
+        layerData: {...state.layerData, [layerId]: null},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: special ? state.activeLayer : state.layerCounter,
@@ -57,7 +51,6 @@ const mainReducer = (state = initMainState, {type, payload}) => {
     
     case DELETE_LAYER:
       let afterDeleteData = {...state.layerData, [payload.id]: undefined}
-      let afterDeleteQueue = {...state.layerQueue, [payload.id]: undefined}
       let afterDeleteSettings = {...state.layerSettings, [payload.id]: undefined}
       let afterDeleteOrder = state.layerOrder.filter(id => {
         return id !== payload.id;
@@ -66,7 +59,6 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         layerData: afterDeleteData,
-        layerQueue: afterDeleteQueue,
         layerSettings: afterDeleteSettings,
         layerOrder: afterDeleteOrder,
         activeLayer: afterDeleteActive
@@ -92,42 +84,12 @@ const mainReducer = (state = initMainState, {type, payload}) => {
     case UPDATE_LAYER_DATA:
       let afterUpdateLayerData = {
         ...state.layerData,
-        staging: payload.deleteStaging ? undefined : {...state.layerData.staging},
         [payload.id]: payload.changes
-      }
-      let afterUpdateLayerQueue = {
-        ...state.layerQueue,
-        staging: payload.deleteStaging ? undefined : {...state.layerQueue.staging},
-        [payload.id]: payload.ignoreHistory ? state.layerQueue[payload.id] : null
-      }
-      let afterUpdateLayerSettings = {
-        ...state.layerSettings,
-        staging: payload.deleteStaging ? undefined : {...state.layerSettings.staging}
-      }
-      let afterUpdateLayerOrder = [...state.layerOrder]
-      if (payload.deleteStaging) {
-        afterUpdateLayerOrder = afterUpdateLayerOrder.filter(id => {
-          return id !== "staging";
-        });
       }
       
       return {
         ...state,
         layerData: afterUpdateLayerData,
-        layerQueue: afterUpdateLayerQueue,
-        layerSettings: afterUpdateLayerSettings,
-        layerOrder: afterUpdateLayerOrder
-      };
-
-    case UPDATE_LAYER_QUEUE:
-      let afterUpdateQueue = {
-        ...state.layerQueue, 
-        [payload.id]: payload.changes,
-      }
-      
-      return {
-        ...state,
-        layerQueue: afterUpdateQueue
       };
     
     case UPDATE_SELECTION_PATH:

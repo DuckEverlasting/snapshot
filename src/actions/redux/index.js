@@ -10,7 +10,6 @@ export const [
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
-  UPDATE_LAYER_QUEUE,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
@@ -36,7 +35,6 @@ export const [
   "DELETE_LAYER",
   "HIDE_LAYER",
   "UPDATE_LAYER_DATA",
-  "UPDATE_LAYER_QUEUE",
   "UPDATE_SELECTION_PATH",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
@@ -141,13 +139,6 @@ export const updateLayerData = (id, changes, ignoreHistory = false, init = false
   }
 };
 
-export const updateLayerQueue = (id, changes) => {
-  return {
-    type: UPDATE_LAYER_QUEUE,
-    payload: {id, changes, ignoreHistory: true}
-  };
-};
-
 export const updateSelectionPath = path => {
   return {
     type: UPDATE_SELECTION_PATH,
@@ -165,7 +156,7 @@ export const updateLayerOpacity = (id, opacity) => {
 export const updateLayerOrder = (from, to) => {
   return {
     type: UPDATE_LAYER_ORDER,
-    payload: {from, to}
+    payload: {from, to, ignoreHistory: true}
   };
 };
 

@@ -58,7 +58,6 @@ export default function Workspace() {
   } = useSelector(state => state.ui.workspaceSettings);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const layerData = useSelector(state => state.main.present.layerData);
-  const layerQueue = useSelector(state => state.main.present.layerQueue);
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
 
@@ -205,7 +204,6 @@ export default function Workspace() {
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
-          layerQueue={layerQueue}
           layerSettings={layerSettings}
           width={canvasWidth}
           height={canvasHeight}
@@ -218,7 +216,6 @@ export default function Workspace() {
 function LayerRenderer({
   layerOrder,
   layerData,
-  layerQueue,
   layerSettings,
   width,
   height
@@ -229,7 +226,6 @@ function LayerRenderer({
         layerOrder.map((layerId, i) => {
           let layerDat = layerData[layerId];
           let layerSet = layerSettings[layerId];
-          let layerQue = layerQueue[layerId];
           return (
             <Layer
               key={layerId}
@@ -240,7 +236,6 @@ function LayerRenderer({
               data={layerDat}
               hidden={layerSet.hidden}
               opacity={layerSet.opacity}
-              queue={layerQue}
             />
           );
         })}

@@ -10,15 +10,17 @@ export const initMainState = {
     1: null,
     selection: null,
     clipboard: null,
-  },
-  layerQueue: {
-    1: null,
-    selection: null,
-    clipboard: null,
+    staging: null
   },
   layerSettings: {
     1: {
       name: "Layer 1",
+      nameEditable: false,
+      hidden: false,
+      opacity: 1
+    },
+    staging: {
+      name: undefined,
       nameEditable: false,
       hidden: false,
       opacity: 1
@@ -37,7 +39,7 @@ export const initMainState = {
     }
   },
   selectionPath: null,
-  layerOrder: ["clipboard", 1, "selection"],  
+  layerOrder: ["clipboard", 1, "selection", "staging"],  
   layerCounter: 2,
   activeLayer: 1,
 };

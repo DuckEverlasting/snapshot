@@ -1,6 +1,5 @@
 import {
   switchColors,
-  updateLayerQueue,
   updateSelectionPath,
   createLayer,
   deleteLayer,
@@ -8,19 +7,20 @@ import {
   redo
 } from "./index";
 
+import draw from "../../reducers/custom/drawingReducer";
+import manipulate from "../../reducers/custom/manipulateReducer";
+
 export default function menuAction(action) {
   switch (action) {
     case "switchColors":
       return switchColors();
     case "deselect":
-      return dispatch => {
-        dispatch(
-          updateLayerQueue("selection", {
-            action: "clear",
-            type: "draw",
-            params: { selectionPath: null }
-          })
-        );
+      return (dispatch, getState) => {
+        const ctx = getState().main.current.layerData.selection.getContext("2d");
+        draw(ctx, {
+          action: "clear",
+          params: { selectionPath: null }
+        })
         dispatch(updateSelectionPath(null));
       };
     case "duplicate":
@@ -34,51 +34,45 @@ export default function menuAction(action) {
           activeLayer
         ].getContext("2d");
         dispatch(createLayer(activeLayer));
-        dispatch(
-          updateLayerQueue(newLayerId, {
-            type: "manipulate",
-            action: "paste",
-            params: {
-              sourceCtx,
-              dest: [0, 0],
-              clip: selectionPath
-            }
-          })
-        );
+        const ctx = getState().main.present.layerData[
+          newLayerId
+        ].getContext("2d");
+        manipulate(ctx, {
+          action: "paste",
+          params: {
+            sourceCtx,
+            dest: [0, 0],
+            clip: selectionPath
+          }
+        })
       };
     case "copy":
       return (dispatch, getState) => {
         const { activeLayer, selectionPath } = getState().main.present;
+        const ctx = getState().main.present.layerData.clipboard.getContext("2d");
         const sourceCtx = getState().main.present.layerData[activeLayer].getContext("2d");
-        dispatch(
-          updateLayerQueue("clipboard", {
-            type: "manipulate",
-            action: "paste",
-            params: {
-              sourceCtx,
-              dest: [0, 0],
-              clip: selectionPath,
-              clearFirst: true
-            }
-          })
-        );
+        manipulate(ctx, {
+          action: "paste",
+          params: {
+            sourceCtx,
+            dest: [0, 0],
+            clip: selectionPath,
+            clearFirst: true
+          }
+        })
       };
     case "paste":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
-        const sourceCtx = getState().main.present.layerData.clipboard.getContext(
-          "2d"
-        );
-        dispatch(
-          updateLayerQueue(activeLayer, {
-            type: "manipulate",
-            action: "paste",
-            params: {
-              sourceCtx,
-              dest: [0, 0]
-            }
-          })
-        );
+        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
+        manipulate(ctx, {
+          action: "paste",
+          params: {
+            sourceCtx,
+            dest: [0, 0]
+          }
+        })
       };
     case "pasteToNew":
       return (dispatch, getState) => {
@@ -86,21 +80,17 @@ export default function menuAction(action) {
           layerCounter: newLayerId,
           activeLayer
         } = getState().main.present;
-        const sourceCtx = getState().main.present.layerData.clipboard.getContext(
-          "2d"
-        );
+        const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
         dispatch(createLayer(activeLayer));
-        dispatch(
-          updateLayerQueue(newLayerId, {
-            type: "manipulate",
-            action: "paste",
-            params: {
-              sourceCtx,
-              dest: [0, 0],
-              clearFirst: true
-            }
-          })
-        );
+        const ctx = getState().main.present.layerData[newLayerId].getContext("2d");
+        manipulate(ctx, {
+          action: "paste",
+          params: {
+            sourceCtx,
+            dest: [0, 0],
+            clearFirst: true
+          }
+        })
       };
     case "undo":
       return undo();
