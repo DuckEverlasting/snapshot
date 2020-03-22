@@ -39,7 +39,6 @@ let state = {
   lockedAxis: "",
   heldShift: false,
   tool: null,
-  prevLayerData: null
 };
 
 export default function DrawSpace(props) {
@@ -555,7 +554,16 @@ export default function DrawSpace(props) {
         if (!state.destArray.length) {
           break;
         }
-        return (state = { ...state, lastMid: null, prevLayerData: null });
+        manipulate(ctx, {
+          action: "paste",
+          params: {
+            sourceCtx: layerData.staging.getContext("2d"),
+            dest: [0, 0],
+            clip: selectionPath,
+            ignoreHistory: true
+          }
+        })
+        return (state = { ...state, lastMid: null });
 
       case "line":
         draw(ctx, {
