@@ -31,13 +31,17 @@ export default function(ctx, { action, params }) {
     params.translation = (params.width % 2) / 2;
     ctx.lineWidth = params.width;
   }
-  if (params.dashPattern) ctx.setLineDash(params.dashPattern);
+  if (params.dashPattern) {
+    ctx.setLineDash(params.dashPattern);
+  } else {
+    ctx.setLineDash([]);
+  }
   ctx.moveTo(params.orig[0], params.orig[1]);
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
   if (params.clip) {
     ctx.save();
-    ctx.clip(params.clip)
+    ctx.clip(params.clip);
   }
 
   switch (action) {

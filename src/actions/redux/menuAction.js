@@ -16,7 +16,7 @@ export default function menuAction(action) {
       return switchColors();
     case "deselect":
       return (dispatch, getState) => {
-        const ctx = getState().main.current.layerData.selection.getContext("2d");
+        const ctx = getState().main.present.layerData.selection.getContext("2d");
         draw(ctx, {
           action: "clear",
           params: { selectionPath: null }

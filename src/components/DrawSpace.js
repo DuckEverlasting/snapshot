@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { ActionCreators } from "redux-undo";
 import styled from "styled-components";
 import pencilImg from "../cursors/pencil.png";
 import dropperImg from "../cursors/dropper.png";
@@ -8,7 +7,6 @@ import dropperImg from "../cursors/dropper.png";
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 import getZoomAmount from "../utils/getZoomAmount";
 import {
-  createLayer,
   updateColor,
   updateWorkspaceSettings,
   updateSelectionPath,
@@ -118,6 +116,10 @@ export default function DrawSpace(props) {
     }
   };
 
+  const moveStaging = (layer = activeLayer) => {
+    dispatch(updateLayerOrder(layerOrder.indexOf("staging"), layerOrder.indexOf(layer) + 1));
+  }
+
   const contextMenuHandler = ev => {
     /* 
       Handles what happens when secondary mouse button is clicked. Currently set to do nothing.
@@ -133,7 +135,6 @@ export default function DrawSpace(props) {
 
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
     layerData.staging.getContext("2d").clearRect(0, 0, layerData.staging.width, layerData.staging.height);
-    dispatch(updateLayerOrder(layerOrder.indexOf("staging"), layerOrder.indexOf(activeLayer) + 1));
 
     let [x, y] = [
       ev.nativeEvent.offsetX + canvasWidth,
@@ -150,20 +151,28 @@ export default function DrawSpace(props) {
     };
     switch (state.tool) {
       case "pencil":
+        moveStaging();
         break;
       case "brush":
+        moveStaging();
         break;
       case "line":
+        moveStaging();
         break;
       case "fillRect":
+        moveStaging();
         break;
       case "drawRect":
+        moveStaging();
         break;
       case "fillCirc":
+        moveStaging();
         break;
       case "drawCirc":
+        moveStaging();
         break;
       case "eraser":
+        moveStaging();
         break;
       case "eyeDropper":
         let modifier = window.navigator.platform.includes("Mac")
@@ -171,12 +180,13 @@ export default function DrawSpace(props) {
           : ev.ctrlKey;
         return eyeDropper(x, y, modifier ? "secondary" : "primary");
       case "selectRect":
-        if (!state.heldShift)
-          manipulate(layerData.selection.getContext("2d"), {
+        if (!state.heldShift) {
+          draw(layerData.selection.getContext("2d"), {
             action: "clear",
-            params: { ignoreHistory: true }
-          });
-        return dispatch(createLayer(layerOrder.length, "staging", true));
+            params: { selectionPath: null }
+          })
+        }
+        moveStaging("selection");
       case "move":
         break;
       case "hand":
@@ -184,7 +194,6 @@ export default function DrawSpace(props) {
       case "zoom":
         break;
       case "TEST":
-        dispatch(ActionCreators.undo());
         break;
       default:
         break;
@@ -634,7 +643,7 @@ export default function DrawSpace(props) {
             width: 1,
             strokeColor: "rgba(0, 0, 0, 1)",
             dashPattern: [5, 10],
-            prevCtx: layerData[activeLayer].getContext("2d")
+            clip: null
           }
         });
         break;
