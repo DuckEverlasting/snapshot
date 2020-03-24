@@ -553,6 +553,7 @@ export default function DrawSpace(props) {
     };
 
     let ctx = layerData[activeLayer].getContext("2d");
+    console.log(ctx)
 
     switch (state.tool) {
       case "pencil":
@@ -560,8 +561,8 @@ export default function DrawSpace(props) {
           params.orig[0] === params.dest[0] &&
           params.orig[1] === params.dest[1]
         ) {
-          return dispatch(putHistoryData(ctx, () =>
-            draw(activeLayer, ctx, {
+          return dispatch(putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
               action: "fillRect",
               params: {
                 ...params,

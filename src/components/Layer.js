@@ -6,7 +6,8 @@ import { updateLayerData } from '../actions/redux'
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
     width: `${props.width}px`,
-    height: `${props.height}px`
+    height: `${props.height}px`,
+    title: props.title
   }
 }))`
   position: absolute;
@@ -41,10 +42,10 @@ function Layer(props) {
       const viewHeight = Math.ceil(ctx.canvas.height / 3);
       ctx.putImageData(onUndelete.data, viewWidth, viewHeight);
     }
-  }, [])
+  }, [onUndelete, props.id])
 
   return <LayerWrapperSC width={props.width} height={props.height}>
-    <LayerSC width={props.width * 3} height={props.height * 3} hidden={props.hidden} index={props.index} ref={canvasRef} />
+    <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width * 3)} height={Math.floor(props.height * 3)} hidden={props.hidden} index={props.index} ref={canvasRef} />
   </LayerWrapperSC>
 }
 

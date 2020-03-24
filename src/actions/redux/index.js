@@ -77,10 +77,11 @@ export const undo = () => {
 
 export const redo = () => {
   return (dispatch, getState) => {
-    const nextState = getState().main.future[0] 
-    if (nextState && nextState.onRedo) {
-      const ctx = nextState.layerData[nextState.onRedo.id].getContext("2d")
-      const changeData = nextState.onRedo.data
+    const currState = getState().main.present 
+    if (currState && currState.onRedo) {
+      console.log(currState)
+      const ctx = currState.layerData[currState.onRedo.id].getContext("2d")
+      const changeData = currState.onRedo.data
       const viewWidth = Math.ceil(ctx.canvas.width / 3);
       const viewHeight = Math.ceil(ctx.canvas.height / 3);
       const imgData = ctx.getImageData(

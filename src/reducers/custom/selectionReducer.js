@@ -2,7 +2,7 @@ import {
   line,
   quadratic,
   bezier,
-  rectangle,
+  // rectangle,
   circle
 } from "../../actions/custom/ctxActions.js";
 
