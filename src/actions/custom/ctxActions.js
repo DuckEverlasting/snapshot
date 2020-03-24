@@ -182,10 +182,14 @@ export function getDiff(ctx, { prevImgData }) {
     viewWidth,
     viewHeight
   );
-  const diff = {};
+  const diff = {
+    old: {},
+    new: {} 
+  };
   imgData.data.forEach((datum, index) => {
     if (datum !== prevImgData.data[index]) {
-      diff[index] = prevImgData.data[index];
+      diff.old[index] = prevImgData.data[index];
+      diff.new[index] = imgData.data[index];
     }
   });
   return diff;

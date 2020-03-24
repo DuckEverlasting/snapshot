@@ -1,7 +1,7 @@
 import { combineReducers } from "redux";
 import mainReducer from "./mainReducer";
 import uiReducer from "./uiReducer";
-import { UNDO, REDO, UPDATE_AFTER_UNDO, UPDATE_AFTER_REDO, DELETE_LAYER } from "../../actions/redux/index";
+import { UNDO, REDO, PUT_HISTORY_DATA, DELETE_LAYER } from "../../actions/redux/index";
 
 const rootReducer = combineReducers({
   ui: uiReducer,
@@ -28,6 +28,12 @@ function undoable(reducer, {
     let newPresent;
 
     switch (type) {
+      case PUT_HISTORY_DATA:
+        return {
+          ...state,
+          past: [...past, {...present, onUndo: { id: payload.id, data: payload.old }}],
+          present: {...present, onRedo: { id: payload.id, data: payload.new }}
+        }
       case UNDO:
         if (!past.length) {
           return state
@@ -50,29 +56,19 @@ function undoable(reducer, {
           present: next,
           future: newFuture
         }
-      case UPDATE_AFTER_UNDO:
-        return {
-          ...state,
-          future: [implementLayerChanges(future[0], payload, "redo"), ...future.slice(1)]
+      case DELETE_LAYER:
+        if (!filter({type, payload})) {
+          return {
+            ...state,
+            present: reducer(present, {type, payload})
+          }
+        } else {
+          return {
+            past: [...past, {...present, onUndelete: { id: payload.id, data: payload.data }}],
+            present: reducer(present, {type, payload}),
+            future: []
+          }
         }
-      case UPDATE_AFTER_REDO:
-        return {
-          ...state,
-          past: [...past.slice(0, past.length - 1), implementLayerChanges(past[past.length - 1], payload, "undo")]
-        }
-      // case DELETE_LAYER:
-      //   if (!filter({type, payload})) {
-      //     return {
-      //       ...state,
-      //       present: reducer(present, {type, payload})
-      //     }
-      //   } else {
-      //     return {
-      //       past: [...past, implementLayerUndelete(present, payload)],
-      //       present: reducer(present, {type, payload}),
-      //       future: []
-      //     }
-      //   }
       default:
         newPresent = reducer(present, {type, payload})
         if (present === newPresent) {
@@ -82,12 +78,6 @@ function undoable(reducer, {
             ...state,
             present: newPresent
           } 
-        } else if (payload.changeData) {
-          return {
-            past: [...past, implementLayerChanges(present, payload, "undo")],
-            present: newPresent,
-            future: []
-          }
         } else {
           return {
             past: [...past, present],
@@ -99,48 +89,48 @@ function undoable(reducer, {
   }
 }
 
-function implementLayerChanges(state, {id, changeData}, direction) {
-  // console.log("RECORDING CHANGE TO LAYER: ", id)
-  let newLayerQueue = {};
-  Object.keys(state.layerQueue).forEach(layerId => {
-    newLayerQueue[layerId] = null
-  })
-  return {
-    ...state,
-    layerQueue: {
-      ...newLayerQueue,
-      [id]: {
-        action: "swapData",
-        type: "manipulate",
-        params: {
-          ignoreHistory: false,
-          changeData,
-          direction
-        }
-      }
-    }
-  } 
-}
+// function implementLayerChanges(state, {id, changeData}, direction) {
+//   // console.log("RECORDING CHANGE TO LAYER: ", id)
+//   let newLayerQueue = {};
+//   Object.keys(state.layerQueue).forEach(layerId => {
+//     newLayerQueue[layerId] = null
+//   })
+//   return {
+//     ...state,
+//     layerQueue: {
+//       ...newLayerQueue,
+//       [id]: {
+//         action: "swapData",
+//         type: "manipulate",
+//         params: {
+//           ignoreHistory: false,
+//           changeData,
+//           direction
+//         }
+//       }
+//     }
+//   } 
+// }
 
-function implementLayerUndelete(state, {id}) {
-  let newLayerQueue = {};
-  Object.keys(state.layerQueue).forEach(layerId => {
-    newLayerQueue[layerId] = null
-  })
-  const canvas = state.layerData[id];
-  const ctx = canvas.getContext("2d");
-  return {
-    ...state,
-    layerQueue: {
-      ...newLayerQueue,
-      [id]: {
-        type: "manipulate",
-        action: "undelete",
-        params: {
-          source: ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height),
-          ignoreHistory: true
-        },
-      }
-    }
-  } 
-}
+// function implementLayerUndelete(state, {id}) {
+//   let newLayerQueue = {};
+//   Object.keys(state.layerQueue).forEach(layerId => {
+//     newLayerQueue[layerId] = null
+//   })
+//   const canvas = state.layerData[id];
+//   const ctx = canvas.getContext("2d");
+//   return {
+//     ...state,
+//     layerQueue: {
+//       ...newLayerQueue,
+//       [id]: {
+//         type: "manipulate",
+//         action: "undelete",
+//         params: {
+//           source: ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height),
+//           ignoreHistory: true
+//         },
+//       }
+//     }
+//   } 
+// }

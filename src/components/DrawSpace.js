@@ -5,12 +5,19 @@ import pencilImg from "../cursors/pencil.png";
 import dropperImg from "../cursors/dropper.png";
 
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
-import { getZoomAmount, midpoint, getQuadLength, getGradient } from "../utils/helpers";
+import {
+  getZoomAmount,
+  midpoint,
+  getQuadLength,
+  getGradient,
+  triggerHistory
+} from "../utils/helpers";
 import {
   updateColor,
   updateWorkspaceSettings,
   updateSelectionPath,
-  updateLayerOrder
+  updateLayerOrder,
+  putHistoryData
 } from "../actions/redux";
 import selection from "../reducers/custom/selectionReducer.js";
 
@@ -38,7 +45,7 @@ let state = {
   interrupt: false,
   lockedAxis: "",
   heldShift: false,
-  tool: null,
+  tool: null
 };
 
 export default function DrawSpace(props) {
@@ -116,8 +123,13 @@ export default function DrawSpace(props) {
   };
 
   const moveStaging = (layer = activeLayer) => {
-    dispatch(updateLayerOrder(layerOrder.indexOf("staging"), layerOrder.indexOf(layer) + 1));
-  }
+    dispatch(
+      updateLayerOrder(
+        layerOrder.indexOf("staging"),
+        layerOrder.indexOf(layer) + 1
+      )
+    );
+  };
 
   const contextMenuHandler = ev => {
     /* 
@@ -133,7 +145,10 @@ export default function DrawSpace(props) {
     */
 
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
-    layerData.staging.getContext("2d").clearRect(0, 0, layerData.staging.width, layerData.staging.height);
+    layerData.staging
+      .getContext("2d")
+      .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
+    const ctx = layerData[activeLayer].getContext("2d");
 
     let [x, y] = [
       ev.nativeEvent.offsetX + canvasWidth,
@@ -153,6 +168,17 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "brush":
+        const viewWidth = Math.ceil(ctx.canvas.width / 3);
+        const viewHeight = Math.ceil(ctx.canvas.height / 3);
+        state = {
+          ...state,
+          prevImgData: ctx.getImageData(
+            viewWidth,
+            viewHeight,
+            viewWidth,
+            viewHeight
+          )
+        };
         break;
       case "line":
         moveStaging();
@@ -181,7 +207,7 @@ export default function DrawSpace(props) {
           manipulate(layerData.selection.getContext("2d"), {
             action: "clear",
             params: { selectionPath: null }
-          })
+          });
         }
         moveStaging("selection");
       case "move":
@@ -246,7 +272,7 @@ export default function DrawSpace(props) {
       setLockedAxis(x, y);
     }
 
-    let ctx = layerData.staging.getContext("2d");    
+    let ctx = layerData.staging.getContext("2d");
 
     switch (state.tool) {
       case "pencil":
@@ -282,13 +308,17 @@ export default function DrawSpace(props) {
         const newBrushMid = midpoint(lastBrushDest, [x, y]);
 
         if (
-          getQuadLength(state.lastMid || state.origin, lastBrushDest, newBrushMid) <
+          getQuadLength(
+            state.lastMid || state.origin,
+            lastBrushDest,
+            newBrushMid
+          ) <
           width * 0.125
         ) {
           return;
         }
-        
-        const brushGrad = getGradient(color, opacity, hardness)
+
+        const brushGrad = getGradient(color, opacity, hardness);
 
         draw(layerData[activeLayer].getContext("2d"), {
           action: "drawQuadPoints",
@@ -297,7 +327,7 @@ export default function DrawSpace(props) {
             orig: state.lastMid || state.origin,
             destArray: [lastBrushDest, newBrushMid],
             gradient: brushGrad,
-            density: .125,
+            density: 0.125,
             clearFirst: false
           }
         });
@@ -373,12 +403,16 @@ export default function DrawSpace(props) {
         const newEraserMid = midpoint(lastEraserDest, [x, y]);
 
         if (
-          getQuadLength(state.lastMid || state.origin, lastEraserDest, newEraserMid) <
+          getQuadLength(
+            state.lastMid || state.origin,
+            lastEraserDest,
+            newEraserMid
+          ) <
           width * 0.125
         ) {
           return;
         }
-        
+
         const eraserGrad = getGradient("rgba(0, 0, 0, 1)", 100, hardness);
 
         if (state.lockedAxis === "x") {
@@ -394,7 +428,7 @@ export default function DrawSpace(props) {
             orig: state.lastMid || state.origin,
             destArray: [lastEraserDest, newEraserMid],
             gradient: eraserGrad,
-            density: .125,
+            density: 0.125,
             clearFirst: false,
             composite: "destination-out"
           }
@@ -439,7 +473,7 @@ export default function DrawSpace(props) {
             ...params,
             orig: state.destArray[state.destArray.length - 1] || state.origin
           }
-        })
+        });
         return (state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
@@ -498,7 +532,9 @@ export default function DrawSpace(props) {
         tool: null,
         lockedAxis: ""
       };
-      layerData.staging.getContext("2d").clearRect(0, 0, layerData.staging.width, layerData.staging.height);
+      layerData.staging
+        .getContext("2d")
+        .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
       // dispatch(removeStagingLayer());
     }, 0);
 
@@ -516,7 +552,7 @@ export default function DrawSpace(props) {
       clip: selectionPath
     };
 
-    let ctx = layerData[activeLayer].getContext("2d");    
+    let ctx = layerData[activeLayer].getContext("2d");
 
     switch (state.tool) {
       case "pencil":
@@ -524,32 +560,37 @@ export default function DrawSpace(props) {
           params.orig[0] === params.dest[0] &&
           params.orig[1] === params.dest[1]
         ) {
-          return draw(ctx, {
-            action: "fillRect",
-            params: {
-              ...params,
-              orig: [
-                params.orig[0] - 0.5 * params.width,
-                params.orig[1] - 0.5 * params.width
-              ],
-              dest: [
-                params.dest[0] + 0.5 * params.width,
-                params.dest[1] + 0.5 * params.width
-              ]
-            }
-          });
+          return dispatch(putHistoryData(ctx, () =>
+            draw(activeLayer, ctx, {
+              action: "fillRect",
+              params: {
+                ...params,
+                orig: [
+                  params.orig[0] - 0.5 * params.width,
+                  params.orig[1] - 0.5 * params.width
+                ],
+                dest: [
+                  params.dest[0] + 0.5 * params.width,
+                  params.dest[1] + 0.5 * params.width
+                ]
+              }
+            })
+          ));
         } else {
-          return draw(ctx, {
-            action: "drawQuad",
-            params: {
-              ...params,
-              destArray: state.destArray
-            }
-          });
+          return dispatch(putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawQuad",
+              params: {
+                ...params,
+                destArray: state.destArray
+              }
+            })
+          ))
         }
 
       case "brush":
-        return (state = { ...state, lastMid: null });
+        dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
+        return (state = { ...state, lastMid: null, prevImgData: null });
 
       case "line":
         draw(ctx, {
@@ -595,13 +636,13 @@ export default function DrawSpace(props) {
       case "bucketFill":
         manipulate(ctx, {
           action: "fill",
-            params: {
+          params: {
             orig: state.origin,
             colorArray,
             tolerance,
             clip: selectionPath
           }
-        })
+        });
         break;
 
       case "selectRect":

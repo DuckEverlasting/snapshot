@@ -2,6 +2,9 @@ let initWidth = (window.innerWidth - 300) * .8;
 let initHeight = (window.innerHeight - 30) * .8;
 
 export const initMainState = {
+  onUndo: null,
+  onRedo: null,
+  onUndelete: null,
   documentSettings: {
     canvasWidth: initWidth,
     canvasHeight: initHeight,
