@@ -3,11 +3,12 @@ import {
   updateSelectionPath,
   createLayer,
   deleteLayer,
+  hideLayer,
   undo,
-  redo
+  redo,
+  setClipboardIsUsed
 } from "./index";
 
-import draw from "../../reducers/custom/drawingReducer";
 import manipulate from "../../reducers/custom/manipulateReducer";
 
 export default function menuAction(action) {
@@ -60,6 +61,7 @@ export default function menuAction(action) {
             clearFirst: true
           }
         })
+        dispatch(setClipboardIsUsed(true))
       };
     case "paste":
       return (dispatch, getState) => {
@@ -110,6 +112,13 @@ export default function menuAction(action) {
         const { activeLayer } = getState().main.present;
         if (activeLayer) {
           dispatch(deleteLayer(activeLayer))
+        }
+      }
+    case "hideLayer":
+      return (dispatch, getState) => {
+        const { activeLayer } = getState().main.present;
+        if (activeLayer) {
+          dispatch(hideLayer(activeLayer))
         }
       }
     case "clear":

@@ -273,6 +273,12 @@ export default function DrawSpace(props) {
         const lastBrushDest =
           state.destArray[state.destArray.length - 1] || state.origin;
 
+        if (state.lockedAxis === "x") {
+          x = state.origin[0];
+        } else if (state.lockedAxis === "y") {
+          y = state.origin[1];
+        }
+
         const newBrushMid = midpoint(lastBrushDest, [x, y]);
 
         if (
@@ -283,12 +289,6 @@ export default function DrawSpace(props) {
         }
         
         const brushGrad = getGradient(color, opacity, hardness)
-
-        if (state.lockedAxis === "x") {
-          x = state.origin[0];
-        } else if (state.lockedAxis === "y") {
-          y = state.origin[1];
-        }
 
         draw(layerData[activeLayer].getContext("2d"), {
           action: "drawQuadPoints",
@@ -495,7 +495,8 @@ export default function DrawSpace(props) {
       state = {
         ...state,
         hold: false,
-        tool: null
+        tool: null,
+        lockedAxis: ""
       };
       layerData.staging.getContext("2d").clearRect(0, 0, layerData.staging.width, layerData.staging.height);
       // dispatch(removeStagingLayer());

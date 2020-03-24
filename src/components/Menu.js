@@ -8,7 +8,7 @@ const MenuGroupSC = styled.div`
   justify-content: flex-start;
   align-items: flex-end;
   overflow: visible;
-  cursor: pointer;
+  cursor: ${props => props.cursor || "auto"};
   user-select: none;
   z-index: 99;
 `;
@@ -16,10 +16,11 @@ const MenuItemSC = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 8px 5px;
-  background: ${props => props.active ? props.color : "none"};
+  background: ${props => props.active && !props.disabled ? props.color : "none"};
+  color: ${props => props.disabled ? "grey" : "inherit"};
 
   &:hover {
-    background: ${props => props.color};
+    background: ${props => !props.disabled ? props.color: "none"};
   }
 `;
 const MenuItemSectionSC = styled.p`
@@ -43,7 +44,7 @@ const MenuPanelSC = styled.div`
   background: ${props => props.color};
   padding: 5px 0;
 `;
-const MenuNameSC = styled.p`
+const MenuLabelSC = styled.p`
   padding: 13px 10px 7px;
   font-size: 16px;
 
@@ -118,31 +119,39 @@ function MenuGroup({ children }) {
   const { menuIsActive, toggle, colors } = useContext(MenuSettings);
 
   useEffect(() => {
-    window.addEventListener("click", handleClickOutside);
+    window.addEventListener("mousedown", handleMouseDownOutside);
     return () => {
-      window.removeEventListener("click", handleClickOutside);
+      window.removeEventListener("mousedown", handleMouseDownOutside);
     };
   });
+  
+  function handleMouseDownInside(ev) {
+    if (menuIsActive) {
+      ev.stopPropagation()
+    }
+  }
 
   function handleClickInside(ev) {
     ev.stopPropagation();
-    toggle();
+    if (!menuIsActive) {
+      toggle();
+    }
   }
 
-  function handleClickOutside() {
+  function handleMouseDownOutside() {
     if (menuIsActive) {
       toggle();
     }
   }
 
   return (
-    <MenuGroupSC color={colors.primary} onClick={handleClickInside}>
+    <MenuGroupSC color={colors.primary} onMouseDown={handleMouseDownInside} onClick={handleClickInside}>
       {children}
     </MenuGroupSC>
   );
 }
 
-export function Menu({ id, name, children }) {
+export function Menu({ id, label, children }) {
   const {
     menuIsActive,
     activeMenu,
@@ -157,9 +166,9 @@ export function Menu({ id, name, children }) {
 
   return (
     <MenuSC colors={colors} active={menuIsActive && isActiveMenu}>
-      <MenuNameSC color={colors.secondary} onMouseOver={handleMouseOver}>
-        {name}
-      </MenuNameSC>
+      <MenuLabelSC color={colors.secondary} onMouseOver={handleMouseOver}>
+        {label}
+      </MenuLabelSC>
       {menuIsActive && isActiveMenu && (
         <MenuPanelSC color={colors.secondary}>{children}</MenuPanelSC>
       )}
@@ -167,7 +176,7 @@ export function Menu({ id, name, children }) {
   );
 }
 
-export function MenuBranch({ name, children }) {
+export function MenuBranch({ label, children }) {
   const { colors } = useContext(MenuSettings);
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(false);
@@ -195,7 +204,7 @@ export function MenuBranch({ name, children }) {
       onMouseLeave={handleMouseLeave}
     >
       <MenuItemSC color={colors.terciary} active={isActive}>
-        <MenuItemSectionSC>{name}</MenuItemSectionSC>
+        <MenuItemSectionSC>{label}</MenuItemSectionSC>
         <MenuItemSectionSC>{">"}</MenuItemSectionSC>
       </MenuItemSC>
       {isOpen && (
@@ -211,16 +220,23 @@ export function MenuBranch({ name, children }) {
   );
 }
 
-export function MenuItem({ onClick = () => null, name, hotkey, children }) {
+export function MenuItem({ onClick = () => null, disabled=false, label, hotkey, children }) {
   const { colors } = useContext(MenuSettings);
 
+  const clickHandler = ev => {
+    if (disabled) {
+      return ev.stopPropagation();
+    }
+    return onClick(ev);
+  }
+
   return (
-    <MenuItemSC color={colors.terciary} onClick={onClick}>
+    <MenuItemSC color={colors.terciary} onClick={clickHandler} disabled={disabled}>
       {children ? (
         <MenuItemSectionSC>{children}</MenuItemSectionSC>
       ) : (
         <>
-          <MenuItemSectionSC>{name}</MenuItemSectionSC>
+          <MenuItemSectionSC>{label}</MenuItemSectionSC>
           <MenuItemSectionSC>{hotkey}</MenuItemSectionSC>
         </>
       )}

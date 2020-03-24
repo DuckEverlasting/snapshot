@@ -42,6 +42,7 @@ export const initMainState = {
   layerOrder: ["clipboard", 1, "selection", "staging"],  
   layerCounter: 2,
   activeLayer: 1,
+  clipboardUsed: false
 };
 
 export const initUiState = {
@@ -79,5 +80,6 @@ export const initUiState = {
   draggedLayercard: null,
   activeTool: "pencil",
   menuIsActive: false,
-  activeMenuList: null
+  activeMenuList: null,
+  aboutModalVisible: false
 }

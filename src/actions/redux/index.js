@@ -24,7 +24,9 @@ export const [
   SWITCH_COLORS,
   UPDATE_WORKSPACE_SETTINGS,
   TOGGLE_MENU,
-  SET_ACTIVE_MENU_LIST
+  SET_ACTIVE_MENU_LIST,
+  SET_CLIPBOARD_IS_USED,
+  TOGGLE_ABOUT_MODAL
 ] = [
   "UNDO",
   "REDO",
@@ -49,7 +51,9 @@ export const [
   "SWITCH_COLORS",
   "UPDATE_WORKSPACE_SETTINGS",
   "TOGGLE_MENU",
-  "SET_ACTIVE_MENU_LIST"
+  "SET_ACTIVE_MENU_LIST",
+  "SET_CLIPBOARD_IS_USED",
+  "TOGGLE_ABOUT_MODAL"
 ];
 
 export const undo = () => {
@@ -238,5 +242,18 @@ export const setActiveMenuList = (id) => {
   return {
     type: SET_ACTIVE_MENU_LIST,
     payload: id
+  }
+}
+
+export const setClipboardIsUsed = bool => {
+  return {
+    type: SET_CLIPBOARD_IS_USED,
+    payload: {bool, ignoreHistory: true}
+  }
+}
+
+export const toggleAboutModal = () => {
+  return {
+    type: TOGGLE_ABOUT_MODAL
   }
 }
