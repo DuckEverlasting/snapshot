@@ -91,7 +91,6 @@ export function circle(ctx, { orig, dest }) {
 
 export function move(ctx, { orig, dest }) {
   let [x, y] = [dest[0] - orig[0], dest[1] - orig[1]];
-  console.log(ctx)
   const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.putImageData(data, x, y);

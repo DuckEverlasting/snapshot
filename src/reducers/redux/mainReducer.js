@@ -1,5 +1,6 @@
 import {
   CREATE_LAYER,
+  CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
@@ -16,7 +17,7 @@ import { initMainState } from "./initState";
 const mainReducer = (state = initMainState, {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
-      let { position, special } = payload;
+      let { position, source, special } = payload;
       if (state.layerOrder.length > 51 && !special) {
         return state
       };
@@ -42,7 +43,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
 
       return {
         ...state,
-        layerData: {...state.layerData, [layerId]: null},
+        layerData: {...state.layerData, [layerId]: source ? source : null},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: special ? state.activeLayer : state.layerCounter,

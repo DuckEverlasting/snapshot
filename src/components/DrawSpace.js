@@ -154,6 +154,7 @@ export default function DrawSpace(props) {
       ev.nativeEvent.offsetX + canvasWidth,
       ev.nativeEvent.offsetY + canvasHeight
     ];
+    let viewWidth, viewHeight;
     state = {
       ...state,
       mouseDown: true,
@@ -168,8 +169,8 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "brush":
-        const viewWidth = Math.ceil(ctx.canvas.width / 3);
-        const viewHeight = Math.ceil(ctx.canvas.height / 3);
+        viewWidth = Math.ceil(ctx.canvas.width / 3);
+        viewHeight = Math.ceil(ctx.canvas.height / 3);
         state = {
           ...state,
           prevImgData: ctx.getImageData(
@@ -196,6 +197,17 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "eraser":
+        viewWidth = Math.ceil(ctx.canvas.width / 3);
+        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        state = {
+          ...state,
+          prevImgData: ctx.getImageData(
+            viewWidth,
+            viewHeight,
+            viewWidth,
+            viewHeight
+          )
+        };
         break;
       case "eyeDropper":
         let modifier = window.navigator.platform.includes("Mac")
@@ -211,6 +223,17 @@ export default function DrawSpace(props) {
         }
         moveStaging("selection");
       case "move":
+        viewWidth = Math.ceil(ctx.canvas.width / 3);
+        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        state = {
+          ...state,
+          prevImgData: ctx.getImageData(
+            viewWidth,
+            viewHeight,
+            viewWidth,
+            viewHeight
+          )
+        };
         break;
       case "hand":
         break;
@@ -553,7 +576,6 @@ export default function DrawSpace(props) {
     };
 
     let ctx = layerData[activeLayer].getContext("2d");
-    console.log(ctx)
 
     switch (state.tool) {
       case "pencil":
@@ -561,32 +583,36 @@ export default function DrawSpace(props) {
           params.orig[0] === params.dest[0] &&
           params.orig[1] === params.dest[1]
         ) {
-          return dispatch(putHistoryData(activeLayer, ctx, () =>
-            draw(ctx, {
-              action: "fillRect",
-              params: {
-                ...params,
-                orig: [
-                  params.orig[0] - 0.5 * params.width,
-                  params.orig[1] - 0.5 * params.width
-                ],
-                dest: [
-                  params.dest[0] + 0.5 * params.width,
-                  params.dest[1] + 0.5 * params.width
-                ]
-              }
-            })
-          ));
+          return dispatch(
+            putHistoryData(activeLayer, ctx, () =>
+              draw(ctx, {
+                action: "fillRect",
+                params: {
+                  ...params,
+                  orig: [
+                    params.orig[0] - 0.5 * params.width,
+                    params.orig[1] - 0.5 * params.width
+                  ],
+                  dest: [
+                    params.dest[0] + 0.5 * params.width,
+                    params.dest[1] + 0.5 * params.width
+                  ]
+                }
+              })
+            )
+          );
         } else {
-          return dispatch(putHistoryData(activeLayer, ctx, () =>
-            draw(ctx, {
-              action: "drawQuad",
-              params: {
-                ...params,
-                destArray: state.destArray
-              }
-            })
-          ))
+          return dispatch(
+            putHistoryData(activeLayer, ctx, () =>
+              draw(ctx, {
+                action: "drawQuad",
+                params: {
+                  ...params,
+                  destArray: state.destArray
+                }
+              })
+            )
+          );
         }
 
       case "brush":
@@ -594,56 +620,81 @@ export default function DrawSpace(props) {
         return (state = { ...state, lastMid: null, prevImgData: null });
 
       case "line":
-        draw(ctx, {
-          action: "drawLine",
-          params: { ...params }
-        });
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawLine",
+              params: { ...params }
+            })
+          )
+        );
         break;
 
       case "fillRect":
-        draw(ctx, {
-          action: "fillRect",
-          params: { ...params }
-        });
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "fillRect",
+              params: { ...params }
+            })
+          )
+        );
         break;
 
       case "drawRect":
-        draw(ctx, {
-          action: "drawRect",
-          params: { ...params }
-        });
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawRect",
+              params: { ...params }
+            })
+          )
+        );
         break;
 
       case "fillCirc":
-        draw(ctx, {
-          action: "fillCirc",
-          params: { ...params }
-        });
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "fillCirc",
+              params: { ...params }
+            })
+          )
+        );
         break;
 
       case "drawCirc":
-        draw(ctx, {
-          action: "drawCirc",
-          params: { ...params }
-        });
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawCirc",
+              params: { ...params }
+            })
+          )
+        );
         break;
 
       case "eraser":
-        return (state = { ...state, lastMid: null });
+        dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
+        return (state = { ...state, lastMid: null, prevImgData: null });
 
       case "eyeDropper":
         break;
 
       case "bucketFill":
-        manipulate(ctx, {
-          action: "fill",
-          params: {
-            orig: state.origin,
-            colorArray,
-            tolerance,
-            clip: selectionPath
-          }
-        });
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            manipulate(ctx, {
+              action: "fill",
+              params: {
+                orig: state.origin,
+                colorArray,
+                tolerance,
+                clip: selectionPath
+              }
+            })
+          )
+        );
         break;
 
       case "selectRect":
@@ -659,28 +710,26 @@ export default function DrawSpace(props) {
           path = new Path2D();
         }
         path = selection(path, { action: "drawRect", params });
+        dispatch(
+          putHistoryData("selection", layerData.selection.getContext("2d"), () =>
+            draw(layerData.selection.getContext("2d"), {
+              action: "drawRect",
+              params: {
+                ...params,
+                width: 1,
+                strokeColor: "rgba(0, 0, 0, 1)",
+                dashPattern: [5, 10],
+                clip: null
+              }
+            })
+          )
+        );
         dispatch(updateSelectionPath(path));
-        draw(layerData.selection.getContext("2d"), {
-          action: "drawRect",
-          params: {
-            ...params,
-            width: 1,
-            strokeColor: "rgba(0, 0, 0, 1)",
-            dashPattern: [5, 10],
-            clip: null
-          }
-        });
         break;
 
       case "move":
-        manipulate(ctx, {
-          action: "move",
-          params: {
-            ...params,
-            orig: state.destArray[state.destArray.length - 1] || state.origin
-          }
-        });
-        break;
+        dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
+        return (state = { ...state, lastMid: null, prevImgData: null });
 
       case "hand":
         break;

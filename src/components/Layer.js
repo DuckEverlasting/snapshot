@@ -30,14 +30,18 @@ const LayerSC = styled.canvas.attrs(props => ({
 
 function Layer(props) {
   const canvasRef = useRef(null);
-  const onUndelete = useSelector(state => state.main.present.onUndelete); 
+  const onUndelete = useSelector(state => state.main.present.onUndelete);
+  const layerData = useSelector(state => state.main.present.layerData[props.id]);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    canvasRef.current.getContext("2d").imageSmoothingEnabled = false;
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    if (layerData) {
+      ctx.drawImage(layerData, 0, 0);
+    }
     dispatch(updateLayerData(props.id, canvasRef.current));
     if (onUndelete && onUndelete.id === props.id) {
-      const ctx = canvasRef.current.getContext("2d"); 
       const viewWidth = Math.ceil(ctx.canvas.width / 3);
       const viewHeight = Math.ceil(ctx.canvas.height / 3);
       ctx.putImageData(onUndelete.data, viewWidth, viewHeight);

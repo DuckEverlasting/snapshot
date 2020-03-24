@@ -5,6 +5,7 @@ export const [
   REDO,
   PUT_HISTORY_DATA,
   CREATE_LAYER,
+  CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
@@ -30,6 +31,7 @@ export const [
   "REDO",
   "PUT_HISTORY_DATA",
   "CREATE_LAYER",
+  "CREATE_LAYER_FROM",
   "DELETE_LAYER",
   "HIDE_LAYER",
   "UPDATE_LAYER_DATA",
@@ -79,7 +81,6 @@ export const redo = () => {
   return (dispatch, getState) => {
     const currState = getState().main.present 
     if (currState && currState.onRedo) {
-      console.log(currState)
       const ctx = currState.layerData[currState.onRedo.id].getContext("2d")
       const changeData = currState.onRedo.data
       const viewWidth = Math.ceil(ctx.canvas.width / 3);
@@ -124,6 +125,13 @@ export const createLayer = (position, special = null, ignoreHistory = false) => 
   };
 };
 
+export const createLayerFrom = (position, source, ignoreHistory = false) => {
+  return {
+    type: CREATE_LAYER,
+    payload: {position, source, ignoreHistory}
+  };
+};
+
 export const deleteLayer = (id, ignoreHistory = false) => {
   return (dispatch, getState) => {
     let data = null;
@@ -162,7 +170,7 @@ export const updateLayerData = (id, changes, ignoreHistory = true) => {
 export const updateSelectionPath = path => {
   return {
     type: UPDATE_SELECTION_PATH,
-    payload: {path, ignoreHistory: false}
+    payload: {path, ignoreHistory: true}
   };
 };
 
