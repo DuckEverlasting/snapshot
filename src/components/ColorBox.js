@@ -10,6 +10,7 @@ import { toRgbaFromHex as toRgba, toHexFromRgba as toHex } from '../utils/colorC
 const ColorBoxSC = styled.div`
   position: relative;
   height: 96px;
+  margin-bottom: 5px;
 `
 
 const TitleSC = styled.p`

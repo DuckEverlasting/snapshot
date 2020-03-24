@@ -119,33 +119,25 @@ function MenuGroup({ children }) {
   const { menuIsActive, toggle, colors } = useContext(MenuSettings);
 
   useEffect(() => {
-    window.addEventListener("mousedown", handleMouseDownOutside);
+    window.addEventListener("click", handleClickOutside);
     return () => {
-      window.removeEventListener("mousedown", handleMouseDownOutside);
+      window.removeEventListener("click", handleClickOutside);
     };
   });
-  
-  function handleMouseDownInside(ev) {
-    if (menuIsActive) {
-      ev.stopPropagation()
-    }
-  }
 
   function handleClickInside(ev) {
     ev.stopPropagation();
-    if (!menuIsActive) {
-      toggle();
-    }
+    toggle();
   }
 
-  function handleMouseDownOutside() {
+  function handleClickOutside() {
     if (menuIsActive) {
       toggle();
     }
   }
 
   return (
-    <MenuGroupSC color={colors.primary} onMouseDown={handleMouseDownInside} onClick={handleClickInside}>
+    <MenuGroupSC color={colors.primary} onClick={handleClickInside}>
       {children}
     </MenuGroupSC>
   );
