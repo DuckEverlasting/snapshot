@@ -6,8 +6,9 @@ import styled from "styled-components";
 import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
-import { updateWorkspaceSettings, makeActiveTool } from "../actions/redux";
-import menuAction from "../actions/redux/menuAction";
+import { getZoomAmount } from "../utils/helpers";
+
+import { updateWorkspaceSettings } from "../actions/redux";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -20,13 +21,24 @@ const WorkspaceSC = styled.div`
   background: rgb(175, 175, 175);
 `;
 
+const ZoomDisplaySC = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(0,0,0,.5);
+  color: rgb(235, 235, 235);
+  padding: 10px 20px;
+  border-bottom-left-radius: 3px;
+  z-index: 2;
+`;
+
 const CanvasPaneSC = styled.div.attrs(props => ({
   style: {
     width: props.width,
     height: props.height,
-    transform: `translateX(${props.translateX}px) translateY(${
-      props.translateY
-    }px) scale(${props.zoomPct / 100})`
+    transform: `translateX(${props.translateX}px)
+      translateY(${props.translateY}px)
+      scale(${props.zoomPct / 100})`
   }
 }))`
   position: relative;
@@ -46,9 +58,9 @@ export default function Workspace() {
   } = useSelector(state => state.ui.workspaceSettings);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const layerData = useSelector(state => state.main.present.layerData);
-  const layerQueue = useSelector(state => state.main.present.layerQueue);
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
+  const stagingPinnedTo = useSelector(state => state.main.present.stagingPinnedTo)
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -69,8 +81,8 @@ export default function Workspace() {
   }
 
   useEffect(() => {
-    const zoom = amount => {
-      dispatch(updateWorkspaceSettings({ zoomPct: zoomPct * amount }));
+    const zoom = steps => {
+      dispatch(updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) }));
     };
     const translate = (deltaX, deltaY) => {
       dispatch(
@@ -83,19 +95,19 @@ export default function Workspace() {
     const mouseWheelHandler = async ev => {
       ev.preventDefault();
       if (ev.altKey) {
-        let amount;
+        let steps;
         if (ev.deltaY < 0) {
-          amount = ev.shiftKey ? 3 / 2 : 10 / 9;
-          zoom(amount);
-          if (zoomPct * amount >= 100) {
+          steps = ev.shiftKey ? 2 : 1;
+          zoom(steps);
+          if (zoomPct * steps >= 100) {
             // HANDLE ZOOM IN STUFF
           }
         } else {
-          amount = ev.shiftKey ? 2 / 3 : 9 / 10;
-          zoom(amount);
+          steps = ev.shiftKey ? -2 : -1;
+          zoom(steps);
 
           // Autocenter when zooming out
-          if (zoomPct * amount <= 100) {
+          if (getZoomAmount(steps, zoomPct) <= 100) {
             dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
           }
         }
@@ -172,6 +184,9 @@ export default function Workspace() {
 
   return (
     <WorkspaceSC ref={workspaceRef}>
+      <ZoomDisplaySC>
+        Zoom: {Math.ceil(zoomPct * 100) / 100}%
+      </ZoomDisplaySC>
       <CanvasPaneSC
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
@@ -185,13 +200,13 @@ export default function Workspace() {
       >
         <DrawSpace
           overrideCursor={isDragging ? "grabbing" : null}
-          index={layerOrder.length + 2}
+          index={layerOrder.length + 5}
         />
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
-          layerQueue={layerQueue}
           layerSettings={layerSettings}
+          stagingPinnedTo={stagingPinnedTo}
           width={canvasWidth}
           height={canvasHeight}
         />
@@ -203,46 +218,83 @@ export default function Workspace() {
 function LayerRenderer({
   layerOrder,
   layerData,
-  layerQueue,
   layerSettings,
+  stagingPinnedTo,
   width,
   height
 }) {
-  // const [animationFrame, setAnimationFrame] = useState(0)
-
-  // useEffect(() => {
-  //   const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-
-  //   return () => cancelAnimationFrame(reqFrame);
-  // }, [])
-
-  // function updateAnimatedLayers() {
-  //   const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-  //   setAnimationFrame(reqFrame)
-  // }
-
   return (
     <>
+      <Layer
+        id={"selection"}
+        width={width}
+        height={height}
+        index={layerOrder.length + 4}
+        data={layerData.selection}
+        hidden={false}
+        opacity={1}
+      />
+      {stagingPinnedTo === "selection" && 
+        <Layer
+          key={"staging"}
+          id={"staging"}
+          width={width}
+          height={height}
+          index={layerOrder.length + 4}
+          data={layerData.staging}
+          hidden={false}
+          opacity={1}
+        />
+      }
       {layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
           let layerDat = layerData[layerId];
           let layerSet = layerSettings[layerId];
-          let layerQue = layerQueue[layerId];
-          return (
+          return stagingPinnedTo === layerId ? (
+            <>
+              <Layer
+                key={layerId}
+                id={layerId}
+                width={width}
+                height={height}
+                index={i + 1}
+                data={layerDat}
+                hidden={layerSet.hidden}
+                opacity={layerSet.opacity}
+              />
+              <Layer
+                key={"staging"}
+                id={"staging"}
+                width={width}
+                height={height}
+                index={i + 1}
+                data={layerData.staging}
+                hidden={false}
+                opacity={1}
+              />
+            </>
+          ) : (
             <Layer
               key={layerId}
               id={layerId}
-              // frame={animationFrame}
               width={width}
               height={height}
               index={i + 1}
               data={layerDat}
               hidden={layerSet.hidden}
               opacity={layerSet.opacity}
-              queue={layerQue}
             />
           );
         })}
+      <Layer
+        id={"clipboard"}
+        width={width}
+        height={height}
+        index={1}
+        data={layerData.clipboard}
+        hidden={true}
+        opacity={1}
+      />
     </>
   );
 }

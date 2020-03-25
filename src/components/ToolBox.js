@@ -9,13 +9,15 @@ import {
   faArrowsAltH,
   faArrowsAlt,
   faEyeDropper,
-  faVectorSquare,
   faSearch,
   faFillDrip
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faHandPaper
 } from "@fortawesome/free-regular-svg-icons"
+import dashedCircleIcon from "../media/dashed-circle.svg"
+import dashedSquareIcon from "../media/dashed-square.svg"
+import lassoIcon from "../media/lasso.svg"
 import styled from "styled-components";
 
 import { makeActiveTool } from "../actions/redux";
@@ -30,16 +32,23 @@ const ToolboxSC = styled.div`
 
 const ButtonSC = styled.button`
   width: 35%;
+  height: 25px;
   margin: 2%;
   outline: none;
   cursor: pointer;
   padding: 3px 0;
-  background: ${props => props.active ? "yellow" : "#e3e3e3"};
+  background: ${props => props.active ? "#ffe312" : "#e3e3e3"};
   border: 1px solid #333333;
   border-radius: 2px;
+  
+  & img {
+    margin-top: 2%;
+    height: 90%;
+    width: 90%;
+  }
 
   &:hover{
-    background: ${props => props.active ? "yellow" : "#d6d6d6"};
+    background: ${props => props.active ? "#ffe312" : "#d6d6d6"};
   }
 
   &:active{
@@ -56,15 +65,17 @@ function ToolBox() {
     <ToolboxSC>
       <ToolButton title="Pencil (P)" name="pencil" faIcon={faPencilAlt}/>
       <ToolButton title="Brush (B)" name="brush" faIcon={faPaintBrush}/>
-      <ToolButton title="Line (L)" name="line" faIcon={faArrowsAltH}/>
+      <ToolButton title="Line" name="line" faIcon={faArrowsAltH}/>
       <ToolButton title="Eraser (E)" name="eraser" faIcon={faEraser}/>
       <ToolButton title="Fill Rectangle" name="fillRect" icon="⬛"/>
       <ToolButton title="Draw Rectangle" name="drawRect" icon="⬜"/>
-      <ToolButton title="Fill Circle" name="fillCirc" icon="⚫"/>
-      <ToolButton title="Draw Circle" name="drawCirc" icon="⚪"/>
+      <ToolButton title="Fill Ellipse" name="fillEllipse" icon="⚫"/>
+      <ToolButton title="Draw Ellipse" name="drawEllipse" icon="⚪"/>
       <ToolButton title="Eye Dropper (I)" name="eyeDropper" faIcon={faEyeDropper}/>
       <ToolButton title="Paint Bucket (G)" name="bucketFill" faIcon={faFillDrip}/>
-      <ToolButton title="Select Rectangle (M)" name="selectRect" faIcon={faVectorSquare}/>
+      <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img src={dashedSquareIcon} />}/>
+      <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img src={dashedCircleIcon} />}/>
+      <ToolButton title="Lasso (L)" name="lasso" icon={<img src={lassoIcon} />}/>
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom (Z)" name="zoom" faIcon={faSearch}/>

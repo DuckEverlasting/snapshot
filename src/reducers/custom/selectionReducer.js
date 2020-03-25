@@ -2,9 +2,12 @@ import {
   line,
   quadratic,
   bezier,
-  rectangle,
-  circle
+  // rectangle,
+  // circle,
+  ellipse
 } from "../../actions/custom/ctxActions.js";
+
+import { midpoint } from "../../utils/helpers";
 
 export default function(path, { action, params }) {
   if (path === null) return path;
@@ -17,6 +20,7 @@ export default function(path, { action, params }) {
 
     case "drawQuadPath":
       quadratic(path, params);
+      path.closePath();
       return path;
 
     case "drawBezierPath":
@@ -32,8 +36,11 @@ export default function(path, { action, params }) {
       );
       return path;
 
-    case "drawCirc":
-      circle(path, params);
+    case "drawEllipse":
+      const center = midpoint(params.orig, params.dest);
+      const radiusX = Math.abs(params.dest[0] - center[0]);
+      const radiusY = Math.abs(params.dest[1] - center[1]);
+      path.ellipse(center[0], center[1], radiusX, radiusY, 0, 0, Math.PI * 2);
       return path;
 
     default:

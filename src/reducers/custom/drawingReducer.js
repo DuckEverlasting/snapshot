@@ -1,42 +1,48 @@
 import {
   line,
   quadratic,
+  quadraticPoints,
   bezier,
   rectangle,
-  circle
+  ellipse
 } from "../../actions/custom/ctxActions.js";
 
 export default function(ctx, { action, params }) {
   if (action === "clear") {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    return;
+    return ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }
 
   if (params.clearFirst) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }
+  
+  ctx.save();
+
   if (params.filter) {
     ctx.filter = params.filter;
-  } else {
-    ctx.filter = "none";
+  }
+  if (params.globalOpacity) {
+    ctx.globalOpacity = params.globalOpacity;
   }
   if (params.composite) {
     ctx.globalCompositeOperation = params.composite;
-  } else {
-    ctx.globalCompositeOperation = "source-over";
   }
+
   ctx.beginPath();
   if (params.width) {
     params.translation = (params.width % 2) / 2;
     ctx.lineWidth = params.width;
   }
-  if (params.dashPattern) ctx.setLineDash(params.dashPattern);
+  if (params.dashPattern) {
+    ctx.setLineDash(params.dashPattern);
+  } else {
+    ctx.setLineDash([]);
+  }
   ctx.moveTo(params.orig[0], params.orig[1]);
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
   if (params.clip) {
-    ctx.save();
-    ctx.clip(params.clip)
+    ctx.clip(params.clip);
   }
 
   switch (action) {
@@ -53,6 +59,10 @@ export default function(ctx, { action, params }) {
     case "drawBezier":
       bezier(ctx, params);
       ctx.stroke();
+      break;
+
+    case "drawQuadPoints":
+      quadraticPoints(ctx, params);
       break;
 
     case "drawLinePath":
@@ -78,8 +88,8 @@ export default function(ctx, { action, params }) {
       ctx.stroke();
       break;
 
-    case "drawCirc":
-      circle(ctx, params);
+    case "drawEllipse":
+      ellipse(ctx, params);
       ctx.stroke();
       break;
 
@@ -106,15 +116,18 @@ export default function(ctx, { action, params }) {
       ctx.fill();
       break;
 
-    case "fillCirc":
-      circle(ctx, params);
+    case "fillEllipse":
+      ellipse(ctx, params);
       ctx.fill();
       break;
 
+    case "null":
+      break;
+
     default:
-      return "error: invalid draw action";
+      console.log("error: invalid draw action");
+      break;
   }
-  if (params.clip) {
-    ctx.restore();
-  }
+  
+  ctx.restore();
 }

@@ -7,7 +7,8 @@ import {
   UPDATE_COLOR,
   SWITCH_COLORS,
   TOGGLE_MENU,
-  SET_ACTIVE_MENU_LIST
+  SET_ACTIVE_MENU_LIST,
+  TOGGLE_ABOUT_MODAL
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -43,12 +44,18 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       };
 
     case UPDATE_WORKSPACE_SETTINGS:
-      let workspaceSettingsChanges = payload;
+      if (payload.zoomPct) {
+        if (payload.zoomPct < 12.5) {
+          payload.zoomPct = 12.5;
+        } else if (payload.zoomPct > 600) {
+          payload.zoomPct = 600;
+        }
+      }
       return {
         ...state,
         workspaceSettings: {
           ...state.workspaceSettings,
-          ...workspaceSettingsChanges
+          ...payload
         }
       };
     case UPDATE_COLOR:
@@ -78,6 +85,11 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       return {
         ...state,
         activeMenuList: payload
+      }
+    case TOGGLE_ABOUT_MODAL:
+      return {
+        ...state,
+        aboutModalVisible: !state.aboutModalVisible
       }
 
     default:

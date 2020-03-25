@@ -1,13 +1,30 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { ActionCreators } from 'redux-undo';
 import styled from "styled-components";
-import pencilImg from "../cursors/pencil.png"
-import dropperImg from "../cursors/dropper.png"
+import pencilImg from "../cursors/pencil.png";
+import dropperImg from "../cursors/dropper.png";
 
-import { addOpacity, toArrayFromRgba } from '../utils/colorConversion.js';
-import { updateLayerQueue, createLayer, deleteLayer, updateColor, updateWorkspaceSettings, updateSelectionPath } from "../actions/redux";
+import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
+import {
+  getZoomAmount,
+  midpoint,
+  getQuadLength,
+  getGradient,
+  convertDestToRegularShape
+} from "../utils/helpers";
+
+import {
+  updateColor,
+  updateWorkspaceSettings,
+  updateSelectionPath,
+  updateStagingPosition,
+  putHistoryData
+} from "../actions/redux";
+
 import selection from "../reducers/custom/selectionReducer.js";
+
+import draw from "../reducers/custom/drawingReducer";
+import manipulate from "../reducers/custom/manipulateReducer";
 
 const DrawSpaceSC = styled.div.attrs(props => ({
   style: {
@@ -36,17 +53,23 @@ let state = {
 export default function DrawSpace(props) {
   // Right now this is rerendering every time the Redux store is updated. May require some future refactoring.
   const { activeTool, toolSettings } = useSelector(state => state.ui);
-  const { activeLayer, selectionPath, layerData, layerOrder } = useSelector(state => state.main.present);
+  const { activeLayer, selectionPath, layerData, layerOrder } = useSelector(
+    state => state.main.present
+  );
   const primary = useSelector(state => state.ui.colorSettings.primary);
-  const { zoomPct, translateX, translateY } = useSelector(state => state.ui.workspaceSettings);
-  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
+  const { zoomPct, translateX, translateY } = useSelector(
+    state => state.ui.workspaceSettings
+  );
+  const { canvasWidth, canvasHeight } = useSelector(
+    state => state.main.present.documentSettings
+  );
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (state.mouseDown) {
-      state = { ...state, interrupt: true }
+      state = { ...state, interrupt: true };
     }
-  }, [activeTool])
+  }, [activeTool]);
 
   const eyeDropper = (x, y, palette) => {
     /* 
@@ -61,12 +84,12 @@ export default function DrawSpace(props) {
       if (data[3] === 0) {
         continue;
       } else {
-        color = `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${(data[3] / 255)})`;
+        color = `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${data[3] / 255})`;
         break;
       }
     }
     if (color !== undefined) dispatch(updateColor(palette, color));
-  }
+  };
 
   const cursorHandler = () => () => {
     /* 
@@ -74,22 +97,42 @@ export default function DrawSpace(props) {
     */
 
     if (props.overrideCursor !== null) {
-      return props.overrideCursor
+      return props.overrideCursor;
     }
 
     switch (activeTool) {
-      case "pencil": return `url(${pencilImg}) -22 22, auto`;
-      case "line": return "crosshair";
-      case "fillRect": return "crosshair";
-      case "drawRect": return "crosshair";
-      case "selectRect": return "crosshair";
-      case "eyeDropper": return `url(${dropperImg}) -22 22, auto`;
-      case "move": return "move";
-      case "hand": return "grab";
-      case "zoom": return "zoom-in";
-      default: return "auto";
+      case "pencil":
+        return `url(${pencilImg}) -22 22, auto`;
+      case "line":
+        return "crosshair";
+      case "fillRect":
+        return "crosshair";
+      case "drawRect":
+        return "crosshair";
+      case "selectRect":
+        return "crosshair";
+      case "selectEllipse":
+        return "crosshair";
+      case "lasso":
+        return "crosshair";
+      case "eyeDropper":
+        return `url(${dropperImg}) -22 22, auto`;
+      case "move":
+        return "move";
+      case "hand":
+        return "grab";
+      case "zoom":
+        return "zoom-in";
+      default:
+        return "auto";
     }
-  }
+  };
+
+  const moveStaging = (layer = activeLayer) => {
+    dispatch(
+      updateStagingPosition(layer)
+    );
+  };
 
   const contextMenuHandler = ev => {
     /* 
@@ -97,7 +140,7 @@ export default function DrawSpace(props) {
     */
 
     ev.preventDefault();
-  }
+  };
 
   const mouseDownHandler = ev => {
     /* 
@@ -105,49 +148,117 @@ export default function DrawSpace(props) {
     */
 
     if (activeLayer === null || state.hold || ev.buttons > 1) return;
-    if (layerOrder.includes("staging")) {
-      dispatch(deleteLayer("staging", true))
-    }
-    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
+    layerData.staging
+      .getContext("2d")
+      .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
+    const ctx = layerData[activeLayer].getContext("2d");
+
+    let [x, y] = [
+      ev.nativeEvent.offsetX + canvasWidth,
+      ev.nativeEvent.offsetY + canvasHeight
+    ];
+    let viewWidth, viewHeight;
     state = {
       ...state,
       mouseDown: true,
       origin: [x, y],
       destArray: [],
+      lastMid: null,
       heldShift: ev.shiftKey,
       tool: activeTool
     };
     switch (state.tool) {
       case "pencil":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        moveStaging();
+        break;
       case "brush":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        viewWidth = Math.ceil(ctx.canvas.width / 3);
+        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        state = {
+          ...state,
+          prevImgData: ctx.getImageData(
+            viewWidth,
+            viewHeight,
+            viewWidth,
+            viewHeight
+          )
+        };
+        break;
       case "line":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        moveStaging();
+        break;
       case "fillRect":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        moveStaging();
+        break;
       case "drawRect":
-        return dispatch(createLayer(activeLayer, "staging", true));
-      case "fillCirc":
-        return dispatch(createLayer(activeLayer, "staging", true));
-      case "drawCirc":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        moveStaging();
+        break;
+      case "fillEllipse":
+        moveStaging();
+        break;
+      case "drawEllipse":
+        moveStaging();
+        break;
       case "eraser":
-        return dispatch(createLayer(activeLayer, "staging", true));
+        viewWidth = Math.ceil(ctx.canvas.width / 3);
+        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        state = {
+          ...state,
+          prevImgData: ctx.getImageData(
+            viewWidth,
+            viewHeight,
+            viewWidth,
+            viewHeight
+          )
+        };
+        break;
       case "eyeDropper":
-        let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
-        return eyeDropper(x, y, modifier ? "secondary" : "primary")
+        let modifier = window.navigator.platform.includes("Mac")
+          ? ev.metaKey
+          : ev.ctrlKey;
+        return eyeDropper(x, y, modifier ? "secondary" : "primary");
       case "selectRect":
-        if (!state.heldShift) dispatch(updateLayerQueue("selection", {action: "clear", type: "draw", params: {ignoreHistory: true}}))
-        return dispatch(createLayer(layerOrder.length, "staging", true));
+        if (!state.heldShift) {
+          manipulate(layerData.selection.getContext("2d"), {
+            action: "clear",
+            params: { selectionPath: null }
+          });
+        }
+        moveStaging("selection");
+      case "selectEllipse":
+        if (!state.heldShift) {
+          manipulate(layerData.selection.getContext("2d"), {
+            action: "clear",
+            params: { selectionPath: null }
+          });
+        }
+        moveStaging("selection");
+      case "lasso":
+        if (!state.heldShift) {
+          manipulate(layerData.selection.getContext("2d"), {
+            action: "clear",
+            params: { selectionPath: null }
+          });
+        }
+        moveStaging("selection");
       case "move":
+        viewWidth = Math.ceil(ctx.canvas.width / 3);
+        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        state = {
+          ...state,
+          prevImgData: ctx.getImageData(
+            viewWidth,
+            viewHeight,
+            viewWidth,
+            viewHeight
+          )
+        };
         break;
       case "hand":
         break;
       case "zoom":
         break;
       case "TEST":
-        dispatch(ActionCreators.undo());
         break;
       default:
         break;
@@ -160,11 +271,11 @@ export default function DrawSpace(props) {
     */
 
     if (Math.abs(state.origin[0] - x) < Math.abs(state.origin[1] - y)) {
-      state = {...state, lockedAxis: "x"}
+      state = { ...state, lockedAxis: "x" };
     } else {
-      state = {...state, lockedAxis: "y"}
+      state = { ...state, lockedAxis: "y" };
     }
-  }
+  };
 
   const mouseMoveHandler = ev => {
     /* 
@@ -175,10 +286,13 @@ export default function DrawSpace(props) {
       return mouseUpHandler(ev);
     }
     if (!state.mouseDown) return;
-    const { opacity, width } = toolSettings[state.tool];
+    const { opacity, width, hardness } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
-    const color = addOpacity(primary, opacity / 100)
-    let [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
+    const color = addOpacity(primary, opacity / 100);
+    let [x, y] = [
+      ev.nativeEvent.offsetX + canvasWidth,
+      ev.nativeEvent.offsetY + canvasHeight
+    ];
 
     // Default parameters
     let params = {
@@ -193,213 +307,306 @@ export default function DrawSpace(props) {
     };
 
     if (state.lockedAxis && !ev.shiftKey) {
-      state = {...state, lockedAxis: ""}
+      state = { ...state, lockedAxis: "" };
     }
 
     if (!state.lockedAxis && ev.shiftKey) {
-      setLockedAxis(x, y)
+      setLockedAxis(x, y);
     }
+
+    let ctx = layerData.staging.getContext("2d");
 
     switch (state.tool) {
       case "pencil":
         if (state.lockedAxis === "x") {
-          x = state.origin[0]
+          x = state.origin[0];
         } else if (state.lockedAxis === "y") {
-          y = state.origin[1]
-        };
+          y = state.origin[1];
+        }
 
-        dispatch(
-          updateLayerQueue("staging", {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: [...state.destArray, [x, y]],
-              clearFirst: true
-            }
-          })
-        );
-        return state = {
+        draw(ctx, {
+          action: "drawQuad",
+          params: {
+            ...params,
+            destArray: [...state.destArray, [x, y]],
+            clearFirst: true
+          }
+        });
+        return (state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
-        };
+        });
 
       case "brush":
-        let num;
-        if (width <= 5) num = 0
-        else num = 1
+        const lastBrushDest =
+          state.destArray[state.destArray.length - 1] || state.origin;
 
         if (state.lockedAxis === "x") {
-          x = state.origin[0]
+          x = state.origin[0];
         } else if (state.lockedAxis === "y") {
-          y = state.origin[1]
-        };
+          y = state.origin[1];
+        }
 
-        dispatch(
-          updateLayerQueue("staging", {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: [...state.destArray, [x, y]],
-              filter: `blur(${num}px)`,
-              clearFirst: true
-            }
-          })
-        );
-        return state = {
+        const newBrushMid = midpoint(lastBrushDest, [x, y]);
+
+        if (
+          getQuadLength(
+            state.lastMid || state.origin,
+            lastBrushDest,
+            newBrushMid
+          ) <
+          width * 0.125
+        ) {
+          return;
+        }
+
+        const brushGrad = getGradient(color, opacity, hardness);
+
+        draw(layerData[activeLayer].getContext("2d"), {
+          action: "drawQuadPoints",
+          params: {
+            ...params,
+            orig: state.lastMid || state.origin,
+            destArray: [lastBrushDest, newBrushMid],
+            gradient: brushGrad,
+            density: 0.125,
+            clearFirst: false
+          }
+        });
+        return (state = {
           ...state,
-          destArray: [...state.destArray, [x, y]]
-        };
+          destArray: [...state.destArray, [x, y]],
+          lastMid: newBrushMid
+        });
 
       case "line":
-        return dispatch(
-          updateLayerQueue("staging", {
-            action: "drawLine",
-            type: "draw",
-            params: {
-              ...params,
-              clearFirst: true
-            },
-          })
-        );
+        draw(ctx, {
+          action: "drawLine",
+          params: {
+            ...params,
+            clearFirst: true
+          }
+        });
+        break;
 
       case "fillRect":
-        if (ev.shiftKey) {
-          if (Math.abs(state.origin[0] - x) < Math.abs(state.origin[1] - y)) {
-            x = y;
-          } else {
-            y = x;
-          };
-        };
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
 
-        return dispatch(
-          updateLayerQueue("staging", {
-            action: "fillRect",
-            type: "draw",
-            params: {
-              ...params,
-              clearFirst: true,
-              dest: [x, y]
-            },
-          })
-        );
+        draw(ctx, {
+          action: "fillRect",
+          params: {
+            ...params,
+            clearFirst: true,
+          }
+        });
+        break;
 
       case "drawRect":
-        return dispatch(
-          updateLayerQueue("staging", {
-            action: "drawRect",
-            type: "draw",
-            params: {
-              ...params,
-              clearFirst: true
-            },
-          })
-        );
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
 
-      case "fillCirc":
-        return dispatch(
-          updateLayerQueue("staging", {
-            action: "fillCirc",
-            type: "draw",
-            params: {
-              ...params,
-              clearFirst: true
-            },
-          })
-        );
+        draw(ctx, {
+          action: "drawRect",
+          params: {
+            ...params,
+            clearFirst: true
+          }
+        });
+        break;
 
-      case "drawCirc":
-        return dispatch(
-          updateLayerQueue("staging", {
-            action: "drawCirc",
-            type: "draw",
-            params: {
-              ...params,
-              clearFirst: true
-            },
-          })
-        );
+      case "fillEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        draw(ctx, {
+          action: "fillEllipse",
+          params: {
+            ...params,
+            clearFirst: true
+          }
+        });
+        break;
+
+      case "drawEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        draw(ctx, {
+          action: "drawEllipse",
+          params: {
+            ...params,
+            clearFirst: true
+          }
+        });
+        break;
 
       case "eraser":
+        const lastEraserDest =
+          state.destArray[state.destArray.length - 1] || state.origin;
+
+        const newEraserMid = midpoint(lastEraserDest, [x, y]);
+
+        if (
+          getQuadLength(
+            state.lastMid || state.origin,
+            lastEraserDest,
+            newEraserMid
+          ) <
+          width * 0.125
+        ) {
+          return;
+        }
+
+        const eraserGrad = getGradient("rgba(0, 0, 0, 1)", 100, hardness);
+
         if (state.lockedAxis === "x") {
-          x = state.origin[0]
+          x = state.origin[0];
         } else if (state.lockedAxis === "y") {
-          y = state.origin[1]
-        };
+          y = state.origin[1];
+        }
 
-        const newDestArray = [...state.destArray, [x, y]]
-
-        dispatch(
-          updateLayerQueue("staging", {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: newDestArray,
-              strokeColor: "rgba(0, 0, 0, .5)"
-            },
-          })
-        );
-        return state = {
+        draw(layerData[activeLayer].getContext("2d"), {
+          action: "drawQuadPoints",
+          params: {
+            ...params,
+            orig: state.lastMid || state.origin,
+            destArray: [lastEraserDest, newEraserMid],
+            gradient: eraserGrad,
+            density: 0.125,
+            clearFirst: false,
+            composite: "destination-out"
+          }
+        });
+        return (state = {
           ...state,
-          destArray: newDestArray
-        };
+          destArray: [...state.destArray, [x, y]],
+          lastMid: newEraserMid
+        });
 
       case "eyeDropper":
-        let modifier = (window.navigator.platform.includes("Mac") ? ev.metaKey : ev.ctrlKey)
+        let modifier = window.navigator.platform.includes("Mac")
+          ? ev.metaKey
+          : ev.ctrlKey;
         return eyeDropper(x, y, modifier ? "secondary" : "primary");
 
       case "selectRect":
-        return dispatch(
-          updateLayerQueue("staging", {
-            action: "drawRect",
-            type: "draw",
-            params: {
-              ...params,
-              width: 1,
-              strokeColor: "rgba(0, 0, 0, 1)",
-              dashPattern: [5, 10],
-              clearFirst: true,
-              clip: null
-            },
-          })
-        );
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
 
+        draw(ctx, {
+          action: "drawRect",
+          params: {
+            ...params,
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [5, 10],
+            clearFirst: true,
+            clip: null
+          }
+        });
+        break;
+      case "selectEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        draw(ctx, {
+          action: "drawEllipse",
+          params: {
+            ...params,
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [5, 10],
+            clearFirst: true,
+            clip: null
+          }
+        });
+        break;
+      case "lasso":
+        if (state.lockedAxis === "x") {
+          x = state.origin[0];
+        } else if (state.lockedAxis === "y") {
+          y = state.origin[1];
+        }
+
+        draw(ctx, {
+          action: "drawQuad",
+          params: {
+            ...params,
+            destArray: [...state.destArray, [x, y]],
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [5, 10],
+            clearFirst: true,
+            clip: null
+          }
+        });
+        return (state = {
+          ...state,
+          destArray: [...state.destArray, [x, y]]
+        });
       case "move":
         if (state.throttle) break;
 
-        state = {...state, throttle: true}
+        state = { ...state, throttle: true };
         setTimeout(() => {
-          state = {...state, throttle: false}
-        }, 25)
+          state = { ...state, throttle: false };
+        }, 25);
 
-        dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "move",
-            type: "manipulate",
-            params: {
-              ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin,
-            }
-          })
-        );
-        return state = {
+        manipulate(layerData[activeLayer].getContext("2d"), {
+          action: "move",
+          params: {
+            ...params,
+            orig: state.destArray[state.destArray.length - 1] || state.origin
+          }
+        });
+        return (state = {
           ...state,
           destArray: [...state.destArray, [x, y]]
-        };
-        
+        });
+
       case "hand":
         if (state.throttle) break;
 
-        state = {...state, throttle: true}
+        state = { ...state, throttle: true };
         setTimeout(() => {
-          state = {...state, throttle: false}
-        }, 25)
+          state = { ...state, throttle: false };
+        }, 25);
 
-        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX + canvasWidth)
-        const deltaY = state.origin[1] - (ev.nativeEvent.offsetY + canvasHeight)
-        dispatch(updateWorkspaceSettings({translateX: translateX - deltaX, translateY: translateY - deltaY}));
+        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX + canvasWidth);
+        const deltaY =
+          state.origin[1] - (ev.nativeEvent.offsetY + canvasHeight);
+        dispatch(
+          updateWorkspaceSettings({
+            translateX: translateX - deltaX,
+            translateY: translateY - deltaY
+          })
+        );
+        break;
 
       case "zoom":
         break;
@@ -409,7 +616,7 @@ export default function DrawSpace(props) {
     }
   };
 
-  const mouseUpHandler = (ev, mouseOut=false) => {
+  const mouseUpHandler = (ev, mouseOut = false) => {
     /* 
       Handles what happens when mouse is released.
     */
@@ -418,8 +625,8 @@ export default function DrawSpace(props) {
 
     const { opacity, width, tolerance } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
-    const color = addOpacity(primary, opacity / 100)
-    const colorArray = toArrayFromRgba(primary, opacity / 100)
+    const color = addOpacity(primary, opacity / 100);
+    const colorArray = toArrayFromRgba(primary, opacity / 100);
 
     state = {
       ...state,
@@ -432,11 +639,19 @@ export default function DrawSpace(props) {
       state = {
         ...state,
         hold: false,
-        tool: null
+        tool: null,
+        lockedAxis: ""
       };
+      layerData.staging
+        .getContext("2d")
+        .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
+      // dispatch(removeStagingLayer());
     }, 0);
-    
-    const [x, y] = [ev.nativeEvent.offsetX + canvasWidth, ev.nativeEvent.offsetY + canvasHeight];
+
+    const [x, y] = [
+      ev.nativeEvent.offsetX + canvasWidth,
+      ev.nativeEvent.offsetY + canvasHeight
+    ];
     let params = {
       orig: state.origin,
       dest: [x, y],
@@ -447,170 +662,277 @@ export default function DrawSpace(props) {
       clip: selectionPath
     };
 
-    dispatch(deleteLayer("staging", true))
+    let ctx = layerData[activeLayer].getContext("2d");
+    let path;
+
 
     switch (state.tool) {
       case "pencil":
-        if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
+        if (
+          params.orig[0] === params.dest[0] &&
+          params.orig[1] === params.dest[1]
+        ) {
           return dispatch(
-            updateLayerQueue(activeLayer, {
-              action: "fillRect",
-              type: "draw",
-              params: {
-                ...params,
-                orig: [params.orig[0] - .5 * params.width, params.orig[1] - .5 * params.width],
-                dest: [params.dest[0] + .5 * params.width, params.dest[1] + .5 * params.width]
-              }
-            })
+            putHistoryData(activeLayer, ctx, () =>
+              draw(ctx, {
+                action: "fillRect",
+                params: {
+                  ...params,
+                  orig: [
+                    params.orig[0] - 0.5 * params.width,
+                    params.orig[1] - 0.5 * params.width
+                  ],
+                  dest: [
+                    params.dest[0] + 0.5 * params.width,
+                    params.dest[1] + 0.5 * params.width
+                  ]
+                }
+              })
+            )
           );
         } else {
           return dispatch(
-            updateLayerQueue(activeLayer, {
-              action: "drawQuad",
-              type: "draw",
-              params: {
-                ...params,
-                destArray: state.destArray
-              }
-            })
+            putHistoryData(activeLayer, ctx, () =>
+              draw(ctx, {
+                action: "drawQuad",
+                params: {
+                  ...params,
+                  destArray: state.destArray
+                }
+              })
+            )
           );
         }
 
       case "brush":
-        let num;
-        if (width <= 5) num = 0
-        else num = 1
-
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: state.destArray,
-              filter: `blur(${num}px)`
-            }
-          })
-        );
+        dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
+        return (state = { ...state, lastMid: null, prevImgData: null });
 
       case "line":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "drawLine",
-            type: "draw",
-            params: { ...params }
-          })
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawLine",
+              params: { ...params }
+            })
+          )
         );
+        break;
 
-      case "fillRect":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "fillRect",
-            type: "draw",
-            params: { ...params }
-          })
+      case "fillRect": 
+      if (ev.shiftKey) { 
+        params = {
+          ...params,
+          dest: convertDestToRegularShape(state.origin, [x, y])
+        } 
+      }
+
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "fillRect",
+              params: { ...params }
+            })
+          )
         );
+        break;
 
       case "drawRect":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "drawRect",
-            type: "draw",
-            params: { ...params }
-          })
-        );
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
 
-      case "fillCirc":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "fillCirc",
-            type: "draw",
-            params: { ...params }
-          })
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawRect",
+              params: { ...params }
+            })
+          )
         );
+        break;
 
-      case "drawCirc":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "drawCirc",
-            type: "draw",
-            params: { ...params }
-          })
+      case "fillEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "fillEllipse",
+              params: { ...params }
+            })
+          )
         );
+        break;
+
+      case "drawEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            draw(ctx, {
+              action: "drawEllipse",
+              params: { ...params }
+            })
+          )
+        );
+        break;
 
       case "eraser":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "drawQuad",
-            type: "draw",
-            params: {
-              ...params,
-              destArray: state.destArray,
-              strokeColor: "rgba(0, 0, 0, 1)",
-              composite: "destination-out"
-            },
-          })
-        );
+        dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
+        return (state = { ...state, lastMid: null, prevImgData: null });
 
       case "eyeDropper":
         break;
 
       case "bucketFill":
         dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "fill",
-            type: "manipulate",
-            params: {
-              orig: state.origin,
-              colorArray,
-              tolerance,
-              clip: selectionPath
-            }
-          })
+          putHistoryData(activeLayer, ctx, () =>
+            manipulate(ctx, {
+              action: "fill",
+              params: {
+                orig: state.origin,
+                colorArray,
+                tolerance,
+                clip: selectionPath
+              }
+            })
+          )
         );
         break;
 
       case "selectRect":
-        let path;
-        if (params.orig[0] === params.dest[0] && params.orig[1] === params.dest[1]) {
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        if (
+          params.orig[0] === params.dest[0] &&
+          params.orig[1] === params.dest[1]
+        ) {
           path = null;
         } else if (selectionPath !== null && state.heldShift) {
           path = new Path2D(selectionPath);
         } else {
           path = new Path2D();
         }
-        path = selection(path, { action: "drawRect", params })
-        dispatch(updateSelectionPath(path))
-        return dispatch(
-          updateLayerQueue("selection", {
-            action: "drawRect",
-            type: "draw",
-            params: {
-              ...params,
-              width: 1,
-              strokeColor: "rgba(0, 0, 0, 1)",
-              dashPattern: [5, 10],
-            }
-          })
+        path = selection(path, { action: "drawRect", params });
+        dispatch(
+          putHistoryData("selection", layerData.selection.getContext("2d"), () =>
+            draw(layerData.selection.getContext("2d"), {
+              action: "drawRect",
+              params: {
+                ...params,
+                width: 1,
+                strokeColor: "rgba(0, 0, 0, 1)",
+                dashPattern: [5, 10],
+                clip: null
+              }
+            })
+          )
         );
+        dispatch(updateSelectionPath(path));
+        break;
+      case "selectEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        if (
+          params.orig[0] === params.dest[0] &&
+          params.orig[1] === params.dest[1]
+        ) {
+          path = null;
+        } else if (selectionPath !== null && state.heldShift) {
+          path = new Path2D(selectionPath);
+        } else {
+          path = new Path2D();
+        }
+        path = selection(path, { action: "drawEllipse", params });
+        dispatch(
+          putHistoryData("selection", layerData.selection.getContext("2d"), () =>
+            draw(layerData.selection.getContext("2d"), {
+              action: "drawEllipse",
+              params: {
+                ...params,
+                width: 1,
+                strokeColor: "rgba(0, 0, 0, 1)",
+                dashPattern: [5, 10],
+                clip: null
+              }
+            })
+          )
+        );
+        dispatch(updateSelectionPath(path));
+        break;
+
+      case "lasso":
+        if (
+          params.orig[0] === params.dest[0] &&
+          params.orig[1] === params.dest[1]
+        ) {
+          path = null;
+        } else {
+          if (selectionPath !== null && state.heldShift) {
+            path = new Path2D(selectionPath);
+          } else {
+            path = new Path2D();
+          }
+          path = selection(path, { action: "drawQuadPath", params: { ...params, destArray: state.destArray } });
+          dispatch(
+            putHistoryData("selection", layerData.selection.getContext("2d"), () =>
+              draw(layerData.selection.getContext("2d"), {
+                action: "drawQuadPath",
+                params: {
+                  ...params,
+                  destArray: state.destArray,
+                  width: 1,
+                  strokeColor: "rgba(0, 0, 0, 1)",
+                  dashPattern: [5, 10],
+                  clip: null
+                }
+              })
+            )
+          );
+        }
+        dispatch(updateSelectionPath(path));
+        break;
 
       case "move":
-        return dispatch(
-          updateLayerQueue(activeLayer, {
-            action: "move",
-            type: "manipulate",
-            params: {
-              ...params,
-              orig: state.destArray[state.destArray.length - 1] || state.origin,
-            }
-          })
-        );
+        dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
+        return (state = { ...state, lastMid: null, prevImgData: null });
+
       case "hand":
         break;
 
       case "zoom":
         if (mouseOut) break;
-        return dispatch(updateWorkspaceSettings({zoomPct: zoomPct * (ev.altKey ? 2/3 : 3/2)}));
+        return dispatch(
+          updateWorkspaceSettings({
+            zoomPct: ev.altKey
+              ? getZoomAmount(-1, zoomPct)
+              : getZoomAmount(1, zoomPct)
+          })
+        );
 
       default:
         break;
