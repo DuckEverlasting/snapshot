@@ -44,3 +44,23 @@ export function getGradient(color, opacity, hardness) {
     [1, colorStep3]
   ];
 }
+
+export function convertDestToRegularShape([origX, origY], [x, y]) {
+  const distX = x - origX;
+  const distY = y - origY;
+  const max = Math.max(Math.abs(distX), Math.abs(distY));
+  if (distX > 0 && distY > 0) {
+    x = origX + max;
+    y = origY + max;
+  } else if (distX < 0 && distY < 0) {
+    x = origX - max;
+    y = origY - max;
+  } else if (distX < 0 && distY > 0) {
+    x = origX - max;
+    y = origY + max;
+  } else if (distX > 0 && distY < 0) {
+    x = origX + max;
+    y = origY - max;
+  }
+  return [x, y]
+}

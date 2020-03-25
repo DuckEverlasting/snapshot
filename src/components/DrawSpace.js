@@ -10,15 +10,17 @@ import {
   midpoint,
   getQuadLength,
   getGradient,
-  triggerHistory
+  convertDestToRegularShape
 } from "../utils/helpers";
+
 import {
   updateColor,
   updateWorkspaceSettings,
   updateSelectionPath,
-  updateLayerOrder,
+  updateStagingPosition,
   putHistoryData
 } from "../actions/redux";
+
 import selection from "../reducers/custom/selectionReducer.js";
 
 import draw from "../reducers/custom/drawingReducer";
@@ -109,6 +111,10 @@ export default function DrawSpace(props) {
         return "crosshair";
       case "selectRect":
         return "crosshair";
+      case "selectEllipse":
+        return "crosshair";
+      case "lasso":
+        return "crosshair";
       case "eyeDropper":
         return `url(${dropperImg}) -22 22, auto`;
       case "move":
@@ -124,10 +130,7 @@ export default function DrawSpace(props) {
 
   const moveStaging = (layer = activeLayer) => {
     dispatch(
-      updateLayerOrder(
-        layerOrder.indexOf("staging"),
-        layerOrder.indexOf(layer) + 1
-      )
+      updateStagingPosition(layer)
     );
   };
 
@@ -190,10 +193,10 @@ export default function DrawSpace(props) {
       case "drawRect":
         moveStaging();
         break;
-      case "fillCirc":
+      case "fillEllipse":
         moveStaging();
         break;
-      case "drawCirc":
+      case "drawEllipse":
         moveStaging();
         break;
       case "eraser":
@@ -215,6 +218,22 @@ export default function DrawSpace(props) {
           : ev.ctrlKey;
         return eyeDropper(x, y, modifier ? "secondary" : "primary");
       case "selectRect":
+        if (!state.heldShift) {
+          manipulate(layerData.selection.getContext("2d"), {
+            action: "clear",
+            params: { selectionPath: null }
+          });
+        }
+        moveStaging("selection");
+      case "selectEllipse":
+        if (!state.heldShift) {
+          manipulate(layerData.selection.getContext("2d"), {
+            action: "clear",
+            params: { selectionPath: null }
+          });
+        }
+        moveStaging("selection");
+      case "lasso":
         if (!state.heldShift) {
           manipulate(layerData.selection.getContext("2d"), {
             action: "clear",
@@ -371,12 +390,11 @@ export default function DrawSpace(props) {
         break;
 
       case "fillRect":
-        if (ev.shiftKey) {
-          if (Math.abs(state.origin[0] - x) < Math.abs(state.origin[1] - y)) {
-            x = y;
-          } else {
-            y = x;
-          }
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
         }
 
         draw(ctx, {
@@ -384,12 +402,18 @@ export default function DrawSpace(props) {
           params: {
             ...params,
             clearFirst: true,
-            dest: [x, y]
           }
         });
         break;
 
       case "drawRect":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         draw(ctx, {
           action: "drawRect",
           params: {
@@ -399,9 +423,16 @@ export default function DrawSpace(props) {
         });
         break;
 
-      case "fillCirc":
+      case "fillEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         draw(ctx, {
-          action: "fillCirc",
+          action: "fillEllipse",
           params: {
             ...params,
             clearFirst: true
@@ -409,9 +440,16 @@ export default function DrawSpace(props) {
         });
         break;
 
-      case "drawCirc":
+      case "drawEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         draw(ctx, {
-          action: "drawCirc",
+          action: "drawEllipse",
           params: {
             ...params,
             clearFirst: true
@@ -469,6 +507,13 @@ export default function DrawSpace(props) {
         return eyeDropper(x, y, modifier ? "secondary" : "primary");
 
       case "selectRect":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         draw(ctx, {
           action: "drawRect",
           params: {
@@ -481,7 +526,49 @@ export default function DrawSpace(props) {
           }
         });
         break;
+      case "selectEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
 
+        draw(ctx, {
+          action: "drawEllipse",
+          params: {
+            ...params,
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [5, 10],
+            clearFirst: true,
+            clip: null
+          }
+        });
+        break;
+      case "lasso":
+        if (state.lockedAxis === "x") {
+          x = state.origin[0];
+        } else if (state.lockedAxis === "y") {
+          y = state.origin[1];
+        }
+
+        draw(ctx, {
+          action: "drawQuad",
+          params: {
+            ...params,
+            destArray: [...state.destArray, [x, y]],
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [5, 10],
+            clearFirst: true,
+            clip: null
+          }
+        });
+        return (state = {
+          ...state,
+          destArray: [...state.destArray, [x, y]]
+        });
       case "move":
         if (state.throttle) break;
 
@@ -576,6 +663,8 @@ export default function DrawSpace(props) {
     };
 
     let ctx = layerData[activeLayer].getContext("2d");
+    let path;
+
 
     switch (state.tool) {
       case "pencil":
@@ -630,7 +719,14 @@ export default function DrawSpace(props) {
         );
         break;
 
-      case "fillRect":
+      case "fillRect": 
+      if (ev.shiftKey) { 
+        params = {
+          ...params,
+          dest: convertDestToRegularShape(state.origin, [x, y])
+        } 
+      }
+
         dispatch(
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
@@ -642,6 +738,13 @@ export default function DrawSpace(props) {
         break;
 
       case "drawRect":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         dispatch(
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
@@ -652,22 +755,36 @@ export default function DrawSpace(props) {
         );
         break;
 
-      case "fillCirc":
+      case "fillEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         dispatch(
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
-              action: "fillCirc",
+              action: "fillEllipse",
               params: { ...params }
             })
           )
         );
         break;
 
-      case "drawCirc":
+      case "drawEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         dispatch(
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
-              action: "drawCirc",
+              action: "drawEllipse",
               params: { ...params }
             })
           )
@@ -698,7 +815,13 @@ export default function DrawSpace(props) {
         break;
 
       case "selectRect":
-        let path;
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
         if (
           params.orig[0] === params.dest[0] &&
           params.orig[1] === params.dest[1]
@@ -724,6 +847,73 @@ export default function DrawSpace(props) {
             })
           )
         );
+        dispatch(updateSelectionPath(path));
+        break;
+      case "selectEllipse":
+        if (ev.shiftKey) { 
+          params = {
+            ...params,
+            dest: convertDestToRegularShape(state.origin, [x, y])
+          } 
+        }
+
+        if (
+          params.orig[0] === params.dest[0] &&
+          params.orig[1] === params.dest[1]
+        ) {
+          path = null;
+        } else if (selectionPath !== null && state.heldShift) {
+          path = new Path2D(selectionPath);
+        } else {
+          path = new Path2D();
+        }
+        path = selection(path, { action: "drawEllipse", params });
+        dispatch(
+          putHistoryData("selection", layerData.selection.getContext("2d"), () =>
+            draw(layerData.selection.getContext("2d"), {
+              action: "drawEllipse",
+              params: {
+                ...params,
+                width: 1,
+                strokeColor: "rgba(0, 0, 0, 1)",
+                dashPattern: [5, 10],
+                clip: null
+              }
+            })
+          )
+        );
+        dispatch(updateSelectionPath(path));
+        break;
+
+      case "lasso":
+        if (
+          params.orig[0] === params.dest[0] &&
+          params.orig[1] === params.dest[1]
+        ) {
+          path = null;
+        } else {
+          if (selectionPath !== null && state.heldShift) {
+            path = new Path2D(selectionPath);
+          } else {
+            path = new Path2D();
+          }
+          path = selection(path, { action: "drawQuadPath", params: { ...params, destArray: state.destArray } });
+          dispatch(
+            putHistoryData("selection", layerData.selection.getContext("2d"), () =>
+              draw(layerData.selection.getContext("2d"), {
+                action: "drawQuadPath",
+                params: {
+                  ...params,
+                  destArray: state.destArray,
+                  width: 1,
+                  strokeColor: "rgba(0, 0, 0, 1)",
+                  dashPattern: [5, 10],
+                  clip: null
+                }
+              })
+            )
+          );
+        }
         dispatch(updateSelectionPath(path));
         break;
 

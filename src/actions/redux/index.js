@@ -12,6 +12,7 @@ export const [
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
+  UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   DRAG_LAYERCARD,
@@ -38,6 +39,7 @@ export const [
   "UPDATE_SELECTION_PATH",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
+  "UPDATE_STAGING_POSITION",
   "ENABLE_LAYER_RENAME",
   "UPDATE_LAYER_NAME",
   "DRAG_LAYERCARD",
@@ -118,10 +120,10 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
 }
 
-export const createLayer = (position, special = null, ignoreHistory = false) => {
+export const createLayer = (position, ignoreHistory = false) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, special, ignoreHistory}
+    payload: {position, ignoreHistory}
   };
 };
 
@@ -177,7 +179,7 @@ export const updateSelectionPath = path => {
 export const updateLayerOpacity = (id, opacity) => {
   return {
     type: UPDATE_LAYER_OPACITY,
-    payload: {id, opacity}
+    payload: {id, opacity, ignoreHistory: true}
   };
 };
 
@@ -185,6 +187,13 @@ export const updateLayerOrder = (from, to) => {
   return {
     type: UPDATE_LAYER_ORDER,
     payload: {from, to, ignoreHistory: true}
+  };
+};
+
+export const updateStagingPosition = id => {
+  return {
+    type: UPDATE_STAGING_POSITION,
+    payload: {id, ignoreHistory: true}
   };
 };
 

@@ -89,6 +89,14 @@ export function circle(ctx, { orig, dest }) {
   );
 }
 
+export function ellipse(ctx, { orig, dest }) {
+  ctx.beginPath();
+  const center = midpoint(orig, dest);
+  const radiusX = Math.abs(dest[0] - center[0]);
+  const radiusY = Math.abs(dest[1] - center[1]);
+  ctx.ellipse(center[0], center[1], radiusX, radiusY, 0, 0, Math.PI * 2);
+}
+
 export function move(ctx, { orig, dest }) {
   let [x, y] = [dest[0] - orig[0], dest[1] - orig[1]];
   const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);

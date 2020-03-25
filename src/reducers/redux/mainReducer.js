@@ -1,12 +1,12 @@
 import {
   CREATE_LAYER,
-  CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
+  UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   MAKE_ACTIVE_LAYER,
@@ -17,23 +17,17 @@ import { initMainState } from "./initState";
 const mainReducer = (state = initMainState, {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
-      let { position, source, special } = payload;
-      if (state.layerOrder.length > 51 && !special) {
+      let { position, source } = payload;
+      if (state.layerOrder.length >= 50) {
         return state
       };
       if (position === "top") {
-        position = 0;
-        for (let i = state.layerOrder.length; i > 0; i--) {
-          if (typeof state.layerOrder[i - 1] === "number") {
-            position = i - 1;
-            break;
-          }
-        }
+        position = state.layerOrder.length;
       }
      
-      const layerId = special ? special : state.layerCounter;
+      const layerId = state.layerCounter;
       const newLayerSettings = {
-        name: special ? undefined : `Layer ${state.layerCounter}`,
+        name: `Layer ${state.layerCounter}`,
         nameEditable: false,
         hidden: false,
         opacity: 1,
@@ -46,8 +40,8 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         layerData: {...state.layerData, [layerId]: source ? source : null},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
-        activeLayer: special ? state.activeLayer : state.layerCounter,
-        layerCounter: special ? state.layerCounter : state.layerCounter + 1,
+        activeLayer: state.layerCounter,
+        layerCounter: state.layerCounter + 1,
       };
     
     case DELETE_LAYER:
@@ -121,6 +115,12 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         ...state,
         layerOrder: newLayerOrder,
       };
+      
+    case UPDATE_STAGING_POSITION:
+      return {
+        ...state,
+        stagingPinnedTo: payload.id
+      }
 
     case ENABLE_LAYER_RENAME:
       let afterEnableSettings =  {

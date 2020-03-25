@@ -19,13 +19,9 @@ export default function menuAction(action) {
       return switchColors();
     case "deselect":
       return (dispatch, getState) => {
-        const ctx = getState().main.present.layerData.selection.getContext(
-          "2d"
-        );
+        const ctx = getState().main.present.layerData.selection.getContext("2d");
         dispatch(
-          putHistoryData(
-            "selection",
-            ctx,
+          putHistoryData("selection", ctx, () =>
             manipulate(ctx, {
               action: "clear",
               params: { selectionPath: null }
@@ -44,9 +40,7 @@ export default function menuAction(action) {
       // PROBABLY SHOULD MOVE CLIPBOARD TO ITS OWN REDUCER???
       return (dispatch, getState) => {
         const { activeLayer, selectionPath } = getState().main.present;
-        const ctx = getState().main.present.layerData.clipboard.getContext(
-          "2d"
-        );
+        const ctx = getState().main.present.layerData.clipboard.getContext("2d");
         const sourceCtx = getState().main.present.layerData[
           activeLayer
         ].getContext("2d");
@@ -64,12 +58,8 @@ export default function menuAction(action) {
     case "paste":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
-        const ctx = getState().main.present.layerData[activeLayer].getContext(
-          "2d"
-        );
-        const sourceCtx = getState().main.present.layerData.clipboard.getContext(
-          "2d"
-        );
+        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
         putHistoryData(activeLayer, ctx, () =>
           manipulate(ctx, {
             action: "paste",
@@ -128,9 +118,7 @@ export default function menuAction(action) {
     case "clear":
       return (dispatch, getState) => {
         const { activeLayer, selectionPath } = getState().main.present;
-        const ctx = getState().main.present.layerData[activeLayer].getContext(
-          "2d"
-        );
+        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
         if (!selectionPath) {
           return;
         } else {

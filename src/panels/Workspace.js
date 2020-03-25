@@ -60,6 +60,7 @@ export default function Workspace() {
   const layerData = useSelector(state => state.main.present.layerData);
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
+  const stagingPinnedTo = useSelector(state => state.main.present.stagingPinnedTo)
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -199,12 +200,13 @@ export default function Workspace() {
       >
         <DrawSpace
           overrideCursor={isDragging ? "grabbing" : null}
-          index={layerOrder.length + 2}
+          index={layerOrder.length + 5}
         />
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
           layerSettings={layerSettings}
+          stagingPinnedTo={stagingPinnedTo}
           width={canvasWidth}
           height={canvasHeight}
         />
@@ -217,16 +219,61 @@ function LayerRenderer({
   layerOrder,
   layerData,
   layerSettings,
+  stagingPinnedTo,
   width,
   height
 }) {
   return (
     <>
+      <Layer
+        id={"selection"}
+        width={width}
+        height={height}
+        index={layerOrder.length + 4}
+        data={layerData.selection}
+        hidden={false}
+        opacity={1}
+      />
+      {stagingPinnedTo === "selection" && 
+        <Layer
+          key={"staging"}
+          id={"staging"}
+          width={width}
+          height={height}
+          index={layerOrder.length + 4}
+          data={layerData.staging}
+          hidden={false}
+          opacity={1}
+        />
+      }
       {layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
           let layerDat = layerData[layerId];
           let layerSet = layerSettings[layerId];
-          return (
+          return stagingPinnedTo === layerId ? (
+            <>
+              <Layer
+                key={layerId}
+                id={layerId}
+                width={width}
+                height={height}
+                index={i + 1}
+                data={layerDat}
+                hidden={layerSet.hidden}
+                opacity={layerSet.opacity}
+              />
+              <Layer
+                key={"staging"}
+                id={"staging"}
+                width={width}
+                height={height}
+                index={i + 1}
+                data={layerData.staging}
+                hidden={false}
+                opacity={1}
+              />
+            </>
+          ) : (
             <Layer
               key={layerId}
               id={layerId}
@@ -239,6 +286,15 @@ function LayerRenderer({
             />
           );
         })}
+      <Layer
+        id={"clipboard"}
+        width={width}
+        height={height}
+        index={1}
+        data={layerData.clipboard}
+        hidden={true}
+        opacity={1}
+      />
     </>
   );
 }

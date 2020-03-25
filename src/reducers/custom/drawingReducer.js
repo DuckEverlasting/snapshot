@@ -4,7 +4,7 @@ import {
   quadraticPoints,
   bezier,
   rectangle,
-  circle
+  ellipse
 } from "../../actions/custom/ctxActions.js";
 
 export default function(ctx, { action, params }) {
@@ -88,8 +88,8 @@ export default function(ctx, { action, params }) {
       ctx.stroke();
       break;
 
-    case "drawCirc":
-      circle(ctx, params);
+    case "drawEllipse":
+      ellipse(ctx, params);
       ctx.stroke();
       break;
 
@@ -116,8 +116,8 @@ export default function(ctx, { action, params }) {
       ctx.fill();
       break;
 
-    case "fillCirc":
-      circle(ctx, params);
+    case "fillEllipse":
+      ellipse(ctx, params);
       ctx.fill();
       break;
 
