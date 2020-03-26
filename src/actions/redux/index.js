@@ -26,7 +26,8 @@ export const [
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
   SET_CLIPBOARD_IS_USED,
-  TOGGLE_ABOUT_MODAL
+  TOGGLE_ABOUT_MODAL,
+  SET_FILTER_TOOL
 ] = [
   "UNDO",
   "REDO",
@@ -53,7 +54,8 @@ export const [
   "TOGGLE_MENU",
   "SET_ACTIVE_MENU_LIST",
   "SET_CLIPBOARD_IS_USED",
-  "TOGGLE_ABOUT_MODAL"
+  "TOGGLE_ABOUT_MODAL",
+  "SET_FILTER_TOOL"
 ];
 
 export const undo = () => {
@@ -120,21 +122,21 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
 }
 
-export const createLayer = (position, ignoreHistory = false) => {
+export const createLayer = (position, ignoreHistory=false) => {
   return {
     type: CREATE_LAYER,
     payload: {position, ignoreHistory}
   };
 };
 
-export const createLayerFrom = (position, source, ignoreHistory = false) => {
+export const createLayerFrom = (position, source, ignoreHistory=false) => {
   return {
     type: CREATE_LAYER,
     payload: {position, source, ignoreHistory}
   };
 };
 
-export const deleteLayer = (id, ignoreHistory = false) => {
+export const deleteLayer = (id, ignoreHistory=false) => {
   return (dispatch, getState) => {
     let data = null;
     if (!ignoreHistory) {
@@ -162,7 +164,7 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerData = (id, changes, ignoreHistory = true) => {
+export const updateLayerData = (id, changes, ignoreHistory=true) => {
   return {
     type: UPDATE_LAYER_DATA,
     payload: {id, changes, ignoreHistory}
@@ -291,3 +293,12 @@ export const toggleAboutModal = () => {
   }
 }
 
+export const setFilterTool = (state, filter=null) => {
+  return {
+    type: SET_FILTER_TOOL,
+    payload: {
+      bool: state === "on",
+      filter
+    }
+  }
+}

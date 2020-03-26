@@ -16,6 +16,7 @@ import {
 import menuAction from "./actions/redux/menuAction";
 
 import { hotkey, hotkeyCtrl } from "./enums/hotkeys";
+import FilterTool from "./components/FilterTool.js";
 
 const AppSC = styled.div`
   text-align: center;
@@ -40,7 +41,8 @@ const AppContainerSC = styled.div`
 
 function App() {
   const height = useSelector(state => state.ui.workspaceSettings.height);
-  const modalOn = useSelector(state => state.ui.aboutModalVisible);
+  const modalVisible = useSelector(state => state.ui.aboutModalVisible);
+  const filterToolVisible = useSelector(state => state.ui.filterToolVisible);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -81,7 +83,8 @@ function App() {
 
   return (
     <AppSC height={height}>
-      {modalOn && <AboutModal turnOff={() => dispatch(toggleAboutModal())} />}
+      {modalVisible && <AboutModal turnOff={() => dispatch(toggleAboutModal())} />}
+      {filterToolVisible && <FilterTool />}
       <TopBar />
       <AppContainerSC>
         <ToolPanel />

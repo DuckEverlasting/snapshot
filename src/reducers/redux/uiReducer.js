@@ -8,7 +8,8 @@ import {
   SWITCH_COLORS,
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
-  TOGGLE_ABOUT_MODAL
+  TOGGLE_ABOUT_MODAL,
+  SET_FILTER_TOOL
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -90,6 +91,12 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       return {
         ...state,
         aboutModalVisible: !state.aboutModalVisible
+      }
+    case SET_FILTER_TOOL:
+      return {
+        ...state,
+        filterToolVisible: payload.bool,
+        currentFilter: payload.filter
       }
 
     default:
