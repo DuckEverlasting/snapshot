@@ -11,6 +11,8 @@ import {
   putHistoryData
 } from "./index";
 
+import filter, { contrast, saturation } from "../../utils/filters";
+
 import manipulate from "../../reducers/custom/manipulateReducer";
 
 export default function menuAction(action) {
@@ -129,6 +131,48 @@ export default function menuAction(action) {
                 params: {
                   clip: selectionPath
                 }
+              })
+            )
+          );
+        }
+      };
+    case "brightness":
+      const value = prompt("Enter value")
+      return (dispatch, getState) => {
+        const { activeLayer, selectionPath } = getState().main.present;
+        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        const stagingCtx = getState().main.present.layerData.staging.getContext("2d");
+        if (!selectionPath) {
+          return;
+        } else {
+          dispatch(
+            putHistoryData(activeLayer, ctx, () =>
+              filter(ctx, {
+                filter: saturation,
+                value,
+                clip: selectionPath,
+                staging: stagingCtx
+              })
+            )
+          );
+        }
+      };
+    case "saturate":
+      const value = prompt("Enter value")
+      return (dispatch, getState) => {
+        const { activeLayer, selectionPath } = getState().main.present;
+        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        const stagingCtx = getState().main.present.layerData.staging.getContext("2d");
+        if (!selectionPath) {
+          return;
+        } else {
+          dispatch(
+            putHistoryData(activeLayer, ctx, () =>
+              filter(ctx, {
+                filter: saturation,
+                value,
+                clip: selectionPath,
+                staging: stagingCtx
               })
             )
           );

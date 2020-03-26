@@ -98,7 +98,7 @@ export default function TopBar() {
           />
           <MenuItem 
             label="Hue / Saturation"
-            disabled
+            onClick={() => dispatch(menuAction("saturate"))}
           />
           <MenuItem 
             label="Desaturate"
