@@ -84,7 +84,6 @@ const LabelSC = styled.label`
 `;
 
 export default function SliderInput({onChange, value, name, min=1, max=100, step=1}) {
-  console.log("SLIDER INPUT: ", name)
   const keydownHandler = ev => {
     ev.stopPropagation();
   };

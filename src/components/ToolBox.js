@@ -20,6 +20,8 @@ import dashedSquareIcon from "../media/dashed-square.svg"
 import lassoIcon from "../media/lasso.svg"
 import styled from "styled-components";
 
+import Button from "./Button";
+
 import { makeActiveTool } from "../actions/redux";
 
 const ToolboxSC = styled.div`
@@ -28,32 +30,6 @@ const ToolboxSC = styled.div`
   justify-content: center;
   border-top: 1px solid black;
   padding: 10px 0;
-`;
-
-const ButtonSC = styled.button`
-  width: 35%;
-  height: 25px;
-  margin: 2%;
-  outline: none;
-  cursor: pointer;
-  padding: 3px 0;
-  background: ${props => props.active ? "#ffe312" : "#e3e3e3"};
-  border: 1px solid #333333;
-  border-radius: 2px;
-  
-  & img {
-    margin-top: 2%;
-    height: 90%;
-    width: 90%;
-  }
-
-  &:hover{
-    background: ${props => props.active ? "#ffe312" : "#d6d6d6"};
-  }
-
-  &:active{
-    box-shadow: inset 0 .5px 3px #222222;
-  }
 `;
 
 const SpanSC = styled.span`
@@ -93,7 +69,7 @@ function ToolButton({ title, name, faIcon, icon }) {
   };
 
   return (
-    <ButtonSC
+    <Button
       title={title}
       name={name}
       active={activeTool === name}
@@ -106,7 +82,7 @@ function ToolButton({ title, name, faIcon, icon }) {
           icon
         }
       </SpanSC>
-    </ButtonSC>
+    </Button>
   )
 }
 

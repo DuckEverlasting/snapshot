@@ -4,6 +4,7 @@ import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
 import LayerCard from "../components/LayerCard";
+import Button from "../components/Button";
 import { createLayer, updateLayerOrder } from "../actions/redux";
 
 const LayerPanelSC = styled.div`
@@ -45,25 +46,9 @@ const BottomBoxSC = styled.div`
   width: 100%;
 `
 
-const ButtonSC = styled.button`
+const LayerPanelButtonSC = styled(Button)`
   width: 80%;
-  font-size: 12px;
-  margin: 2%;
-  outline: none;
-  cursor: pointer;
-  padding: 3px 0;
-  background: #e3e3e3;
-  border: 1px solid #333333;
-  border-radius: 2px;
-
-  &:hover{
-    background: #d6d6d6;
-  }
-
-  &:active{
-    box-shadow: inset 0 .5px 3px #222222;
-  }
-`;
+`
 
 export default function LayerPanel() {
   const layerSettings = useSelector(state => state.main.present.layerSettings)
@@ -121,9 +106,9 @@ export default function LayerPanel() {
         </Droppable>
       </DragDropContext>
       <BottomBoxSC>
-        <ButtonSC title="New Layer" onClick={() => dispatch(createLayer("top"))}>
+        <LayerPanelButtonSC title="New Layer" onClick={() => dispatch(createLayer("top"))}>
           NEW LAYER
-        </ButtonSC>
+        </LayerPanelButtonSC>
       </BottomBoxSC>
     </LayerPanelSC>
   );

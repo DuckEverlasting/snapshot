@@ -1,7 +1,7 @@
 class Filter {
-  constructor(name, initImput, applyFunct) {
+  constructor(name, inputInfo, applyFunct) {
     this.name = name;
-    this.initImput = initImput;
+    this.inputInfo = inputInfo;
     this.apply = applyFunct;
   }
 }
@@ -9,6 +9,7 @@ class Filter {
 const amount = {
   name: "Amount",
   type: "Number",
+  init: 0,
   min: -100,
   max: 100
 };
@@ -21,7 +22,7 @@ export const invert = new Filter("Invert", null, data => {
   }
 });
 
-export const brightness = new Filter("Brightness", {amount: 0}, (data, {amount}) => {
+export const brightness = new Filter("Brightness", {amount}, (data, {amount}) => {
   if (amount < -100) {amount = -100};
   if (amount > 100) {amount = 100};
   for (let i=0; i<data.length; i+=4) {
@@ -31,7 +32,7 @@ export const brightness = new Filter("Brightness", {amount: 0}, (data, {amount})
   }
 });
 
-export const contrast = new Filter("Contrast", {amount: 0}, (data, {amount}) => {
+export const contrast = new Filter("Contrast", {amount}, (data, {amount}) => {
   if (amount < -100) {amount = -100};
   if (amount > 100) {amount = 100};
   const factor = (259 * (amount + 255)) / (255 * (259 - amount));
@@ -42,7 +43,7 @@ export const contrast = new Filter("Contrast", {amount: 0}, (data, {amount}) => 
   }
 });
 
-export const saturation = new Filter("Saturation", {amount: 0}, (data, {amount}) => {
+export const saturation = new Filter("Saturation", {amount}, (data, {amount}) => {
   amount /= -100
   for (let i=0; i<data.length; i+=4) {
     const max = Math.max(data[i], data[i + 1], data[i + 2]);
