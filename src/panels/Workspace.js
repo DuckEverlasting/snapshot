@@ -25,7 +25,7 @@ const ZoomDisplaySC = styled.div`
   position: absolute;
   top: 0;
   right: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0, 0, 0, 0.5);
   color: rgb(235, 235, 235);
   padding: 10px 20px;
   border-bottom-left-radius: 3px;
@@ -51,16 +51,21 @@ let animationFrame = 0;
 let lastFrame = 0;
 
 export default function Workspace() {
-  const {
-    translateX,
-    translateY,
-    zoomPct
-  } = useSelector(state => state.ui.workspaceSettings);
-  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
+  const { translateX, translateY, zoomPct } = useSelector(
+    state => state.ui.workspaceSettings
+  );
+  const { canvasWidth, canvasHeight } = useSelector(
+    state => state.main.present.documentSettings
+  );
   const layerData = useSelector(state => state.main.present.layerData);
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
-  const stagingPinnedTo = useSelector(state => state.main.present.stagingPinnedTo)
+  const stagingPinnedTo = useSelector(
+    state => state.main.present.stagingPinnedTo
+  );
+
+  const [mouseIsIn, setMouseIsIn] = useState(false);
+  const [mouseIsDown, setMouseIsDown] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -82,7 +87,9 @@ export default function Workspace() {
 
   useEffect(() => {
     const zoom = steps => {
-      dispatch(updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) }));
+      dispatch(
+        updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) })
+      );
     };
     const translate = (deltaX, deltaY) => {
       dispatch(
@@ -143,7 +150,7 @@ export default function Workspace() {
 
     return () => {
       workspaceElement.removeEventListener("wheel", mouseWheelHandler);
-    }
+    };
   }, [dispatch, translateX, translateY, zoomPct]);
 
   const handleMouseDown = ev => {
@@ -161,7 +168,7 @@ export default function Workspace() {
     setDragOrigin({ x: null, y: null });
   };
 
-  const handleMouseOut = ev => {
+  const handleMouseOut = () => {
     if (isDragging) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
@@ -183,10 +190,16 @@ export default function Workspace() {
   };
 
   return (
-    <WorkspaceSC ref={workspaceRef}>
-      <ZoomDisplaySC>
-        Zoom: {Math.ceil(zoomPct * 100) / 100}%
-      </ZoomDisplaySC>
+    <WorkspaceSC
+      onMouseDown={() => setMouseIsDown(true)}
+      onMouseEnter={() => setMouseIsIn(true)}
+      onMouseLeave={() => {
+        setMouseIsDown(false)
+        setMouseIsIn(false)
+      }}
+      ref={workspaceRef}
+    >
+      <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       <CanvasPaneSC
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
@@ -201,6 +214,7 @@ export default function Workspace() {
         <DrawSpace
           overrideCursor={isDragging ? "grabbing" : null}
           index={layerOrder.length + 5}
+          mouseIsIn={mouseIsIn}
         />
         <LayerRenderer
           layerOrder={layerOrder}
@@ -234,7 +248,7 @@ function LayerRenderer({
         hidden={false}
         opacity={1}
       />
-      {stagingPinnedTo === "selection" && 
+      {stagingPinnedTo === "selection" && (
         <Layer
           key={"staging"}
           id={"staging"}
@@ -245,7 +259,7 @@ function LayerRenderer({
           hidden={false}
           opacity={1}
         />
-      }
+      )}
       {layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
           let layerDat = layerData[layerId];

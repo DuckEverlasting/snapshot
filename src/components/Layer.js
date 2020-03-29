@@ -21,10 +21,10 @@ const LayerSC = styled.canvas.attrs(props => ({
   }
 }))`
   position: absolute;
-  width: 300%;
-  height: 300%;
-  bottom: -100%;
-  right: -100%;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
   image-rendering: pixelated;
 `
 
@@ -42,14 +42,12 @@ function Layer(props) {
     }
     dispatch(updateLayerData(props.id, canvasRef.current));
     if (onUndelete && onUndelete.id === props.id) {
-      const viewWidth = Math.ceil(ctx.canvas.width / 3);
-      const viewHeight = Math.ceil(ctx.canvas.height / 3);
-      ctx.putImageData(onUndelete.data, viewWidth, viewHeight);
+      ctx.putImageData(onUndelete.data, 0, 0);
     }
   }, [onUndelete, props.id])
 
   return <LayerWrapperSC width={props.width} height={props.height}>
-    <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width * 3)} height={Math.floor(props.height * 3)} hidden={props.hidden} index={props.index} ref={canvasRef} />
+    <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width)} height={Math.floor(props.height)} hidden={props.hidden} index={props.index} ref={canvasRef} />
   </LayerWrapperSC>
 }
 

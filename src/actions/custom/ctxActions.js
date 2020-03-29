@@ -113,14 +113,12 @@ export function undelete(ctx, { source }) {
 }
 
 export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
-  orig[0] -= viewWidth;
-  orig[1] -= viewHeight;
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
   orig = orig.map(num => Math.floor(num));
   const imgData = ctx.getImageData(
-    viewWidth,
-    viewHeight,
+    0,
+    0,
     viewWidth,
     viewHeight
   );
@@ -152,8 +150,8 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
     }
   }
 
-  ctx.clearRect(viewWidth, viewHeight, viewWidth, viewHeight);
-  ctx.putImageData(imgData, viewWidth, viewHeight);
+  ctx.clearRect(0, 0, viewWidth, viewHeight);
+  ctx.putImageData(imgData, 0, 0);
 
   function getSurrounding(origin) {
     return [
@@ -181,11 +179,11 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
 }
 
 export function getDiff(ctx, { prevImgData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
   const imgData = ctx.getImageData(
-    viewWidth,
-    viewHeight,
+    0,
+    0,
     viewWidth,
     viewHeight
   );
@@ -203,11 +201,11 @@ export function getDiff(ctx, { prevImgData }) {
 }
 
 export function swapData(ctx, { changeData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
   const imgData = ctx.getImageData(
-    viewWidth,
-    viewHeight,
+    0,
+    0,
     viewWidth,
     viewHeight
   );
@@ -216,6 +214,6 @@ export function swapData(ctx, { changeData }) {
     imgData.data[index] = changeData[index];
     changeData[index] = placeholder;
   }
-  ctx.putImageData(imgData, viewWidth, viewHeight);
+  ctx.putImageData(imgData, 0, 0);
   return changeData;
 }

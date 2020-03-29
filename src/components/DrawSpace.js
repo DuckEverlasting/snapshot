@@ -60,16 +60,26 @@ export default function DrawSpace(props) {
   const { zoomPct, translateX, translateY } = useSelector(
     state => state.ui.workspaceSettings
   );
-  const { canvasWidth, canvasHeight } = useSelector(
-    state => state.main.present.documentSettings
-  );
   const dispatch = useDispatch();
+
+  // useEffect(() => {
+  //   window.addEventListener("mousedown", handleMouseDown);
+  //   window.addEventListener("mouseup", handleMouseDown);
+  // })
 
   useEffect(() => {
     if (state.mouseDown) {
       state = { ...state, interrupt: true };
     }
   }, [activeTool]);
+
+  useEffect(() => {
+    if (props.mouseIsIn || !state.mouseDown) {return} 
+    state = {
+      ...state,
+      interrupt: true
+    }
+  }, [props.mouseIsIn])
 
   const eyeDropper = (x, y, palette) => {
     /* 
@@ -142,7 +152,7 @@ export default function DrawSpace(props) {
     ev.preventDefault();
   };
 
-  const mouseDownHandler = ev => {
+  const actionStart = ev => {
     /* 
       Handles what happens when mouse is pressed down.
     */
@@ -154,15 +164,15 @@ export default function DrawSpace(props) {
     const ctx = layerData[activeLayer].getContext("2d");
 
     let [x, y] = [
-      ev.nativeEvent.offsetX + canvasWidth,
-      ev.nativeEvent.offsetY + canvasHeight
+      ev.nativeEvent.offsetX,
+      ev.nativeEvent.offsetY
     ];
     let viewWidth, viewHeight;
     state = {
       ...state,
       mouseDown: true,
       origin: [x, y],
-      destArray: [],
+      destArray: [[x, y]],
       lastMid: null,
       heldShift: ev.shiftKey,
       tool: activeTool
@@ -172,13 +182,13 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "brush":
-        viewWidth = Math.ceil(ctx.canvas.width / 3);
-        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        viewWidth = Math.ceil(ctx.canvas.width);
+        viewHeight = Math.ceil(ctx.canvas.height);
         state = {
           ...state,
           prevImgData: ctx.getImageData(
-            viewWidth,
-            viewHeight,
+            0,
+            0,
             viewWidth,
             viewHeight
           )
@@ -200,13 +210,13 @@ export default function DrawSpace(props) {
         moveStaging();
         break;
       case "eraser":
-        viewWidth = Math.ceil(ctx.canvas.width / 3);
-        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        viewWidth = Math.ceil(ctx.canvas.width);
+        viewHeight = Math.ceil(ctx.canvas.height);
         state = {
           ...state,
           prevImgData: ctx.getImageData(
-            viewWidth,
-            viewHeight,
+            0,
+            0,
             viewWidth,
             viewHeight
           )
@@ -225,6 +235,7 @@ export default function DrawSpace(props) {
           });
         }
         moveStaging("selection");
+        break;
       case "selectEllipse":
         if (!state.heldShift) {
           manipulate(layerData.selection.getContext("2d"), {
@@ -233,6 +244,7 @@ export default function DrawSpace(props) {
           });
         }
         moveStaging("selection");
+        break;
       case "lasso":
         if (!state.heldShift) {
           manipulate(layerData.selection.getContext("2d"), {
@@ -241,14 +253,15 @@ export default function DrawSpace(props) {
           });
         }
         moveStaging("selection");
+        break;
       case "move":
-        viewWidth = Math.ceil(ctx.canvas.width / 3);
-        viewHeight = Math.ceil(ctx.canvas.height / 3);
+        viewWidth = Math.ceil(ctx.canvas.width);
+        viewHeight = Math.ceil(ctx.canvas.height);
         state = {
           ...state,
           prevImgData: ctx.getImageData(
-            viewWidth,
-            viewHeight,
+            0,
+            0,
             viewWidth,
             viewHeight
           )
@@ -277,27 +290,27 @@ export default function DrawSpace(props) {
     }
   };
 
-  const mouseMoveHandler = ev => {
+  const actionMove = ev => {
     /* 
       Handles what happens when mouse is moved.
     */
 
     if (state.interrupt) {
-      return mouseUpHandler(ev);
+      return actionEnd(ev);
     }
     if (!state.mouseDown) return;
     const { opacity, width, hardness } = toolSettings[state.tool];
     // Note conversion of opacity to 0 - 1 from 0 - 100 below.
     const color = addOpacity(primary, opacity / 100);
     let [x, y] = [
-      ev.nativeEvent.offsetX + canvasWidth,
-      ev.nativeEvent.offsetY + canvasHeight
+      ev.nativeEvent.offsetX,
+      ev.nativeEvent.offsetY
     ];
 
     // Default parameters
     let params = {
       orig: state.origin,
-      dest: [x, y],
+      dest: state.destArray[state.destArray.length - 1],
       destArray: [[x, y]],
       width: width,
       strokeColor: color,
@@ -387,6 +400,11 @@ export default function DrawSpace(props) {
             clearFirst: true
           }
         });
+        
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
 
       case "fillRect":
@@ -404,6 +422,11 @@ export default function DrawSpace(props) {
             clearFirst: true,
           }
         });
+        
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
 
       case "drawRect":
@@ -421,6 +444,11 @@ export default function DrawSpace(props) {
             clearFirst: true
           }
         });
+        
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
 
       case "fillEllipse":
@@ -438,6 +466,11 @@ export default function DrawSpace(props) {
             clearFirst: true
           }
         });
+        
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
 
       case "drawEllipse":
@@ -455,6 +488,11 @@ export default function DrawSpace(props) {
             clearFirst: true
           }
         });
+        
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
 
       case "eraser":
@@ -525,7 +563,13 @@ export default function DrawSpace(props) {
             clip: null
           }
         });
+        
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
+
       case "selectEllipse":
         if (ev.shiftKey) { 
           params = {
@@ -545,7 +589,13 @@ export default function DrawSpace(props) {
             clip: null
           }
         });
+
+        state = {
+          ...state,
+          destArray: [[x, y]]
+        }
         break;
+
       case "lasso":
         if (state.lockedAxis === "x") {
           x = state.origin[0];
@@ -569,6 +619,7 @@ export default function DrawSpace(props) {
           ...state,
           destArray: [...state.destArray, [x, y]]
         });
+
       case "move":
         if (state.throttle) break;
 
@@ -597,9 +648,9 @@ export default function DrawSpace(props) {
           state = { ...state, throttle: false };
         }, 25);
 
-        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX + canvasWidth);
+        const deltaX = state.origin[0] - (ev.nativeEvent.offsetX);
         const deltaY =
-          state.origin[1] - (ev.nativeEvent.offsetY + canvasHeight);
+          state.origin[1] - (ev.nativeEvent.offsetY);
         dispatch(
           updateWorkspaceSettings({
             translateX: translateX - deltaX,
@@ -616,7 +667,7 @@ export default function DrawSpace(props) {
     }
   };
 
-  const mouseUpHandler = (ev, mouseOut = false) => {
+  const actionEnd = (ev, mouseOut = false) => {
     /* 
       Handles what happens when mouse is released.
     */
@@ -635,27 +686,10 @@ export default function DrawSpace(props) {
       interrupt: false
     };
 
-    setTimeout(() => {
-      state = {
-        ...state,
-        hold: false,
-        tool: null,
-        lockedAxis: ""
-      };
-      layerData.staging
-        .getContext("2d")
-        .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
-      // dispatch(removeStagingLayer());
-    }, 0);
-
-    const [x, y] = [
-      ev.nativeEvent.offsetX + canvasWidth,
-      ev.nativeEvent.offsetY + canvasHeight
-    ];
     let params = {
       orig: state.origin,
-      dest: [x, y],
-      destArray: [[x, y]],
+      dest: state.destArray[state.destArray.length - 1],
+      destArray: state.destArray,
       width: width,
       strokeColor: color,
       fillColor: color,
@@ -668,52 +702,29 @@ export default function DrawSpace(props) {
 
     switch (state.tool) {
       case "pencil":
-        if (
-          params.orig[0] === params.dest[0] &&
-          params.orig[1] === params.dest[1]
-        ) {
-          return dispatch(
-            putHistoryData(activeLayer, ctx, () =>
-              draw(ctx, {
-                action: "fillRect",
-                params: {
-                  ...params,
-                  orig: [
-                    params.orig[0] - 0.5 * params.width,
-                    params.orig[1] - 0.5 * params.width
-                  ],
-                  dest: [
-                    params.dest[0] + 0.5 * params.width,
-                    params.dest[1] + 0.5 * params.width
-                  ]
-                }
-              })
-            )
-          );
-        } else {
-          return dispatch(
+        if (state.destArray.length) {
+          dispatch(
             putHistoryData(activeLayer, ctx, () =>
               draw(ctx, {
                 action: "drawQuad",
-                params: {
-                  ...params,
-                  destArray: state.destArray
-                }
+                params
               })
             )
           );
         }
+        break;
 
       case "brush":
         dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
-        return (state = { ...state, lastMid: null, prevImgData: null });
+        state = { ...state, lastMid: null, prevImgData: null };
+        break;
 
       case "line":
         dispatch(
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
               action: "drawLine",
-              params: { ...params }
+              params
             })
           )
         );
@@ -723,7 +734,7 @@ export default function DrawSpace(props) {
       if (ev.shiftKey) { 
         params = {
           ...params,
-          dest: convertDestToRegularShape(state.origin, [x, y])
+          dest: convertDestToRegularShape(state.origin, params.dest)
         } 
       }
 
@@ -731,7 +742,7 @@ export default function DrawSpace(props) {
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
               action: "fillRect",
-              params: { ...params }
+              params
             })
           )
         );
@@ -741,7 +752,7 @@ export default function DrawSpace(props) {
         if (ev.shiftKey) { 
           params = {
             ...params,
-            dest: convertDestToRegularShape(state.origin, [x, y])
+            dest: convertDestToRegularShape(state.origin, params.dest)
           } 
         }
 
@@ -749,7 +760,7 @@ export default function DrawSpace(props) {
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
               action: "drawRect",
-              params: { ...params }
+              params
             })
           )
         );
@@ -759,7 +770,7 @@ export default function DrawSpace(props) {
         if (ev.shiftKey) { 
           params = {
             ...params,
-            dest: convertDestToRegularShape(state.origin, [x, y])
+            dest: convertDestToRegularShape(state.origin, params.dest)
           } 
         }
 
@@ -767,7 +778,7 @@ export default function DrawSpace(props) {
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
               action: "fillEllipse",
-              params: { ...params }
+              params
             })
           )
         );
@@ -777,7 +788,7 @@ export default function DrawSpace(props) {
         if (ev.shiftKey) { 
           params = {
             ...params,
-            dest: convertDestToRegularShape(state.origin, [x, y])
+            dest: convertDestToRegularShape(state.origin, params.dest)
           } 
         }
 
@@ -785,7 +796,7 @@ export default function DrawSpace(props) {
           putHistoryData(activeLayer, ctx, () =>
             draw(ctx, {
               action: "drawEllipse",
-              params: { ...params }
+              params
             })
           )
         );
@@ -793,7 +804,8 @@ export default function DrawSpace(props) {
 
       case "eraser":
         dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
-        return (state = { ...state, lastMid: null, prevImgData: null });
+        state = { ...state, lastMid: null, prevImgData: null };
+        break;
 
       case "eyeDropper":
         break;
@@ -818,7 +830,7 @@ export default function DrawSpace(props) {
         if (ev.shiftKey) { 
           params = {
             ...params,
-            dest: convertDestToRegularShape(state.origin, [x, y])
+            dest: convertDestToRegularShape(state.origin, params.dest)
           } 
         }
 
@@ -849,11 +861,12 @@ export default function DrawSpace(props) {
         );
         dispatch(updateSelectionPath(path));
         break;
+
       case "selectEllipse":
         if (ev.shiftKey) { 
           params = {
             ...params,
-            dest: convertDestToRegularShape(state.origin, [x, y])
+            dest: convertDestToRegularShape(state.origin, params.dest)
           } 
         }
 
@@ -897,14 +910,13 @@ export default function DrawSpace(props) {
           } else {
             path = new Path2D();
           }
-          path = selection(path, { action: "drawQuadPath", params: { ...params, destArray: state.destArray } });
+          path = selection(path, { action: "drawQuadPath", params });
           dispatch(
             putHistoryData("selection", layerData.selection.getContext("2d"), () =>
               draw(layerData.selection.getContext("2d"), {
                 action: "drawQuadPath",
                 params: {
                   ...params,
-                  destArray: state.destArray,
                   width: 1,
                   strokeColor: "rgba(0, 0, 0, 1)",
                   dashPattern: [5, 10],
@@ -919,24 +931,36 @@ export default function DrawSpace(props) {
 
       case "move":
         dispatch(putHistoryData(activeLayer, ctx, null, state.prevImgData));
-        return (state = { ...state, lastMid: null, prevImgData: null });
+        state = { ...state, lastMid: null, prevImgData: null };
+        break;
 
       case "hand":
         break;
 
       case "zoom":
         if (mouseOut) break;
-        return dispatch(
+        dispatch(
           updateWorkspaceSettings({
             zoomPct: ev.altKey
               ? getZoomAmount(-1, zoomPct)
               : getZoomAmount(1, zoomPct)
           })
         );
+        break;
 
       default:
         break;
     }
+
+    state = {
+      ...state,
+      hold: false,
+      tool: null,
+      lockedAxis: ""
+    };
+    layerData.staging
+      .getContext("2d")
+      .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
   };
 
   return (
@@ -946,10 +970,18 @@ export default function DrawSpace(props) {
       cursorHandler={cursorHandler}
       pencilImg={pencilImg}
       onContextMenu={contextMenuHandler}
-      onMouseDown={mouseDownHandler}
-      onMouseMove={mouseMoveHandler}
-      onMouseUp={mouseUpHandler}
-      onMouseOut={ev => mouseUpHandler(ev, true)}
+      onMouseDown={actionStart}
+      onMouseMove={actionMove}
+      onMouseUp={actionEnd}
+      onMouseLeave={ev => {
+        actionMove(ev)
+        actionEnd(ev, true)
+      }}
+      onMouseOver={ev => {
+        if (ev.buttons === 1) {
+          actionStart(ev)
+        }
+      }}
     />
   );
 }
