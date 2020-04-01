@@ -45,6 +45,7 @@ const CanvasPaneSC = styled.div.attrs(props => ({
   margin: auto;
   background: white;
   flex: none;
+  pointer-events: none;
 `;
 
 let animationFrame = 0;
@@ -63,9 +64,6 @@ export default function Workspace() {
   const stagingPinnedTo = useSelector(
     state => state.main.present.stagingPinnedTo
   );
-
-  const [mouseIsIn, setMouseIsIn] = useState(false);
-  const [mouseIsDown, setMouseIsDown] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -154,16 +152,16 @@ export default function Workspace() {
   }, [dispatch, translateX, translateY, zoomPct]);
 
   const handleMouseDown = ev => {
-    if (ev.button !== 1) return;
+    if (ev.button !== 2) return;
     setIsDragging(true);
     setDragOrigin({
-      x: ev.nativeEvent.offsetX * (zoomPct / 100),
-      y: ev.nativeEvent.offsetY * (zoomPct / 100)
+      x: ev.screenX * (zoomPct / 100) - translateX,
+      y: ev.screenY * (zoomPct / 100) - translateY
     });
   };
 
   const handleMouseUp = ev => {
-    if (ev.button !== 1) return;
+    if (ev.button !== 2) return;
     setIsDragging(false);
     setDragOrigin({ x: null, y: null });
   };
@@ -179,43 +177,36 @@ export default function Workspace() {
     if (!isDragging) return;
     if (animationFrame === lastFrame) return;
     lastFrame = animationFrame;
-    const deltaX = dragOrigin.x - ev.nativeEvent.offsetX * (zoomPct / 100);
-    const deltaY = dragOrigin.y - ev.nativeEvent.offsetY * (zoomPct / 100);
+    const deltaX = ev.screenX * (zoomPct / 100) - dragOrigin.x;
+    const deltaY = ev.screenY * (zoomPct / 100) - dragOrigin.y;
     dispatch(
       updateWorkspaceSettings({
-        translateX: translateX - deltaX,
-        translateY: translateY - deltaY
+        translateX: deltaX,
+        translateY: deltaY
       })
     );
   };
 
   return (
     <WorkspaceSC
-      onMouseDown={() => setMouseIsDown(true)}
-      onMouseEnter={() => setMouseIsIn(true)}
-      onMouseLeave={() => {
-        setMouseIsDown(false)
-        setMouseIsIn(false)
-      }}
       ref={workspaceRef}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseOut={handleMouseOut}
+      onMouseMove={handleMouseMove}
     >
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       <CanvasPaneSC
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseOut={handleMouseOut}
-        onMouseMove={handleMouseMove}
         translateX={translateX}
         translateY={translateY}
         width={canvasWidth}
         height={canvasHeight}
         zoomPct={zoomPct}
       >
-        <DrawSpace
+        {/* <DrawSpace
           overrideCursor={isDragging ? "grabbing" : null}
           index={layerOrder.length + 5}
-          mouseIsIn={mouseIsIn}
-        />
+        /> */}
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}

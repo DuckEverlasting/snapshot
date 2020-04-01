@@ -12,6 +12,7 @@ const LayerWrapperSC = styled.div.attrs(props => ({
 }))`
   position: absolute;
   overflow: hidden;
+  pointer-events: none;
 `
 
 const LayerSC = styled.canvas.attrs(props => ({
@@ -26,6 +27,7 @@ const LayerSC = styled.canvas.attrs(props => ({
   left: 0;
   top: 0;
   image-rendering: pixelated;
+  pointer-events: none;
 `
 
 function Layer(props) {

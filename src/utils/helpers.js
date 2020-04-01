@@ -16,18 +16,18 @@ export function getZoomAmount(steps, zoomPct) {
 }
 
 export function midpoint(orig, dest) {
-  return [
-    orig[0] + (dest[0] - orig[0]) / 2,
-    orig[1] + (dest[1] - orig[1]) / 2
-  ];
+  return {
+    x: orig.x + (dest.x - orig.x) / 2,
+    y: orig.y + (dest.y - orig.y) / 2
+  };
 }
 
 export function getQuadLength(p1, p2, p3) {
   const distA = Math.sqrt(
-    Math.pow(p1[1] - p2[1], 2) + Math.pow(p1[0] - p2[0], 2)
+    Math.pow(p1.y - p2.y, 2) + Math.pow(p1.x - p2.x, 2)
   );
   const distB = Math.sqrt(
-    Math.pow(p2[1] - p3[1], 2) + Math.pow(p2[0] - p3[0], 2)
+    Math.pow(p2.y - p3.y, 2) + Math.pow(p2.x - p3.x, 2)
   );
   return distA + distB;
 }
@@ -45,7 +45,7 @@ export function getGradient(color, opacity, hardness) {
   ];
 }
 
-export function convertDestToRegularShape([origX, origY], [x, y]) {
+export function convertDestToRegularShape({origX, origY}, {x, y}) {
   const distX = x - origX;
   const distY = y - origY;
   const max = Math.max(Math.abs(distX), Math.abs(distY));
@@ -62,5 +62,5 @@ export function convertDestToRegularShape([origX, origY], [x, y]) {
     x = origX + max;
     y = origY - max;
   }
-  return [x, y]
+  return {x, y}
 }
