@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
-import pencilImg from "../cursors/pencil.png";
-import dropperImg from "../cursors/dropper.png";
 
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 import {
@@ -35,7 +33,6 @@ const DrawSpaceSC = styled.div.attrs(props => ({
   width: 100%;
   height: 100%;
   outline: none;
-  cursor: ${props => props.cursorHandler};
 `;
 
 let state = {
@@ -94,43 +91,6 @@ export default function DrawSpace(props) {
       }
     }
     if (color !== undefined) dispatch(updateColor(palette, color));
-  };
-
-  const cursorHandler = () => () => {
-    /* 
-      Callback that handles which cursor is displayed over the component.
-    */
-
-    if (props.overrideCursor !== null) {
-      return props.overrideCursor;
-    }
-
-    switch (activeTool) {
-      case "pencil":
-        return `url(${pencilImg}) -22 22, auto`;
-      case "line":
-        return "crosshair";
-      case "fillRect":
-        return "crosshair";
-      case "drawRect":
-        return "crosshair";
-      case "selectRect":
-        return "crosshair";
-      case "selectEllipse":
-        return "crosshair";
-      case "lasso":
-        return "crosshair";
-      case "eyeDropper":
-        return `url(${dropperImg}) -22 22, auto`;
-      case "move":
-        return "move";
-      case "hand":
-        return "grab";
-      case "zoom":
-        return "zoom-in";
-      default:
-        return "auto";
-    }
   };
 
   const moveStaging = (layer = activeLayer) => {
@@ -986,8 +946,6 @@ export default function DrawSpace(props) {
     <DrawSpaceSC
       index={props.index}
       tabIndex="1"
-      cursorHandler={cursorHandler}
-      pencilImg={pencilImg}
       onContextMenu={contextMenuHandler}
       onMouseDown={actionStart}
       onMouseMove={actionMove}

@@ -7,6 +7,7 @@ import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
 import { getZoomAmount } from "../utils/helpers";
+import getCursor from "../utils/cursors";
 
 import { updateWorkspaceSettings } from "../actions/redux";
 
@@ -19,6 +20,7 @@ const WorkspaceSC = styled.div`
   overflow: hidden;
   z-index: 1;
   background: rgb(175, 175, 175);
+  cursor: ${props => props.cursor};
 `;
 
 const ZoomDisplaySC = styled.div`
@@ -45,25 +47,19 @@ const CanvasPaneSC = styled.div.attrs(props => ({
   margin: auto;
   background: white;
   flex: none;
-  pointer-events: none;
 `;
 
 let animationFrame = 0;
 let lastFrame = 0;
 
 export default function Workspace() {
-  const { translateX, translateY, zoomPct } = useSelector(
-    state => state.ui.workspaceSettings
-  );
-  const { canvasWidth, canvasHeight } = useSelector(
-    state => state.main.present.documentSettings
-  );
+  const { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings);
+  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const layerData = useSelector(state => state.main.present.layerData);
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
-  const stagingPinnedTo = useSelector(
-    state => state.main.present.stagingPinnedTo
-  );
+  const stagingPinnedTo = useSelector(state => state.main.present.stagingPinnedTo);
+  const activeTool = useSelector(state => state.ui.activeTool);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -155,8 +151,8 @@ export default function Workspace() {
     if (ev.button !== 2) return;
     setIsDragging(true);
     setDragOrigin({
-      x: ev.screenX * (zoomPct / 100) - translateX,
-      y: ev.screenY * (zoomPct / 100) - translateY
+      x: ev.screenX - translateX,
+      y: ev.screenY - translateY
     });
   };
 
@@ -177,8 +173,8 @@ export default function Workspace() {
     if (!isDragging) return;
     if (animationFrame === lastFrame) return;
     lastFrame = animationFrame;
-    const deltaX = ev.screenX * (zoomPct / 100) - dragOrigin.x;
-    const deltaY = ev.screenY * (zoomPct / 100) - dragOrigin.y;
+    const deltaX = ev.screenX - dragOrigin.x * (zoomPct / 100);
+    const deltaY = ev.screenY - dragOrigin.y * (zoomPct / 100);
     dispatch(
       updateWorkspaceSettings({
         translateX: deltaX,
@@ -194,6 +190,7 @@ export default function Workspace() {
       onMouseUp={handleMouseUp}
       onMouseOut={handleMouseOut}
       onMouseMove={handleMouseMove}
+      cursor={getCursor(isDragging ? "activeHand" : activeTool)}
     >
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       <CanvasPaneSC
@@ -203,10 +200,10 @@ export default function Workspace() {
         height={canvasHeight}
         zoomPct={zoomPct}
       >
-        {/* <DrawSpace
-          overrideCursor={isDragging ? "grabbing" : null}
+        <DrawSpace
+          // overrideCursor={isDragging ? "grabbing" : null}
           index={layerOrder.length + 5}
-        /> */}
+        />
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
