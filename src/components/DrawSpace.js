@@ -112,7 +112,6 @@ export default function DrawSpace(props) {
   // }
 
   const handleMouseUp = ev => {
-    console.log("IS IT HERE?", layerData)
     if (state.isDrawing) {
       actionEnd(ev)
     }

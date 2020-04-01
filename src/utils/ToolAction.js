@@ -12,12 +12,16 @@ import {
   putHistoryData
 } from "../actions/redux/index";
 
+import draw from "../reducers/custom/drawingReducer";
+import manipulate from "../reducers/custom/manipulateReducer";
+import selection from "../reducers/custom/selectionReducer";
+
 function selectionStart(ev) {
   if (ev.shiftKey) {
     this.addToSelection = true;
     this.layerData.selection
       .getContext("2d")
-      .clearRect(0, 0, layerData.selection.width, layerData.selection.height);
+      .clearRect(0, 0, this.layerData.selection.width, this.layerData.selection.height);
   }
 }
 
@@ -30,13 +34,13 @@ class ToolActionBase {
   }
 
   _moveStaging(layer = this.activeLayer) {
-    dispatch(updateStagingPosition(layer));
+    this.dispatch(updateStagingPosition(layer));
   }
 
   _clearStaging() {
-    layerData.staging
+    this.layerData.staging
       .getContext("2d")
-      .clearRect(0, 0, layerData.staging.width, layerData.staging.height);
+      .clearRect(0, 0, this.layerData.staging.width, this.layerData.staging.height);
   }
 
   _setLockedAxis(ev) {
@@ -47,7 +51,7 @@ class ToolActionBase {
       throw new Error("setLockedAxis requires an origin to be stored");
     }
 
-    const [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+    const [x, y] = [ev.nativeEvent.offsetX + this.translateData.x, ev.nativeEvent.offsetY + this.translateData.y];
 
     if (this.lockedAxis && !ev.shiftKey) {
       this.lockedAxis = null;
@@ -79,8 +83,8 @@ export class PencilAction extends ToolActionBase {
   start(ev) {
     this._clearStaging();
     this.origin = {
-      x: ev.nativeEvent.offsetX,
-      y: ev.nativeEvent.offsetY
+      x: ev.nativeEvent.offsetX + this.translateData.x,
+      y: ev.nativeEvent.offsetY + this.translateData.y
     };
     this.destArray = [this.origin];
     if (this.isSelectionTool) {
@@ -132,7 +136,7 @@ export class PencilAction extends ToolActionBase {
           params: { destArray: this.destArray }
         });
         const selectCtx = this.layerData.selection.getContext("2d");
-        dispatch(putHistoryData(
+        this.dispatch(putHistoryData(
           "selection",
           selectCtx,
           () => draw(selectCtx, {
@@ -146,11 +150,11 @@ export class PencilAction extends ToolActionBase {
           })
         ));
       }
-      dispatch(updateSelectionPath(path));
+      this.dispatch(updateSelectionPath(path));
     } else {
       const activeCtx = this.layerData[this.activeLayer].getContext("2d")
       if (this.destArray.length > 1) {
-        dispatch(putHistoryData(
+        this.dispatch(putHistoryData(
           this.activeLayer,
           activeCtx,
           () => draw(activeCtx, {
@@ -180,12 +184,12 @@ export class BrushAction extends ToolActionBase {
 
   start(ev) {
     const ctx = this.layerData[this.activeLayer].getContext("2d");
-    viewWidth = Math.ceil(ctx.canvas.width);
-    viewHeight = Math.ceil(ctx.canvas.height);
+    const viewWidth = Math.ceil(ctx.canvas.width);
+    const viewHeight = Math.ceil(ctx.canvas.height);
     this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
     this.origin = {
-      x: ev.nativeEvent.offsetX,
-      y: ev.nativeEvent.offsetY
+      x: ev.nativeEvent.offsetX + this.translateData.x,
+      y: ev.nativeEvent.offsetY + this.translateData.y
     };
     this.lastDest = this.origin;
   }
@@ -198,10 +202,13 @@ export class BrushAction extends ToolActionBase {
     } else if (this.lockedAxis === "y") {
       y = this.origin.y;
     } else {
-      [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+      [x, y] = [
+        ev.nativeEvent.offsetX + this.translateData.x,
+        ev.nativeEvent.offsetY + this.translateData.y
+      ];
     }
 
-    const newMid = midpoint(lastBrushDest, {x, y});
+    const newMid = midpoint(this.lastDest, {x, y});
 
     if (
       getQuadLength(
@@ -214,22 +221,22 @@ export class BrushAction extends ToolActionBase {
       return;
     }
 
-    draw(this.layerData[activeLayer].getContext("2d"), {
+    draw(this.layerData[this.activeLayer].getContext("2d"), {
       action: "drawQuadPoints",
       params: {
-        destArray: [this.lastMid || this.origin, lastBrushDest, newBrushMid],
+        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
         gradient: this.gradient,
         width: this.width,
         density: 0.125,
         composite: this.composite
       }
     });
-    this.lastDest = {x, y},
-    this.lastMid = newMid
+    this.lastDest = {x, y};
+    this.lastMid = newMid;
   }
 
   end() {
-    dispatch(putHistoryData(
+    this.dispatch(putHistoryData(
       this.activeLayer,
       this.layerData[this.activeLayer].getContext("2d"),
       null,
@@ -250,8 +257,8 @@ export class ShapeAction extends ToolActionBase {
   start(ev) {
     this._clearStaging();
     this.origin = {
-      x: ev.nativeEvent.offsetX,
-      y: ev.nativeEvent.offsetY
+      x: ev.nativeEvent.offsetX + this.translateData.x,
+      y: ev.nativeEvent.offsetY + this.translateData.y
     };
     if (this.isSelectionTool) {
       selectionStart(ev);
@@ -263,8 +270,8 @@ export class ShapeAction extends ToolActionBase {
 
   move(ev) {
     this.dest = {
-      x: ev.nativeEvent.offsetX,
-      y: ev.nativeEvent.offsetY
+      x: ev.nativeEvent.offsetX + this.translateData.x,
+      y: ev.nativeEvent.offsetY + this.translateData.y
     };
     if (this.regularOnShift && ev.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
@@ -300,7 +307,7 @@ export class ShapeAction extends ToolActionBase {
           params: { origin: this.origin, dest: this.dest }
         });
         const selectCtx = this.layerData.selection.getContext("2d");
-        dispatch(putHistoryData(
+        this.dispatch(putHistoryData(
           "selection",
           selectCtx,
           () => draw(selectCtx, {
@@ -315,11 +322,11 @@ export class ShapeAction extends ToolActionBase {
           })
         ));
       }
-      dispatch(updateSelectionPath(path));
+      this.dispatch(updateSelectionPath(path));
     } else {
       const activeCtx = this.layerData[this.activeLayer].getContext("2d")
       if (this.dest) {
-        dispatch(putHistoryData(
+        this.dispatch(putHistoryData(
           this.activeLayer,
           activeCtx,
           () => draw(activeCtx, {
@@ -353,7 +360,7 @@ export class EyeDropperAction extends ToolActionBase {
     let color;
     for (let i = this.layerOrder.length - 1; i >= 0; i--) {
       const ctx = this.layerData[this.layerOrder[i]].getContext("2d");
-      const pixel = ctx.getImageData(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, 1, 1);
+      const pixel = ctx.getImageData(ev.nativeEvent.offsetX + this.translateData.x, ev.nativeEvent.offsetY + this.translateData.y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
         continue;
@@ -365,7 +372,7 @@ export class EyeDropperAction extends ToolActionBase {
     if (color !== undefined) {
       const palette = ev[this.modifier] ? "secondary" : "primary"
       this.isDrawing = true;
-      dispatch(updateColor(palette, color))
+      this.dispatch(updateColor(palette, color))
     };
   }
 
@@ -383,12 +390,12 @@ export class MoveAction extends ToolActionBase {
 
   start(ev) {
     const ctx = this.layerData[this.activeLayer].getContext("2d");
-    viewWidth = Math.ceil(ctx.canvas.width);
-    viewHeight = Math.ceil(ctx.canvas.height);
-    this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
+    const viewWidth = Math.ceil(ctx.canvas.width);
+    const viewHeight = Math.ceil(ctx.canvas.height);
+    this.prevImgData = ctx.getImageData(0, 0, this.viewWidth, this.viewHeight);
     this.origin = {
-      x: ev.nativeEvent.offsetX,
-      y: ev.nativeEvent.offsetY
+      x: ev.nativeEvent.offsetX + this.translateData.x,
+      y: ev.nativeEvent.offsetY + this.translateData.y
     };
     this.lastDest = this.origin;
   }
@@ -402,11 +409,14 @@ export class MoveAction extends ToolActionBase {
     } else if (this.lockedAxis === "y") {
       y = this.origin.y;
     } else {
-      [x, y] = [ev.nativeEvent.offsetX, ev.nativeEvent.offsetY];
+      [x, y] = [
+        ev.nativeEvent.offsetX + this.translateData.x,
+        ev.nativeEvent.offsetY + this.translateData.y
+      ];
     }
     this.throttle = true;
     setTimeout(() => this.throttle = false, 25);
-    manipulate(this.layerData[activeLayer].getContext("2d"), {
+    manipulate(this.layerData[this.activeLayer].getContext("2d"), {
       action: "move",
       params: {
         orig: this.lastDest,
@@ -417,9 +427,9 @@ export class MoveAction extends ToolActionBase {
   }
 
   end(ev) {
-    dispatch(putHistoryData(
+    this.dispatch(putHistoryData(
       this.activeLayer,
-      this.layerData[activeLayer].getContext("2d"),
+      this.layerData[this.activeLayer].getContext("2d"),
       null,
       this.prevImgData
     ));
@@ -430,21 +440,21 @@ export class MoveAction extends ToolActionBase {
 export class FillAction extends ToolActionBase {
   constructor(layerData, activeLayer, dispatch, translateData, params) {
     super(layerData, activeLayer, dispatch, translateData);
-    this.colorArray = params.colorArray,
-    this.tolerance = params.tolerance,
-    this.clip = params.clip
+    this.colorArray = params.colorArray;
+    this.tolerance = params.tolerance;
+    this.clip = params.clip;
   }
 
   end(ev) {
-    dispatch(putHistoryData(
+    this.dispatch(putHistoryData(
       this.activeLayer,
-      this.layerData[activeLayer].getContext("2d"),
-      () => manipulate(ctx, {
+      this.layerData[this.activeLayer].getContext("2d"),
+      () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
         action: "fill",
         params: {
           orig: {
-            x: ev.nativeEvent.offsetX,
-            y: ev.nativeEvent.offsetY
+            x: ev.nativeEvent.offsetX + this.translateData.x,
+            y: ev.nativeEvent.offsetY + this.translateData.y
           },
           colorArray: this.colorArray,
           tolerance: this.tolerance,

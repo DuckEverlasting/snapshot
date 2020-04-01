@@ -2,7 +2,6 @@ import pencilImg from "../cursors/pencil.png";
 import dropperImg from "../cursors/dropper.png";
 
 export default function getCursor(cursorName) {
-  console.log(cursorName)
   switch (cursorName) {
     case "pencil":
       return `url(${pencilImg}) -22 22, auto`;

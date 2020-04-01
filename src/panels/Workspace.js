@@ -6,6 +6,15 @@ import styled from "styled-components";
 import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
+import { 
+  PencilAction,
+  BrushAction,
+  ShapeAction,
+  EyeDropperAction,
+  MoveAction,
+  FillAction
+} from "../utils/ToolAction";
+
 import { getZoomAmount } from "../utils/helpers";
 import getCursor from "../utils/cursors";
 
@@ -54,15 +63,20 @@ let lastFrame = 0;
 
 export default function Workspace() {
   const { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings);
+  const { activeTool, toolSettings } = useSelector(state => state.ui.activeTool);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
-  const layerData = useSelector(state => state.main.present.layerData);
-  const layerSettings = useSelector(state => state.main.present.layerSettings);
-  const layerOrder = useSelector(state => state.main.present.layerOrder);
-  const stagingPinnedTo = useSelector(state => state.main.present.stagingPinnedTo);
-  const activeTool = useSelector(state => state.ui.activeTool);
-
+  const {
+    activeLayer,
+    selectionPath,
+    layerData,
+    layerSettings,
+    layerOrder,
+    stagingPinnedTo
+  } = useSelector(state => state.main.present);
+  
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
+  const [isDrawing, setIsDrawing] = useState(false);
 
   const workspaceRef = useRef(null);
 
@@ -73,96 +87,110 @@ export default function Workspace() {
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
+  
+  useEffect(() => {
+    let workspaceElement = workspaceRef.current;
+    workspaceElement.addEventListener("wheel", handleMouseWheel);
+
+    return () => {
+      workspaceElement.removeEventListener("wheel", handleMouseWheel);
+    };
+  }, [dispatch, translateX, translateY, zoomPct]);
 
   function updateAnimatedLayers() {
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
     animationFrame = reqFrame;
   }
 
-  useEffect(() => {
-    const zoom = steps => {
-      dispatch(
-        updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) })
-      );
-    };
-    const translate = (deltaX, deltaY) => {
-      dispatch(
-        updateWorkspaceSettings({
-          translateX: translateX + deltaX,
-          translateY: translateY + deltaY
-        })
-      );
-    };
-    const mouseWheelHandler = async ev => {
-      ev.preventDefault();
-      if (ev.altKey) {
-        let steps;
-        if (ev.deltaY < 0) {
-          steps = ev.shiftKey ? 2 : 1;
-          zoom(steps);
-          if (zoomPct * steps >= 100) {
-            // HANDLE ZOOM IN STUFF
-          }
-        } else {
-          steps = ev.shiftKey ? -2 : -1;
-          zoom(steps);
+  const zoom = steps => {
+    dispatch(
+      updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) })
+    );
+  };
 
-          // Autocenter when zooming out
-          if (getZoomAmount(steps, zoomPct) <= 100) {
-            dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
-          }
-        }
-      } else {
-        const str = ev.shiftKey ? 3 : 1;
-        let dir;
-        let modifier = window.navigator.platform.includes("Mac")
-          ? ev.metaKey
-          : ev.ctrlKey;
-        if (ev.deltaX && ev.deltaY) {
-          // FIGURE THIS OUT LATER
-          return;
-        } else if (ev.deltaX) {
-          dir = ev.deltaX > 0 ? -1 : 1;
-          if (modifier) {
-            translate(0, 10 * dir * str);
-          } else {
-            translate(10 * dir * str, 0);
-          }
-        } else if (ev.deltaY) {
-          dir = ev.deltaY > 0 ? -1 : 1;
-          if (modifier) {
-            translate(10 * dir * str, 0);
-          } else {
-            translate(0, 10 * dir * str);
-          }
-        }
+  const zoomTool = (ev, zoomOut) => {
+    let steps;
+    if (!zoomOut) {
+      steps = ev.shiftKey ? 2 : 1;
+      zoom(steps);
+      if (zoomPct * steps >= 100) {
+        // HANDLE ZOOM IN STUFF
       }
-    };
+    } else {
+      steps = ev.shiftKey ? -2 : -1;
+      zoom(steps);
 
-    let workspaceElement = workspaceRef.current;
-    workspaceElement.addEventListener("wheel", mouseWheelHandler);
+      // Autocenter when zooming out
+      if (getZoomAmount(steps, zoomPct) <= 100) {
+        dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
+      }
+    }
+  }
 
-    return () => {
-      workspaceElement.removeEventListener("wheel", mouseWheelHandler);
-    };
-  }, [dispatch, translateX, translateY, zoomPct]);
+  const translate = (deltaX, deltaY) => {
+    dispatch(
+      updateWorkspaceSettings({
+        translateX: translateX + deltaX,
+        translateY: translateY + deltaY
+      })
+    );
+  };
+
+  const translateTool = ev => {
+    const str = ev.shiftKey ? 3 : 1;
+    let dir;
+    let modifier = window.navigator.platform.includes("Mac")
+      ? ev.metaKey
+      : ev.ctrlKey;
+    if (ev.deltaX && ev.deltaY) {
+      // FIGURE THIS OUT LATER
+      return;
+    } else if (ev.deltaX) {
+      dir = ev.deltaX > 0 ? -1 : 1;
+      if (modifier) {
+        translate(0, 10 * dir * str);
+      } else {
+        translate(10 * dir * str, 0);
+      }
+    } else if (ev.deltaY) {
+      dir = ev.deltaY > 0 ? -1 : 1;
+      if (modifier) {
+        translate(10 * dir * str, 0);
+      } else {
+        translate(0, 10 * dir * str);
+      }
+    }
+  }
+  
+  const handleMouseWheel = ev => {
+    ev.preventDefault();
+    if (ev.altKey) {
+      zoomTool(ev, ev.deltaY < 0);
+    } else {
+      translateTool(ev);
+    }
+  };
 
   const handleMouseDown = ev => {
-    if (ev.button !== 2) return;
-    setIsDragging(true);
-    setDragOrigin({
-      x: ev.screenX - translateX,
-      y: ev.screenY - translateY
-    });
+    if (ev.button === 1 || activeTool === "hand") {
+      setIsDragging(true);
+      setDragOrigin({
+        x: (ev.screenX - translateX) * 100 / zoomPct,
+        y: (ev.screenY - translateY) * 100 / zoomPct
+      });
+    }
   };
 
   const handleMouseUp = ev => {
-    if (ev.button !== 2) return;
-    setIsDragging(false);
-    setDragOrigin({ x: null, y: null });
+    if (ev.button === 1 || ev.button === 0 && activeTool === "hand") {
+      setIsDragging(false);
+      setDragOrigin({ x: null, y: null });
+    } else if (ev.button === 0 && activeTool === "zoom") {
+      zoomTool(ev, ev.altKey);
+    }
   };
 
-  const handleMouseOut = () => {
+  const handleMouseLeave = () => {
     if (isDragging) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
@@ -170,17 +198,18 @@ export default function Workspace() {
   };
 
   const handleMouseMove = ev => {
-    if (!isDragging) return;
-    if (animationFrame === lastFrame) return;
-    lastFrame = animationFrame;
-    const deltaX = ev.screenX - dragOrigin.x * (zoomPct / 100);
-    const deltaY = ev.screenY - dragOrigin.y * (zoomPct / 100);
-    dispatch(
-      updateWorkspaceSettings({
-        translateX: deltaX,
-        translateY: deltaY
-      })
-    );
+    if (isDragging) {
+      if (animationFrame === lastFrame) return;
+      lastFrame = animationFrame;
+      const newTranslateX = ev.screenX - dragOrigin.x * (zoomPct / 100);
+      const newTranslateY = ev.screenY - dragOrigin.y * (zoomPct / 100);
+      dispatch(
+        updateWorkspaceSettings({
+          translateX: newTranslateX,
+          translateY: newTranslateY
+        })
+      );
+    };
   };
 
   return (
@@ -188,7 +217,7 @@ export default function Workspace() {
       ref={workspaceRef}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
-      onMouseOut={handleMouseOut}
+      onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
       cursor={getCursor(isDragging ? "activeHand" : activeTool)}
     >
@@ -200,10 +229,10 @@ export default function Workspace() {
         height={canvasHeight}
         zoomPct={zoomPct}
       >
-        <DrawSpace
+        {/* <DrawSpace
           // overrideCursor={isDragging ? "grabbing" : null}
           index={layerOrder.length + 5}
-        />
+        /> */}
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
