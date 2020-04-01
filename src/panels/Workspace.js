@@ -16,6 +16,8 @@ import {
 } from "../utils/ToolAction";
 
 import { getZoomAmount } from "../utils/helpers";
+import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
+
 import getCursor from "../utils/cursors";
 
 import { updateWorkspaceSettings } from "../actions/redux";
@@ -56,14 +58,18 @@ const CanvasPaneSC = styled.div.attrs(props => ({
   margin: auto;
   background: white;
   flex: none;
+  pointer-events: none;
 `;
 
 let animationFrame = 0;
 let lastFrame = 0;
+let currentAction = null;
+let isDrawing = false;
 
 export default function Workspace() {
   const { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings);
-  const { activeTool, toolSettings } = useSelector(state => state.ui.activeTool);
+  const primary = useSelector(state => state.ui.colorSettings.primary);
+  const { activeTool, toolSettings } = useSelector(state => state.ui);
   const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
   const {
     activeLayer,
@@ -76,7 +82,6 @@ export default function Workspace() {
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
-  const [isDrawing, setIsDrawing] = useState(false);
 
   const workspaceRef = useRef(null);
 
@@ -100,6 +105,45 @@ export default function Workspace() {
   function updateAnimatedLayers() {
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
     animationFrame = reqFrame;
+  }
+
+  function getTranslateData() {
+    const marginLeft = .5 * (workspaceRef.current.clientWidth - canvasWidth);
+    const marginTop = .5 * (workspaceRef.current.clientHeight - canvasHeight);
+    return {
+      x: -(translateX + marginLeft),
+      y: -(translateY + marginTop)
+    }
+  }
+
+  function eventIsWithinCanvas(ev) {
+    const translateData = getTranslateData(),
+      x = ev.nativeEvent.offsetX + translateData.x,
+      y = ev.nativeEvent.offsetY + translateData.y;
+
+    return x > 0 && y > 0 && x < canvasWidth && y < canvasWidth; 
+  }
+
+  function buildAction() {
+    switch (activeTool) {
+      case "pencil":
+        return new PencilAction(layerData, activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.pencil.width,
+          color: addOpacity(primary, toolSettings.pencil.opacity / 100),
+          clip: selectionPath
+        });
+      case "fillRect":
+        return new ShapeAction(layerData, activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "fillRect",
+          color: addOpacity(primary, toolSettings.pencil.opacity / 100),
+          regularOnShift: true,
+          clip: selectionPath,
+        });
+      case "move":
+        return new MoveAction(layerData, activeLayer, dispatch, getTranslateData());
+      default:
+        break;
+    }
   }
 
   const zoom = steps => {
@@ -178,25 +222,18 @@ export default function Workspace() {
         x: (ev.screenX - translateX) * 100 / zoomPct,
         y: (ev.screenY - translateY) * 100 / zoomPct
       });
+    } else if (ev.button === 0) {
+      currentAction = buildAction();
+      if (!currentAction) {return};
+      currentAction.start(ev);
+      if (eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
-
-  const handleMouseUp = ev => {
-    if (ev.button === 1 || ev.button === 0 && activeTool === "hand") {
-      setIsDragging(false);
-      setDragOrigin({ x: null, y: null });
-    } else if (ev.button === 0 && activeTool === "zoom") {
-      zoomTool(ev, ev.altKey);
-    }
+  
+  const handleMouseLeave = (ev) => {
+    handleMouseUp(ev);
   };
-
-  const handleMouseLeave = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      setDragOrigin({ x: null, y: null });
-    }
-  };
-
+  
   const handleMouseMove = ev => {
     if (isDragging) {
       if (animationFrame === lastFrame) return;
@@ -209,9 +246,27 @@ export default function Workspace() {
           translateY: newTranslateY
         })
       );
-    };
+    } else if (currentAction && ev.button === 0) {
+      currentAction.move(ev);
+      if (!isDrawing && eventIsWithinCanvas(ev)) {isDrawing = true};
+    }
   };
-
+    
+  const handleMouseUp = ev => {
+    if (ev.button === 1 || ev.button === 0 && activeTool === "hand") {
+      setIsDragging(false);
+      setDragOrigin({ x: null, y: null });
+    } else if (ev.button === 0 && activeTool === "zoom") {
+      zoomTool(ev, ev.altKey);
+    } else if (currentAction && ev.button === 0) {
+      if (isDrawing) {
+        currentAction.end();
+        isDrawing = false;
+      };
+      currentAction = null;
+    }
+  };
+  
   return (
     <WorkspaceSC
       ref={workspaceRef}

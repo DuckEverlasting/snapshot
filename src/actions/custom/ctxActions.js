@@ -31,22 +31,16 @@ export function line(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadratic(ctx, { orig, destArray, translation }) {
+export function quadratic(ctx, { destArray, translation }) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
-  const firstMid = midpoint(orig, destArray[0]);
-  ctx.lineTo(firstMid.x, firstMid.y);
   destArray.forEach((dest, i) => {
-    if (destArray.newStroke) {
-      ctx.moveTo(dest.x, dest.y)  
+    if (i < destArray.length - 1) {
+      const mid = midpoint(dest, destArray[i + 1]);
+      ctx.quadraticCurveTo(dest.x, dest.y, mid.x, mid.y);
     } else {
-      if (i < destArray.length - 1) {
-        const mid = midpoint(dest, destArray[i + 1]);
-        ctx.quadraticCurveTo(dest.x, dest.y, mid.x, mid.y);
-      } else {
-        ctx.lineTo(dest.x, dest.y);
-      }
+      ctx.lineTo(dest.x, dest.y);
     }
   });
   if (translation) ctx.translate(-translation, -translation);

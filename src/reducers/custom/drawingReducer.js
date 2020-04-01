@@ -37,7 +37,7 @@ export default function(ctx, { action, params }) {
   } else {
     ctx.setLineDash([]);
   }
-  ctx.moveTo(params.orig.x || params.destArray[0].x, params.orig.y || params.destArray[0].y);
+  ctx.moveTo(params.orig.x, params.orig.y);
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
   if (params.clip) {
