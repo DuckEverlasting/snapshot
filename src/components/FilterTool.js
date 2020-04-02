@@ -127,8 +127,8 @@ export default function FilterTool() {
 
   const handleMouseMove = ev => {
     if (!isDragging) {return}
-    const x = ev.nativeEvent.screenX - dragOrigin.x;
-    const y = ev.nativeEvent.screenY - dragOrigin.y;
+    const x = ev.screenX - dragOrigin.x;
+    const y = ev.screenY - dragOrigin.y;
     setOffset({x: Math.max(x, -48), y: Math.max(y, -63.5)})
   }
 

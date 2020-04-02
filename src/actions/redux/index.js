@@ -64,18 +64,18 @@ export const undo = () => {
     if (prevState && prevState.onUndo) {
       const ctx = prevState.layerData[prevState.onUndo.id].getContext("2d")
       const changeData = prevState.onUndo.data
-      const viewWidth = Math.ceil(ctx.canvas.width / 3);
-      const viewHeight = Math.ceil(ctx.canvas.height / 3);
+      const viewWidth = Math.ceil(ctx.canvas.width);
+      const viewHeight = Math.ceil(ctx.canvas.height);
       const imgData = ctx.getImageData(
-        viewWidth,
-        viewHeight,
+        0,
+        0,
         viewWidth,
         viewHeight
       );
       for (let index in changeData) {
         imgData.data[index] = changeData[index];
       }
-      ctx.putImageData(imgData, viewWidth, viewHeight);
+      ctx.putImageData(imgData, 0, 0);
     }
     dispatch({type: UNDO})
   };
@@ -87,30 +87,30 @@ export const redo = () => {
     if (currState && currState.onRedo) {
       const ctx = currState.layerData[currState.onRedo.id].getContext("2d")
       const changeData = currState.onRedo.data
-      const viewWidth = Math.ceil(ctx.canvas.width / 3);
-      const viewHeight = Math.ceil(ctx.canvas.height / 3);
+      const viewWidth = Math.ceil(ctx.canvas.width);
+      const viewHeight = Math.ceil(ctx.canvas.height);
       const imgData = ctx.getImageData(
-        viewWidth,
-        viewHeight,
+        0,
+        0,
         viewWidth,
         viewHeight
       );
       for (let index in changeData) {
         imgData.data[index] = changeData[index];
       }
-      ctx.putImageData(imgData, viewWidth, viewHeight);
+      ctx.putImageData(imgData, 0, 0);
     }
     dispatch({type: REDO})
   };
 }
 
 export const putHistoryData = (id, ctx, callback, prevImgData) => {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
   if (!prevImgData) {
     prevImgData = ctx.getImageData(
-      viewWidth,
-      viewHeight,
+      0,
+      0,
       viewWidth,
       viewHeight
     );
@@ -141,11 +141,11 @@ export const deleteLayer = (id, ignoreHistory=false) => {
     let data = null;
     if (!ignoreHistory) {
       const ctx = getState().main.present.layerData[id].getContext("2d");
-      const viewWidth = Math.ceil(ctx.canvas.width / 3);
-      const viewHeight = Math.ceil(ctx.canvas.height / 3);
+      const viewWidth = Math.ceil(ctx.canvas.width);
+      const viewHeight = Math.ceil(ctx.canvas.height);
       data = ctx.getImageData(
-        viewWidth,
-        viewHeight,
+        0,
+        0,
         viewWidth,
         viewHeight
       );

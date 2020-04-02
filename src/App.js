@@ -82,7 +82,7 @@ function App() {
   };
 
   return (
-    <AppSC height={height}>
+    <AppSC id="App" height={height}>
       {modalVisible && <AboutModal turnOff={() => dispatch(toggleAboutModal())} />}
       {filterToolVisible && <FilterTool />}
       <TopBar />

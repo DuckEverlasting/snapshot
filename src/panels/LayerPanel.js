@@ -68,8 +68,6 @@ export default function LayerPanel() {
     const src = layerOrder.length - source.index - 1
     const dest = layerOrder.length - destination.index - 1
 
-    console.log("order: ", layerOrder, "src: ", layerOrder[src], "dest: ", layerOrder[dest])
-
     dispatch(updateLayerOrder(src, dest))
   }
 

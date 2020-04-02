@@ -1,10 +1,10 @@
 import { midpoint, getQuadLength } from "../../utils/helpers";
 
 function getPointInQuad(p1, p2, p3, t) {
-  return [0, 1].map(
-    num =>
-      (1 - t) * (1 - t) * p1[num] + 2 * (1 - t) * t * p2[num] + t * t * p3[num]
-  );
+  const x = (1 - t) * (1 - t) * p1.x + 2 * (1 - t) * t * p2.x + t * t * p3.x 
+  const y = (1 - t) * (1 - t) * p1.y + 2 * (1 - t) * t * p2.y + t * t * p3.y 
+
+  return {x, y}
 }
 
 function getPointsAlongQuad(p1, p2, p3, numOfPoints) {
@@ -17,72 +17,71 @@ function getPointsAlongQuad(p1, p2, p3, numOfPoints) {
   return points;
 }
 
-export function line(ctx, { destArray, translation }) {
+export function line(ctx, { orig, dest, destArray, translation }) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
+  if (!destArray) {
+    destArray = [orig, dest]
+  }
   destArray.forEach(dest => {
-    ctx.lineTo(dest[0], dest[1]);
-  });
-  if (translation) ctx.translate(-translation, -translation);
-}
-
-export function quadratic(ctx, { orig, destArray, translation }) {
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  if (translation) ctx.translate(translation, translation);
-  const firstMid = midpoint(orig, destArray[0]);
-  ctx.lineTo(firstMid[0], firstMid[1]);
-  destArray.forEach((dest, i) => {
-    if (i < destArray.length - 1) {
-      const mid = midpoint(dest, destArray[i + 1]);
-      ctx.quadraticCurveTo(dest[0], dest[1], mid[0], mid[1]);
+    if (dest.newStroke) {
+      ctx.moveTo(dest.x, dest.y)  
     } else {
-      ctx.lineTo(dest[0], dest[1]);
+      ctx.lineTo(dest.x, dest.y);
     }
   });
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadraticPoints(ctx, { orig, destArray, width, gradient, density = .25, translation }) {
+export function quadratic(ctx, { destArray, translation }) {
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  if (translation) ctx.translate(translation, translation);
+  destArray.forEach((dest, i) => {
+    if (i < destArray.length - 1) {
+      const mid = midpoint(dest, destArray[i + 1]);
+      ctx.quadraticCurveTo(dest.x, dest.y, mid.x, mid.y);
+    } else {
+      ctx.lineTo(dest.x, dest.y);
+    }
+  });
+  if (translation) ctx.translate(-translation, -translation);
+}
+
+export function quadraticPoints(ctx, { destArray, width, gradient, density = .25, translation }) {
   // density in this case = percentage of width between each point
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
-  const numOfPoints = getQuadLength(orig, destArray[0], destArray[1]) / (density * width);
-  getPointsAlongQuad(orig, destArray[0], destArray[1], numOfPoints).forEach(point => {
+  const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
+  getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
     ctx.beginPath();
-    let grad = ctx.createRadialGradient(point[0], point[1], 0, point[0], point[1], width / 2);
+    let grad = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, width / 2);
     gradient.forEach(data => {
       grad.addColorStop(data[0], data[1]);
     })
     ctx.fillStyle = grad;
-    ctx.arc(point[0], point[1], width / 2, 0,Math.PI * 2);
+    ctx.arc(point.x, point.y, width / 2, 0,Math.PI * 2);
     ctx.fill();
   })
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function bezier(ctx, { destArray }) {
-  destArray.forEach(dest => {
-    ctx.bezierCurveTo(dest[0], dest[1], dest[2], dest[3], dest[4], dest[5]);
-  });
-}
-
 export function rectangle(ctx, { orig, dest, translation }) {
   if (translation) ctx.translate(translation, translation);
-  ctx.rect(orig[0], orig[1], dest[0] - orig[0], dest[1] - orig[1]);
+  ctx.rect(orig.x, orig.y, dest.x - orig.x, dest.y - orig.y);
   if (translation) ctx.translate(-translation, -translation);
 }
 
 export function circle(ctx, { orig, dest }) {
   ctx.beginPath();
   ctx.arc(
-    orig[0],
-    orig[1],
+    orig.x,
+    orig.y,
     Math.sqrt(
-      (dest[0] - orig[0]) * (dest[0] - orig[0]) +
-        (dest[1] - orig[1]) * (dest[1] - orig[1])
+      (dest.x - orig.x) * (dest.x - orig.x) +
+        (dest.y - orig.y) * (dest.y - orig.y)
     ),
     0,
     Math.PI * 2
@@ -92,20 +91,20 @@ export function circle(ctx, { orig, dest }) {
 export function ellipse(ctx, { orig, dest }) {
   ctx.beginPath();
   const center = midpoint(orig, dest);
-  const radiusX = Math.abs(dest[0] - center[0]);
-  const radiusY = Math.abs(dest[1] - center[1]);
-  ctx.ellipse(center[0], center[1], radiusX, radiusY, 0, 0, Math.PI * 2);
+  const radiusX = Math.abs(dest.x - center.x);
+  const radiusY = Math.abs(dest.y - center.y);
+  ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, 0, Math.PI * 2);
 }
 
 export function move(ctx, { orig, dest }) {
-  let [x, y] = [dest[0] - orig[0], dest[1] - orig[1]];
+  let [x, y] = [dest.x - orig.x, dest.y - orig.y];
   const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.putImageData(data, x, y);
 }
 
 export function paste(ctx, { sourceCtx, dest }) {
-  ctx.drawImage(sourceCtx.canvas, Math.floor(dest[0]), Math.floor(dest[1]));
+  ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y));
 }
 
 export function undelete(ctx, { source }) {
@@ -113,14 +112,12 @@ export function undelete(ctx, { source }) {
 }
 
 export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
-  orig[0] -= viewWidth;
-  orig[1] -= viewHeight;
-  orig = orig.map(num => Math.floor(num));
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
+  orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
   const imgData = ctx.getImageData(
-    viewWidth,
-    viewHeight,
+    0,
+    0,
     viewWidth,
     viewHeight
   );
@@ -152,8 +149,8 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
     }
   }
 
-  ctx.clearRect(viewWidth, viewHeight, viewWidth, viewHeight);
-  ctx.putImageData(imgData, viewWidth, viewHeight);
+  ctx.clearRect(0, 0, viewWidth, viewHeight);
+  ctx.putImageData(imgData, 0, 0);
 
   function getSurrounding(origin) {
     return [
@@ -165,7 +162,7 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
   }
 
   function getPixelAt(origin) {
-    return (origin[0] + origin[1] * viewWidth) * 4;
+    return (origin.x + origin.y * viewWidth) * 4;
   }
 
   function colorMatch(pixel) {
@@ -181,11 +178,11 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
 }
 
 export function getDiff(ctx, { prevImgData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
   const imgData = ctx.getImageData(
-    viewWidth,
-    viewHeight,
+    0,
+    0,
     viewWidth,
     viewHeight
   );
@@ -203,11 +200,11 @@ export function getDiff(ctx, { prevImgData }) {
 }
 
 export function swapData(ctx, { changeData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width / 3);
-  const viewHeight = Math.ceil(ctx.canvas.height / 3);
+  const viewWidth = Math.ceil(ctx.canvas.width);
+  const viewHeight = Math.ceil(ctx.canvas.height);
   const imgData = ctx.getImageData(
-    viewWidth,
-    viewHeight,
+    0,
+    0,
     viewWidth,
     viewHeight
   );
@@ -216,6 +213,6 @@ export function swapData(ctx, { changeData }) {
     imgData.data[index] = changeData[index];
     changeData[index] = placeholder;
   }
-  ctx.putImageData(imgData, viewWidth, viewHeight);
+  ctx.putImageData(imgData, 0, 0);
   return changeData;
 }
