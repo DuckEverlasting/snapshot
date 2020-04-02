@@ -2,7 +2,6 @@ import {
   line,
   quadratic,
   quadraticPoints,
-  bezier,
   rectangle,
   ellipse
 } from "../../actions/custom/ctxActions.js";
@@ -38,7 +37,7 @@ export default function(ctx, { action, params }) {
   } else {
     ctx.setLineDash([]);
   }
-  ctx.moveTo(params.orig[0], params.orig[1]);
+  ctx.moveTo(params.orig.x, params.orig.y);
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
   if (params.clip) {
@@ -56,11 +55,6 @@ export default function(ctx, { action, params }) {
       ctx.stroke();
       break;
 
-    case "drawBezier":
-      bezier(ctx, params);
-      ctx.stroke();
-      break;
-
     case "drawQuadPoints":
       quadraticPoints(ctx, params);
       break;
@@ -73,12 +67,6 @@ export default function(ctx, { action, params }) {
 
     case "drawQuadPath":
       quadratic(ctx, params);
-      ctx.closePath();
-      ctx.stroke();
-      break;
-
-    case "drawBezierPath":
-      bezier(ctx, params);
       ctx.closePath();
       ctx.stroke();
       break;
@@ -101,12 +89,6 @@ export default function(ctx, { action, params }) {
 
     case "fillQuadPath":
       quadratic(ctx, params);
-      ctx.closePath();
-      ctx.fill();
-      break;
-
-    case "fillBezierPath":
-      bezier(ctx, params);
       ctx.closePath();
       ctx.fill();
       break;

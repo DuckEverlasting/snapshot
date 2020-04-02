@@ -5,7 +5,9 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { toggleAboutModal } from "../actions/redux/index";
+import { toggleAboutModal, setFilterTool } from "../actions/redux/index";
+
+import { filter } from "../utils/filters";
 
 const TopBarSC = styled.div`
   width: 100%;
@@ -94,11 +96,11 @@ export default function TopBar() {
         <Menu id="image" label="Image">
           <MenuItem 
             label="Brightness / Contrast"
-            disabled
+            onClick={() => dispatch(setFilterTool("on", filter.brightness))}
           />
-          <MenuItem 
+          <MenuItem
             label="Hue / Saturation"
-            disabled
+            onClick={() => dispatch(setFilterTool("on", filter.saturation))}
           />
           <MenuItem 
             label="Desaturate"
