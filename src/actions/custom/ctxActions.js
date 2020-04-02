@@ -17,10 +17,13 @@ function getPointsAlongQuad(p1, p2, p3, numOfPoints) {
   return points;
 }
 
-export function line(ctx, { destArray, translation }) {
+export function line(ctx, { orig, dest, destArray, translation }) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
+  if (!destArray) {
+    destArray = [orig, dest]
+  }
   destArray.forEach(dest => {
     if (dest.newStroke) {
       ctx.moveTo(dest.x, dest.y)  

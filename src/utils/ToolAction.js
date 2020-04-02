@@ -16,18 +16,8 @@ import draw from "../reducers/custom/drawingReducer";
 import manipulate from "../reducers/custom/manipulateReducer";
 import selection from "../reducers/custom/selectionReducer";
 
-function selectionStart(ev) {
-  if (ev.shiftKey) {
-    this.addToSelection = true;
-    this.layerData.selection
-      .getContext("2d")
-      .clearRect(0, 0, this.layerData.selection.width, this.layerData.selection.height);
-  }
-}
-
 class ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData) {
-    this.layerData = layerData;
+  constructor(activeLayer, dispatch, translateData) {
     this.activeLayer = activeLayer;
     this.dispatch = dispatch;
     this.translateData = translateData;
@@ -43,6 +33,23 @@ class ToolActionBase {
       .clearRect(0, 0, this.layerData.staging.width, this.layerData.staging.height);
   }
 
+  _selectionStart(ev) {
+    if (ev.shiftKey) {
+      this.addToSelection = true;
+    } else {
+      this.layerData.selection
+        .getContext("2d")
+        .clearRect(0, 0, this.layerData.selection.width, this.layerData.selection.height);
+    }
+  }
+
+  _getCoordinates(ev) {
+    return {
+      x: (ev.nativeEvent.offsetX + this.translateData.x) * 100 / this.translateData.zoom,
+      y: (ev.nativeEvent.offsetY + this.translateData.y) * 100 / this.translateData.zoom
+    };
+  }
+
   _setLockedAxis(ev) {
     /* 
       Determines which axis should be "locked" in certain functions.
@@ -51,8 +58,7 @@ class ToolActionBase {
       throw new Error("setLockedAxis requires an origin to be stored");
     }
 
-    const [x, y] = [ev.nativeEvent.offsetX + this.translateData.x, ev.nativeEvent.offsetY + this.translateData.y];
-
+    const {x, y} = this._getCoordinates(ev)
     if (this.lockedAxis && !ev.shiftKey) {
       this.lockedAxis = null;
     } else if (!this.lockedAxis && ev.shiftKey) {
@@ -72,33 +78,31 @@ class ToolActionBase {
 }
 
 export class PencilAction extends ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData, params) {
-    super(layerData, activeLayer, dispatch, translateData);
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
     this.isSelectionTool = params.isSelectionTool;
     this.width = params.width;
     this.color = params.color;
     this.clip = params.clip;
   }
 
-  start(ev) {
+  start(ev, layerData) {
+    this.layerData = layerData;
     this._clearStaging();
-    this.origin = {
-      x: ev.nativeEvent.offsetX + this.translateData.x,
-      y: ev.nativeEvent.offsetY + this.translateData.y
-    };
+    this.origin = this._getCoordinates(ev);
     this.destArray = [this.origin];
     if (this.isSelectionTool) {
-      selectionStart(ev);
+      this._selectionStart(ev);
       this._moveStaging("selection");
     } else {
       this._moveStaging();
     }
   }
 
-  move(ev) {
+  move(ev, layerData) {
+    this.layerData = layerData;
     this._setLockedAxis(ev);
-    let x = ev.nativeEvent.offsetX + this.translateData.x, 
-      y = ev.nativeEvent.offsetY + this.translateData.y;
+    let {x, y} = this._getCoordinates(ev);
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
@@ -122,7 +126,8 @@ export class PencilAction extends ToolActionBase {
 
   }
 
-  end() {
+  end(layerData) {
+    this.layerData = layerData;
     if (this.isSelectionTool) {
       let path;
       if (this.destArray.length < 2) {
@@ -178,27 +183,26 @@ export class PencilAction extends ToolActionBase {
 }
 
 export class BrushAction extends ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData, params) {
-    super(layerData, activeLayer, dispatch, translateData);
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
     this.composite = params.composite;
     this.width = params.width;
     this.clip = params.clip;
     this.gradient = getGradient(params.color, params.opacity, params.hardness);
   }
 
-  start(ev) {
+  start(ev, layerData) {
+    this.layerData = layerData;
     const ctx = this.layerData[this.activeLayer].getContext("2d");
     const viewWidth = Math.ceil(ctx.canvas.width);
     const viewHeight = Math.ceil(ctx.canvas.height);
     this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
-    this.origin = {
-      x: ev.nativeEvent.offsetX + this.translateData.x,
-      y: ev.nativeEvent.offsetY + this.translateData.y
-    };
+    this.origin = this._getCoordinates(ev);
     this.lastDest = this.origin;
   }
 
-  move(ev) {
+  move(ev, layerData) {
+    this.layerData = layerData;
     this._setLockedAxis(ev);
     let x, y;
     if (this.lockedAxis === "x") {
@@ -206,10 +210,9 @@ export class BrushAction extends ToolActionBase {
     } else if (this.lockedAxis === "y") {
       y = this.origin.y;
     } else {
-      [x, y] = [
-        ev.nativeEvent.offsetX + this.translateData.x,
-        ev.nativeEvent.offsetY + this.translateData.y
-      ];
+      const coords = this._getCoordinates(ev);
+      x = coords.x;
+      y = coords.y;
     }
 
     const newMid = midpoint(this.lastDest, {x, y});
@@ -228,18 +231,21 @@ export class BrushAction extends ToolActionBase {
     draw(this.layerData[this.activeLayer].getContext("2d"), {
       action: "drawQuadPoints",
       params: {
+        orig: this.origin,
         destArray: [this.lastMid || this.origin, this.lastDest, newMid],
         gradient: this.gradient,
         width: this.width,
         density: 0.125,
-        composite: this.composite
+        composite: this.composite,
+        clip: this.clip
       }
     });
     this.lastDest = {x, y};
     this.lastMid = newMid;
   }
 
-  end() {
+  end(layerData) {
+    this.layerData = layerData;
     this.dispatch(putHistoryData(
       this.activeLayer,
       this.layerData[this.activeLayer].getContext("2d"),
@@ -251,35 +257,32 @@ export class BrushAction extends ToolActionBase {
 }
 
 export class ShapeAction extends ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData, params) {
-    super(layerData, activeLayer, dispatch, translateData);
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
     this.isSelectionTool = params.isSelectionTool;
     this.drawActionType = params.drawActionType;
     this.regularOnShift = params.regularOnShift;
     this.color = params.color;
+    this.width = params.width;
     this.dashPattern = params.dashPattern;
     this.clip = params.clip;
   }
 
-  start(ev) {
+  start(ev, layerData) {
+    this.layerData = layerData;
     this._clearStaging();
-    this.origin = {
-      x: ev.nativeEvent.offsetX + this.translateData.x,
-      y: ev.nativeEvent.offsetY + this.translateData.y
-    };
+    this.origin = this._getCoordinates(ev);
     if (this.isSelectionTool) {
-      selectionStart(ev);
+      this._selectionStart(ev);
       this._moveStaging("selection");
     } else {
       this._moveStaging();
     }
   }
 
-  move(ev) {
-    this.dest = {
-      x: ev.nativeEvent.offsetX + this.translateData.x,
-      y: ev.nativeEvent.offsetY + this.translateData.y
-    };
+  move(ev, layerData) {
+    this.layerData = layerData;
+    this.dest = this._getCoordinates(ev);
     if (this.regularOnShift && ev.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
     };
@@ -293,15 +296,16 @@ export class ShapeAction extends ToolActionBase {
         fillColor: this.color,
         dashPattern: this.dashPattern,
         clearFirst: true,
-        clip: this.clip
+        clip: this.isSelectionTool ? null : this.clip
       }
     });
   }
 
-  end() {
+  end(layerData) {
+    this.layerData = layerData;
     if (this.isSelectionTool) {
       let path;
-      if (this.dest) {
+      if (!this.dest) {
         path = null;
       } else {
         if (this.clip !== null && this.addToSelection) {
@@ -313,6 +317,7 @@ export class ShapeAction extends ToolActionBase {
           action: this.drawActionType,
           params: { orig: this.origin, dest: this.dest }
         });
+        console.log(path);
         const selectCtx = this.layerData.selection.getContext("2d");
         this.dispatch(putHistoryData(
           "selection",
@@ -355,19 +360,21 @@ export class ShapeAction extends ToolActionBase {
 }
 
 export class EyeDropperAction extends ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData, params) {
-    super(layerData, activeLayer, dispatch, translateData);
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
     this.layerOrder = params.layerOrder;
     this.modifier = window.navigator.platform.includes("Mac")
       ? "metaKey"
       : "ctrlKey";
   }
 
-  start(ev) {
+  start(ev, layerData) {
+    this.layerData = layerData;
     let color;
     for (let i = this.layerOrder.length - 1; i >= 0; i--) {
       const ctx = this.layerData[this.layerOrder[i]].getContext("2d");
-      const pixel = ctx.getImageData(ev.nativeEvent.offsetX + this.translateData.x, ev.nativeEvent.offsetY + this.translateData.y, 1, 1);
+      const {x, y} = this._getCoordinates(ev);
+      const pixel = ctx.getImageData(x, y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
         continue;
@@ -383,31 +390,31 @@ export class EyeDropperAction extends ToolActionBase {
     };
   }
 
-  move(ev) {
+  move(ev, layerData) {
+    this.layerData = layerData;
     if (this.isDrawing) {
-      this.start(ev);
+      this.start(ev, layerData  );
     }
   }
 }
 
 export class MoveAction extends ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData) {
-    super(layerData, activeLayer, dispatch, translateData);
+  constructor(activeLayer, dispatch, translateData) {
+    super(activeLayer, dispatch, translateData);
   }
 
-  start(ev) {
+  start(ev, layerData) {
+    this.layerData = layerData;
     const ctx = this.layerData[this.activeLayer].getContext("2d");
     const viewWidth = Math.ceil(ctx.canvas.width);
     const viewHeight = Math.ceil(ctx.canvas.height);
     this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
-    this.origin = {
-      x: ev.nativeEvent.offsetX + this.translateData.x,
-      y: ev.nativeEvent.offsetY + this.translateData.y
-    };
+    this.origin = this._getCoordinates(ev);
     this.lastDest = this.origin;
   }
 
-  move(ev) {
+  move(ev, layerData) {
+    this.layerData = layerData;
     if (this.throttle) {return};
     this._setLockedAxis(ev);
     let x, y;
@@ -416,10 +423,9 @@ export class MoveAction extends ToolActionBase {
     } else if (this.lockedAxis === "y") {
       y = this.origin.y;
     } else {
-      [x, y] = [
-        ev.nativeEvent.offsetX + this.translateData.x,
-        ev.nativeEvent.offsetY + this.translateData.y
-      ];
+      const coords = this._getCoordinates(ev);
+      x = coords.x;
+      y = coords.y;
     }
     this.throttle = true;
     setTimeout(() => this.throttle = false, 25);
@@ -433,7 +439,8 @@ export class MoveAction extends ToolActionBase {
     this.lastDest = {x, y}
   }
 
-  end() {
+  end(layerData) {
+    this.layerData = layerData;
     this.dispatch(putHistoryData(
       this.activeLayer,
       this.layerData[this.activeLayer].getContext("2d"),
@@ -445,24 +452,22 @@ export class MoveAction extends ToolActionBase {
 }
 
 export class FillAction extends ToolActionBase {
-  constructor(layerData, activeLayer, dispatch, translateData, params) {
-    super(layerData, activeLayer, dispatch, translateData);
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
     this.colorArray = params.colorArray;
     this.tolerance = params.tolerance;
     this.clip = params.clip;
   }
 
-  start(ev) {
+  start(ev, layerData) {
+    this.layerData = layerData;
     this.dispatch(putHistoryData(
       this.activeLayer,
       this.layerData[this.activeLayer].getContext("2d"),
       () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
         action: "fill",
         params: {
-          orig: {
-            x: ev.nativeEvent.offsetX + this.translateData.x,
-            y: ev.nativeEvent.offsetY + this.translateData.y
-          },
+          orig: this._getCoordinates(ev),
           colorArray: this.colorArray,
           tolerance: this.tolerance,
           clip: this.clip

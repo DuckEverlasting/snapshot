@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from "react-redux";
 
 import styled from "styled-components";
 
-import DrawSpace from "../components/DrawSpace";
 import Layer from "../components/Layer";
 
 import { 
@@ -108,11 +107,12 @@ export default function Workspace() {
   }
 
   function getTranslateData() {
-    const marginLeft = .5 * (workspaceRef.current.clientWidth - canvasWidth);
-    const marginTop = .5 * (workspaceRef.current.clientHeight - canvasHeight);
+    const marginLeft = .5 * (workspaceRef.current.clientWidth - canvasWidth * zoomPct / 100);
+    const marginTop = .5 * (workspaceRef.current.clientHeight - canvasHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
-      y: -(translateY + marginTop)
+      y: -(translateY + marginTop),
+      zoom: zoomPct
     }
   }
 
@@ -123,24 +123,109 @@ export default function Workspace() {
 
     return x > 0 && y > 0 && x < canvasWidth && y < canvasWidth; 
   }
-
+  
   function buildAction() {
     switch (activeTool) {
       case "pencil":
-        return new PencilAction(layerData, activeLayer, dispatch, getTranslateData(), {
+        return new PencilAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.pencil.width,
           color: addOpacity(primary, toolSettings.pencil.opacity / 100),
           clip: selectionPath
         });
+      case "brush":
+        return new BrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.brush.width,
+          color: primary,
+          opacity: toolSettings.brush.opacity,
+          hardness: toolSettings.brush.hardness,
+          clip: selectionPath
+        });
+      case "line":
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "drawLine",
+          color: addOpacity(primary, toolSettings.line.opacity / 100),
+          width: toolSettings.line.width,
+          clip: selectionPath,
+        });
       case "fillRect":
-        return new ShapeAction(layerData, activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "fillRect",
-          color: addOpacity(primary, toolSettings.pencil.opacity / 100),
+          color: addOpacity(primary, toolSettings.fillRect.opacity / 100),
           regularOnShift: true,
           clip: selectionPath,
         });
+      case "drawRect":
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "drawRect",
+          color: addOpacity(primary, toolSettings.drawRect.opacity / 100),
+          width: toolSettings.drawRect.width,
+          regularOnShift: true,
+          clip: selectionPath,
+        });
+      case "fillEllipse":
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "fillEllipse",
+          color: addOpacity(primary, toolSettings.fillEllipse.opacity / 100),
+          regularOnShift: true,
+          clip: selectionPath,
+        });
+      case "drawEllipse":
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "drawEllipse",
+          color: addOpacity(primary, toolSettings.drawEllipse.opacity / 100),
+          width: toolSettings.drawEllipse.width,
+          regularOnShift: true,
+          clip: selectionPath,
+        });
+      case "eraser":
+        return new BrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.eraser.width,
+          color: "rgba(0, 0, 0, 1)",
+          opacity: 100,
+          hardness: toolSettings.eraser.hardness,
+          composite: "destination-out",
+          clip: selectionPath
+        });
+      case "eyeDropper":
+        return new EyeDropperAction(activeLayer, dispatch, getTranslateData(), {
+          layerOrder: layerOrder
+        });
+      case "selectRect":
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "drawRect",
+          color: "rgba(0, 0, 0, 1)",
+          width: 1,
+          dashPattern: [5, 10],
+          regularOnShift: true,
+          isSelectionTool: true,
+          clip: selectionPath
+        });
+      case "selectEllipse":
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+          drawActionType: "drawEllipse",
+          color: "rgba(0, 0, 0, 1)",
+          width: 1,
+          dashPattern: [5, 10],
+          regularOnShift: true,
+          isSelectionTool: true,
+          clip: selectionPath
+        });
+      case "lasso":
+        return new PencilAction(activeLayer, dispatch, getTranslateData(), {
+          width: 1,
+          color: "rgba(0, 0, 0, 1)",
+          dashPattern: [5, 10],
+          isSelectionTool: true,
+          clip: selectionPath
+        });
       case "move":
-        return new MoveAction(layerData, activeLayer, dispatch, getTranslateData());
+        return new MoveAction(activeLayer, dispatch, getTranslateData());
+      case "bucketFill":
+        return new FillAction(activeLayer, dispatch, getTranslateData(), {
+          colorArray: toArrayFromRgba(primary, toolSettings.bucketFill.opacity / 100),
+          tolerance: toolSettings.bucketFill.tolerance,
+          clip: selectionPath
+        });
       default:
         break;
     }
@@ -216,22 +301,28 @@ export default function Workspace() {
   };
 
   const handleMouseDown = ev => {
-    if (ev.button === 1 || activeTool === "hand") {
+    if (ev.buttons === 4 || activeTool === "hand") {
       setIsDragging(true);
       setDragOrigin({
         x: (ev.screenX - translateX) * 100 / zoomPct,
         y: (ev.screenY - translateY) * 100 / zoomPct
       });
-    } else if (ev.button === 0) {
+    } else if (ev.buttons === 1) {
       currentAction = buildAction();
       if (!currentAction) {return};
-      currentAction.start(ev);
+      currentAction.start(ev, layerData);
       if (eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
   
   const handleMouseLeave = (ev) => {
-    handleMouseUp(ev);
+    if (currentAction && ev.buttons === 1) {
+      if (isDrawing) {
+        currentAction.end(layerData);
+        isDrawing = false;
+      };
+      currentAction = null;
+    }
   };
   
   const handleMouseMove = ev => {
@@ -246,8 +337,8 @@ export default function Workspace() {
           translateY: newTranslateY
         })
       );
-    } else if (currentAction && ev.button === 0) {
-      currentAction.move(ev);
+    } else if (currentAction && ev.buttons === 1) {
+      currentAction.move(ev, layerData);
       if (!isDrawing && eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
@@ -260,7 +351,7 @@ export default function Workspace() {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
       if (isDrawing) {
-        currentAction.end();
+        currentAction.end(layerData);
         isDrawing = false;
       };
       currentAction = null;
@@ -284,10 +375,6 @@ export default function Workspace() {
         height={canvasHeight}
         zoomPct={zoomPct}
       >
-        {/* <DrawSpace
-          // overrideCursor={isDragging ? "grabbing" : null}
-          index={layerOrder.length + 5}
-        /> */}
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}

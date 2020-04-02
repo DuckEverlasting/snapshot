@@ -45,7 +45,7 @@ export function getGradient(color, opacity, hardness) {
   ];
 }
 
-export function convertDestToRegularShape({origX, origY}, {x, y}) {
+export function convertDestToRegularShape({x: origX, y: origY}, {x, y}) {
   const distX = x - origX;
   const distY = y - origY;
   const max = Math.max(Math.abs(distX), Math.abs(distY));
