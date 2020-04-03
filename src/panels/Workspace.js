@@ -20,6 +20,7 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 import getCursor from "../utils/cursors";
 
 import { updateWorkspaceSettings } from "../actions/redux";
+import DraggableWindow from "../components/DraggableWindow";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -367,6 +368,9 @@ export default function Workspace() {
       onMouseMove={handleMouseMove}
       cursor={getCursor(isDragging ? "activeHand" : activeTool)}
     >
+      <DraggableWindow name="TEST TEST">
+        <p>YO WASSUP</p>
+      </DraggableWindow>
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       <CanvasPaneSC
         translateX={translateX}

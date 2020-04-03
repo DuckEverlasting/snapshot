@@ -317,7 +317,6 @@ export class ShapeAction extends ToolActionBase {
           action: this.drawActionType,
           params: { orig: this.origin, dest: this.dest }
         });
-        console.log(path);
         const selectCtx = this.layerData.selection.getContext("2d");
         this.dispatch(putHistoryData(
           "selection",
@@ -393,7 +392,7 @@ export class EyeDropperAction extends ToolActionBase {
   move(ev, layerData) {
     this.layerData = layerData;
     if (this.isDrawing) {
-      this.start(ev, layerData  );
+      this.start(ev, layerData);
     }
   }
 }
