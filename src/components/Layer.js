@@ -18,7 +18,6 @@ const LayerWrapperSC = styled.div.attrs(props => ({
 const LayerSC = styled.canvas.attrs(props => ({
   style: {
     visibility: props => props.hidden ? "hidden" : "visible",
-    zIndex: props.index
   }
 }))`
   position: absolute;

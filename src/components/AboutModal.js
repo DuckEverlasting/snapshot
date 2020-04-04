@@ -10,7 +10,7 @@ const AboutModalSC = styled.div`
   background: rgba(0, 0, 0, .8);
   height: 100vh;
   width: 100vw;
-  z-index: 100;
+  z-index: 2;
 `
 
 const InnerModalSC = styled.div`

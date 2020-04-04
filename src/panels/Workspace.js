@@ -20,6 +20,7 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 import getCursor from "../utils/cursors";
 
 import { updateWorkspaceSettings } from "../actions/redux";
+import FilterTool from "../components/FilterTool";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -28,7 +29,6 @@ const WorkspaceSC = styled.div`
   height: 100%;
   border: 1px solid black;
   overflow: hidden;
-  z-index: 1;
   background: rgb(175, 175, 175);
   cursor: ${props => props.cursor};
 `;
@@ -41,7 +41,6 @@ const ZoomDisplaySC = styled.div`
   color: rgb(235, 235, 235);
   padding: 10px 20px;
   border-bottom-left-radius: 3px;
-  z-index: 2;
 `;
 
 const CanvasPaneSC = styled.div.attrs(props => ({
@@ -78,6 +77,7 @@ export default function Workspace() {
     layerOrder,
     stagingPinnedTo
   } = useSelector(state => state.main.present);
+  const overlayVisible = useSelector(state => state.ui.overlayVisible);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -367,14 +367,13 @@ export default function Workspace() {
       onMouseMove={handleMouseMove}
       cursor={getCursor(isDragging ? "activeHand" : activeTool)}
     >
-      <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       <CanvasPaneSC
         translateX={translateX}
         translateY={translateY}
         width={canvasWidth}
         height={canvasHeight}
         zoomPct={zoomPct}
-      >
+        >
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
@@ -382,8 +381,10 @@ export default function Workspace() {
           stagingPinnedTo={stagingPinnedTo}
           width={canvasWidth}
           height={canvasHeight}
-        />
+          />
       </CanvasPaneSC>
+      <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
+      {overlayVisible === "filterTool" && <FilterTool />}
     </WorkspaceSC>
   );
 }

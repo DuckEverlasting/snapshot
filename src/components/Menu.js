@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import styled from "styled-components";
 
 const MenuGroupSC = styled.div`
@@ -10,7 +10,6 @@ const MenuGroupSC = styled.div`
   overflow: visible;
   cursor: ${props => props.cursor || "auto"};
   user-select: none;
-  z-index: 99;
 `;
 const MenuItemSC = styled.div`
   display: flex;
@@ -80,24 +79,24 @@ function MenuSettingsProvider({ overwriteInit, children }) {
   const [state, setState] = useState({ ...initMenuState, ...overwriteInit });
 
   const actions = {
-    toggle: () =>
-      setState({
-        ...state,
-        menuIsActive: !state.menuIsActive
-      }),
+    setMenuIsActive: bool =>
+      setState(prevState => ({
+        ...prevState,
+        menuIsActive: bool
+      })),
     setActiveMenu: listId =>
-      setState({
-        ...state,
+      setState(prevState => ({
+        ...prevState,
         activeMenu: listId
-      }),
+      })),
     setColors: newColors =>
-      setState({
-        ...state,
+      setState(prevState => ({
+        ...prevState,
         colors: {
-          ...state.colors,
+          ...prevState.colors,
           ...newColors
         }
-      })
+      }))
   };
 
   return (
@@ -116,24 +115,24 @@ export function MenuBar({ colors: initColors, children }) {
 }
 
 function MenuGroup({ children }) {
-  const { menuIsActive, toggle, colors } = useContext(MenuSettings);
+  const { menuIsActive, setMenuIsActive, colors } = useContext(MenuSettings);
+
+  const handleClickOutside = useCallback(() => {
+    if (menuIsActive) {
+      setMenuIsActive(false);
+    }
+  }, [menuIsActive, setMenuIsActive])
 
   useEffect(() => {
     window.addEventListener("click", handleClickOutside);
     return () => {
       window.removeEventListener("click", handleClickOutside);
     };
-  });
+  }, [handleClickOutside]);
 
   function handleClickInside(ev) {
     ev.stopPropagation();
-    toggle();
-  }
-
-  function handleClickOutside() {
-    if (menuIsActive) {
-      toggle();
-    }
+    setMenuIsActive(!menuIsActive);
   }
 
   return (
@@ -212,7 +211,7 @@ export function MenuBranch({ label, children }) {
   );
 }
 
-export function MenuItem({ onClick = () => null, disabled=false, label, hotkey, children }) {
+export function MenuItem({ onClick=null, disabled=false, label, hotkey, children }) {
   const { colors } = useContext(MenuSettings);
 
   const clickHandler = ev => {

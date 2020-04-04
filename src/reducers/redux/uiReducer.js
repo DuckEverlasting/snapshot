@@ -90,12 +90,12 @@ const uiReducer = (state = initUiState, {type, payload}) => {
     case TOGGLE_ABOUT_MODAL:
       return {
         ...state,
-        aboutModalVisible: !state.aboutModalVisible
+        overlayVisible: state.overlayVisible === "aboutModal" ? null : "aboutModal"
       }
     case SET_FILTER_TOOL:
       return {
         ...state,
-        filterToolVisible: payload.bool,
+        overlayVisible: payload.bool ? "filterTool" : null,
         currentFilter: payload.filter
       }
 

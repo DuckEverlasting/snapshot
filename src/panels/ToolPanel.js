@@ -13,7 +13,6 @@ const ToolPanelSC = styled.div`
   height: 100%;
   flex-shrink: 0;
   border-top: 1px solid black;
-  z-index: 1;
   background: #666666;
 `;
 

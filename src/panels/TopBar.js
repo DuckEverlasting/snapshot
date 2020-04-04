@@ -10,6 +10,7 @@ import { toggleAboutModal, setFilterTool } from "../actions/redux/index";
 import { filter } from "../utils/filters";
 
 const TopBarSC = styled.div`
+  position: relative;
   width: 100%;
   height: 35px;
   flex-shrink: 0;
@@ -18,6 +19,7 @@ const TopBarSC = styled.div`
   position: relative;
   display: flex;
   justify-content: space-between;
+  z-index: 1;
 `;
 
 const RightBoxSC = styled.div`

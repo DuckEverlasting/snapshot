@@ -87,7 +87,6 @@ export const initUiState = {
   activeTool: "pencil",
   menuIsActive: false,
   activeMenuList: null,
-  aboutModalVisible: false,
-  filterToolVisible: false,
+  overlayVisible: null,
   currentFilter: null
 }
