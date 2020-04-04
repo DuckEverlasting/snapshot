@@ -9,6 +9,7 @@ import {
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
   TOGGLE_ABOUT_MODAL,
+  TOGGLE_HELP,
   SET_FILTER_TOOL
 } from "../../actions/redux";
 
@@ -91,6 +92,11 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       return {
         ...state,
         overlayVisible: state.overlayVisible === "aboutModal" ? null : "aboutModal"
+      }
+    case TOGGLE_HELP:
+      return {
+        ...state,
+        overlayVisible: state.overlayVisible === "helpModal" ? null : "helpModal"
       }
     case SET_FILTER_TOOL:
       return {

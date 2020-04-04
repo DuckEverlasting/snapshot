@@ -21,6 +21,7 @@ import getCursor from "../utils/cursors";
 
 import { updateWorkspaceSettings } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
+import HelpModal from "../components/HelpModal";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -385,6 +386,7 @@ export default function Workspace() {
       </CanvasPaneSC>
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
+      {overlayVisible === "helpModal" && <HelpModal />}
     </WorkspaceSC>
   );
 }

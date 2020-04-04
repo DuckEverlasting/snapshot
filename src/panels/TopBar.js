@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { toggleAboutModal, setFilterTool } from "../actions/redux/index";
+import { toggleAboutModal, setFilterTool, toggleHelp } from "../actions/redux/index";
 
 import { filter } from "../utils/filters";
 
@@ -20,6 +20,7 @@ const TopBarSC = styled.div`
   display: flex;
   justify-content: space-between;
   z-index: 1;
+  pointer-events: ${props => props.overlayVisible ? "none" : "auto"};
 `;
 
 const RightBoxSC = styled.div`
@@ -46,10 +47,11 @@ export default function TopBar() {
   const clipboardIsUsed = useSelector(
     state => state.main.present.clipboardIsUsed
   );
+  const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const dispatch = useDispatch();
   let mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
   return (
-    <TopBarSC>
+    <TopBarSC overlayVisible={overlayVisible}>
       <MenuBar>
         <Menu id="File" label="File">
           <MenuItem disabled>New</MenuItem>
@@ -159,6 +161,10 @@ export default function TopBar() {
           <MenuItem
             label="About Photosmith"
             onClick={() => dispatch(toggleAboutModal())}
+          />
+          <MenuItem
+            label="Photosmith Help"
+            onClick={() => dispatch(toggleHelp())}
           />
         </Menu>
       </MenuBar>
