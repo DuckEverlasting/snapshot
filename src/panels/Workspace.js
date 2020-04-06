@@ -436,7 +436,7 @@ function LayerRenderer({
         id={"selection"}
         width={width}
         height={height}
-        index={layerOrder.length + 4}
+        index={layerOrder.length + 2}
         data={layerData.selection}
         hidden={false}
         opacity={1}
@@ -446,7 +446,7 @@ function LayerRenderer({
         id={"staging"}
         width={width}
         height={height}
-        index={stagingPinnedTo === "selection" ? layerOrder.length + 4 : stagingPinnedTo + 1}
+        index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
         data={layerData.staging}
         hidden={false}
         opacity={1}
