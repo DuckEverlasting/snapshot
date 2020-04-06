@@ -187,10 +187,10 @@ export const updateLayerOpacity = (id, opacity) => {
   };
 };
 
-export const updateLayerOrder = (from, to) => {
+export const updateLayerOrder = (from, to, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_ORDER,
-    payload: {from, to, ignoreHistory: true}
+    payload: {from, to, ignoreHistory}
   };
 };
 
