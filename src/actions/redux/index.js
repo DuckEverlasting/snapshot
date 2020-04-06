@@ -27,6 +27,7 @@ export const [
   SET_ACTIVE_MENU_LIST,
   SET_CLIPBOARD_IS_USED,
   TOGGLE_ABOUT_MODAL,
+  TOGGLE_HELP,
   SET_FILTER_TOOL
 ] = [
   "UNDO",
@@ -55,6 +56,7 @@ export const [
   "SET_ACTIVE_MENU_LIST",
   "SET_CLIPBOARD_IS_USED",
   "TOGGLE_ABOUT_MODAL",
+  "TOGGLE_HELP",
   "SET_FILTER_TOOL"
 ];
 
@@ -185,10 +187,10 @@ export const updateLayerOpacity = (id, opacity) => {
   };
 };
 
-export const updateLayerOrder = (from, to) => {
+export const updateLayerOrder = (from, to, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_ORDER,
-    payload: {from, to, ignoreHistory: true}
+    payload: {from, to, ignoreHistory}
   };
 };
 
@@ -290,6 +292,12 @@ export const setClipboardIsUsed = bool => {
 export const toggleAboutModal = () => {
   return {
     type: TOGGLE_ABOUT_MODAL
+  }
+}
+
+export const toggleHelp = () => {
+  return {
+    type: TOGGLE_HELP
   }
 }
 

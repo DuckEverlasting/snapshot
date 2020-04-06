@@ -15,7 +15,6 @@ const LayerPanelSC = styled.div`
   width: 200px;
   height: 100%;
   border-top: 1px solid black;
-  z-index: 1;
   background: #666666;
 `;
 

@@ -34,7 +34,6 @@ const PrimaryColorSC = styled.div`
   border: 1px solid black;
   display: block;
   cursor: pointer;
-  z-index: 2;
 `
 
 const SecondaryColorSC = styled.div`
@@ -47,7 +46,6 @@ const SecondaryColorSC = styled.div`
   border: 1px solid black;
   display: block;
   cursor: pointer;
-  z-index: 1;
 `
 
 const FontAwesomeIconSC = styled(FontAwesomeIcon)`
@@ -90,14 +88,14 @@ export default function ColorBox() {
   return (
     <ColorBoxSC>
       <TitleSC>Color</TitleSC>
-      <PrimaryColorLabelSC visible={true}>
-        <PrimaryColorSC title="Primary Color" color={primaryHex}/>
-        <ColorPickerSC value={primaryHex} onChange={primaryColorHandler} type="color"/>
-      </PrimaryColorLabelSC>
       <SecondaryColorLabelSC visible={true}>
         <SecondaryColorSC title="Secondary Color" color={secondaryHex}/>
         <ColorPickerSC value={secondaryHex} onChange={secondaryColorHandler} type="color"/>
       </SecondaryColorLabelSC>
+      <PrimaryColorLabelSC visible={true}>
+        <PrimaryColorSC title="Primary Color" color={primaryHex}/>
+        <ColorPickerSC value={primaryHex} onChange={primaryColorHandler} type="color"/>
+      </PrimaryColorLabelSC>
       <FontAwesomeIconSC title="Switch Colors" icon={faSync} onClick={switchColorsHandler}/>
     </ColorBoxSC>
   )

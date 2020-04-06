@@ -111,18 +111,42 @@ export class PencilAction extends ToolActionBase {
 
     this.destArray = [...this.destArray, {x, y}];
 
-    draw(this.layerData.staging.getContext("2d"), {
-      action: "drawQuad",
-      params: {
-        width: this.width,
-        strokeColor: this.color,
-        orig: this.origin,
-        destArray: this.destArray,
-        clip: this.clip,
-        dashPattern: this.dashPattern,
-        clearFirst: true
-      }
-    });
+    if (this.isSelectionTool) {
+      draw(this.layerData.staging.getContext("2d"), {
+        action: "drawQuad",
+        params: {
+          destArray: this.destArray,
+          orig: this.origin,
+          width: 1,
+          strokeColor: "rgba(0, 0, 0, 1)",
+          dashPattern: [7, 7],
+          clearFirst: true
+        }
+      });
+      draw(this.layerData.staging.getContext("2d"), {
+        action: "drawQuad",
+        params: {
+          destArray: this.destArray,
+          orig: this.origin,
+          width: 1,
+          strokeColor: "rgba(255, 255, 255, 1)",
+          dashPattern: [7, 7],
+          dashOffset: 7
+        }
+      });
+    } else {
+      draw(this.layerData.staging.getContext("2d"), {
+        action: "drawQuad",
+        params: {
+          destArray: this.destArray,
+          orig: this.origin,
+          width: this.width,
+          strokeColor: this.color,
+          clip: this.clip,
+          clearFirst: true
+        }
+      });
+    }
 
   }
 
@@ -143,20 +167,37 @@ export class PencilAction extends ToolActionBase {
           params: { orig: this.origin, destArray: this.destArray }
         });
         const selectCtx = this.layerData.selection.getContext("2d");
+        const viewWidth = Math.ceil(selectCtx.canvas.width);
+        const viewHeight = Math.ceil(selectCtx.canvas.height);
+        this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
+        draw(selectCtx, {
+          action: "drawQuadPath",
+          params: {
+            orig: this.origin,
+            destArray: this.destArray,
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [7, 7],
+          }
+        });
+        draw(selectCtx, {
+          action: "drawQuadPath",
+          params: {
+            orig: this.origin,
+            destArray: this.destArray,
+            width: 1,
+            strokeColor: "rgba(255, 255, 255, 1)",
+            dashPattern: [7, 7],
+            dashOffset: 7
+          }
+        })
         this.dispatch(putHistoryData(
           "selection",
           selectCtx,
-          () => draw(selectCtx, {
-            action: "drawQuadPath",
-            params: {
-              orig: this.origin,
-              destArray: this.destArray,
-              width: this.width,
-              strokeColor: this.color,
-              dashPattern: this.dashPattern,
-            }
-          })
+          null,
+          this.prevImgData
         ));
+        this.prevImgData = null;
       }
       this.dispatch(updateSelectionPath(path));
     } else {
@@ -286,19 +327,43 @@ export class ShapeAction extends ToolActionBase {
     if (this.regularOnShift && ev.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
     };
-    draw(this.layerData.staging.getContext("2d"), {
-      action: this.drawActionType,
-      params: {
-        orig: this.origin,
-        dest: this.dest,
-        width: this.width,
-        strokeColor: this.color,
-        fillColor: this.color,
-        dashPattern: this.dashPattern,
-        clearFirst: true,
-        clip: this.isSelectionTool ? null : this.clip
-      }
-    });
+    if (this.isSelectionTool) {
+      draw(this.layerData.staging.getContext("2d"), {
+        action: this.drawActionType,
+        params: {
+          orig: this.origin,
+          dest: this.dest,
+          width: 1,
+          strokeColor: "rgba(0, 0, 0, 1)",
+          dashPattern: [7, 7],
+          clearFirst: true
+        }
+      })
+      draw(this.layerData.staging.getContext("2d"), {
+        action: this.drawActionType,
+        params: {
+          orig: this.origin,
+          dest: this.dest,
+          width: 1,
+          strokeColor: "rgba(255, 255, 255, 1)",
+          dashPattern: [7, 7],
+          dashOffset: 7
+        }
+      })
+    } else {
+      draw(this.layerData.staging.getContext("2d"), {
+        action: this.drawActionType,
+        params: {
+          orig: this.origin,
+          dest: this.dest,
+          width: this.width,
+          strokeColor: this.color,
+          fillColor: this.color,
+          clearFirst: true,
+          clip: this.clip
+        }
+      })
+    };
   }
 
   end(layerData) {
@@ -317,22 +382,38 @@ export class ShapeAction extends ToolActionBase {
           action: this.drawActionType,
           params: { orig: this.origin, dest: this.dest }
         });
-        console.log(path);
         const selectCtx = this.layerData.selection.getContext("2d");
+        const viewWidth = Math.ceil(selectCtx.canvas.width);
+        const viewHeight = Math.ceil(selectCtx.canvas.height);
+        this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
+        draw(selectCtx, {
+          action: this.drawActionType,
+          params: {
+            orig: this.origin,
+            dest: this.dest,
+            width: 1,
+            strokeColor: "rgba(0, 0, 0, 1)",
+            dashPattern: [7, 7],
+          }
+        });
+        draw(selectCtx, {
+          action: this.drawActionType,
+          params: {
+            orig: this.origin,
+            dest: this.dest,
+            width: 1,
+            strokeColor: "rgba(255, 255, 255, 1)",
+            dashPattern: [7, 7],
+            dashOffset: 7
+          }
+        })
         this.dispatch(putHistoryData(
           "selection",
           selectCtx,
-          () => draw(selectCtx, {
-            action: this.drawActionType,
-            params: {
-              orig: this.origin,
-              dest: this.dest,
-              width: this.width,
-              strokeColor: this.color,
-              dashPattern: this.dashPattern,
-            }
-          })
+          null,
+          this.prevImgData
         ));
+        this.prevImgData = null;
       }
       this.dispatch(updateSelectionPath(path));
     } else {
@@ -393,7 +474,7 @@ export class EyeDropperAction extends ToolActionBase {
   move(ev, layerData) {
     this.layerData = layerData;
     if (this.isDrawing) {
-      this.start(ev, layerData  );
+      this.start(ev, layerData);
     }
   }
 }
