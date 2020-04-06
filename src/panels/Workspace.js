@@ -128,12 +128,14 @@ export default function Workspace() {
   function buildAction() {
     switch (activeTool) {
       case "pencil":
+        if (!activeLayer) {return}
         return new PencilAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.pencil.width,
           color: addOpacity(primary, toolSettings.pencil.opacity / 100),
           clip: selectionPath
         });
       case "brush":
+        if (!activeLayer) {return}
         return new BrushAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.brush.width,
           color: primary,
@@ -142,6 +144,7 @@ export default function Workspace() {
           clip: selectionPath
         });
       case "line":
+        if (!activeLayer) {return}
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "drawLine",
           color: addOpacity(primary, toolSettings.line.opacity / 100),
@@ -149,6 +152,7 @@ export default function Workspace() {
           clip: selectionPath,
         });
       case "fillRect":
+        if (!activeLayer) {return}
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "fillRect",
           color: addOpacity(primary, toolSettings.fillRect.opacity / 100),
@@ -156,6 +160,7 @@ export default function Workspace() {
           clip: selectionPath,
         });
       case "drawRect":
+        if (!activeLayer) {return}
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "drawRect",
           color: addOpacity(primary, toolSettings.drawRect.opacity / 100),
@@ -164,6 +169,7 @@ export default function Workspace() {
           clip: selectionPath,
         });
       case "fillEllipse":
+        if (!activeLayer) {return}
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "fillEllipse",
           color: addOpacity(primary, toolSettings.fillEllipse.opacity / 100),
@@ -171,6 +177,7 @@ export default function Workspace() {
           clip: selectionPath,
         });
       case "drawEllipse":
+        if (!activeLayer) {return}
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "drawEllipse",
           color: addOpacity(primary, toolSettings.drawEllipse.opacity / 100),
@@ -179,6 +186,7 @@ export default function Workspace() {
           clip: selectionPath,
         });
       case "eraser":
+        if (!activeLayer) {return}
         return new BrushAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.eraser.width,
           color: "rgba(0, 0, 0, 1)",
@@ -213,15 +221,14 @@ export default function Workspace() {
         });
       case "lasso":
         return new PencilAction(activeLayer, dispatch, getTranslateData(), {
-          width: 1,
-          color: "rgba(0, 0, 0, 1)",
-          dashPattern: [5, 10],
           isSelectionTool: true,
           clip: selectionPath
         });
       case "move":
+        if (!activeLayer) {return}
         return new MoveAction(activeLayer, dispatch, getTranslateData());
       case "bucketFill":
+        if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
           colorArray: toArrayFromRgba(primary, toolSettings.bucketFill.opacity / 100),
           tolerance: toolSettings.bucketFill.tolerance,
@@ -402,6 +409,30 @@ function LayerRenderer({
   return (
     <>
       <Layer
+        id={"clipboard"}
+        width={width}
+        height={height}
+        index={1}
+        data={layerData.clipboard}
+        hidden={true}
+        opacity={1}
+      />
+      {layerOrder.length !== 0 &&
+        layerOrder.map((layerId, i) => {
+          let layerDat = layerData[layerId];
+          let layerSet = layerSettings[layerId];
+          return <Layer
+            key={layerId}
+            id={layerId}
+            width={width}
+            height={height}
+            index={i + 1}
+            data={layerDat}
+            hidden={layerSet.hidden}
+            opacity={layerSet.opacity}
+          />
+        })}
+      <Layer
         id={"selection"}
         width={width}
         height={height}
@@ -410,65 +441,14 @@ function LayerRenderer({
         hidden={false}
         opacity={1}
       />
-      {stagingPinnedTo === "selection" && (
-        <Layer
-          key={"staging"}
-          id={"staging"}
-          width={width}
-          height={height}
-          index={layerOrder.length + 4}
-          data={layerData.staging}
-          hidden={false}
-          opacity={1}
-        />
-      )}
-      {layerOrder.length !== 0 &&
-        layerOrder.map((layerId, i) => {
-          let layerDat = layerData[layerId];
-          let layerSet = layerSettings[layerId];
-          return stagingPinnedTo === layerId ? (
-            <>
-              <Layer
-                key={layerId}
-                id={layerId}
-                width={width}
-                height={height}
-                index={i + 1}
-                data={layerDat}
-                hidden={layerSet.hidden}
-                opacity={layerSet.opacity}
-              />
-              <Layer
-                key={"staging"}
-                id={"staging"}
-                width={width}
-                height={height}
-                index={i + 1}
-                data={layerData.staging}
-                hidden={false}
-                opacity={1}
-              />
-            </>
-          ) : (
-            <Layer
-              key={layerId}
-              id={layerId}
-              width={width}
-              height={height}
-              index={i + 1}
-              data={layerDat}
-              hidden={layerSet.hidden}
-              opacity={layerSet.opacity}
-            />
-          );
-        })}
       <Layer
-        id={"clipboard"}
+        key={"staging"}
+        id={"staging"}
         width={width}
         height={height}
-        index={1}
-        data={layerData.clipboard}
-        hidden={true}
+        index={stagingPinnedTo === "selection" ? layerOrder.length + 4 : stagingPinnedTo + 1}
+        data={layerData.staging}
+        hidden={false}
         opacity={1}
       />
     </>
