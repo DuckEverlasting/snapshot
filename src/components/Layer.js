@@ -7,7 +7,8 @@ const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
     width: `${props.width}px`,
     height: `${props.height}px`,
-    title: props.title
+    title: props.title,
+    zIndex: props.index
   }
 }))`
   position: absolute;
@@ -47,8 +48,10 @@ function Layer(props) {
     }
   }, [onUndelete, props.id])
 
-  return <LayerWrapperSC width={props.width} height={props.height}>
-    <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width)} height={Math.floor(props.height)} hidden={props.hidden} index={props.index} ref={canvasRef} />
+  console.log("LAYER ", props.id, " HAS ZINDEX OF ", props.index)
+
+  return <LayerWrapperSC width={props.width} height={props.height} index={props.index}>
+    <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width)} height={Math.floor(props.height)} hidden={props.hidden} ref={canvasRef} />
   </LayerWrapperSC>
 }
 

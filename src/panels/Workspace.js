@@ -202,9 +202,6 @@ export default function Workspace() {
       case "selectRect":
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "drawRect",
-          color: "rgba(0, 0, 0, 1)",
-          width: 1,
-          dashPattern: [5, 10],
           regularOnShift: true,
           isSelectionTool: true,
           clip: selectionPath
@@ -212,9 +209,6 @@ export default function Workspace() {
       case "selectEllipse":
         return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
           drawActionType: "drawEllipse",
-          color: "rgba(0, 0, 0, 1)",
-          width: 1,
-          dashPattern: [5, 10],
           regularOnShift: true,
           isSelectionTool: true,
           clip: selectionPath
