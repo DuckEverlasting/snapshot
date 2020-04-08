@@ -8,6 +8,7 @@ import Layer from "../components/Layer";
 import { 
   PencilAction,
   BrushAction,
+  EraserAction,
   ShapeAction,
   EyeDropperAction,
   MoveAction,
@@ -187,7 +188,7 @@ export default function Workspace() {
         });
       case "eraser":
         if (!activeLayer) {return}
-        return new BrushAction(activeLayer, dispatch, getTranslateData(), {
+        return new EraserAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.eraser.width,
           color: "rgba(0, 0, 0, 1)",
           opacity: 100,

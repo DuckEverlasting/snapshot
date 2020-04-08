@@ -68,7 +68,7 @@ export const initUiState = {
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 100 },
     fillEllipse: { name: "Fill Ellipse", opacity: 100 },
     drawEllipse: { name: "Draw Ellipse", width: 5, opacity: 100 },
-    eraser: { name: "Eraser", width: 5, hardness: 50 },
+    eraser: { name: "Eraser", width: 5, opacity: 100, hardness: 50 },
     eyeDropper: { name: "Eye Dropper" },
     selectRect: { name: "Select Rectangle" },
     selectEllipse: { name: "Select Ellipse" },

@@ -9,7 +9,6 @@ import {
   updateColor,
   updateSelectionPath,
   updateStagingPosition,
-  updateLayerOpacity,
   putHistoryData
 } from "../actions/redux/index";
 
@@ -227,7 +226,6 @@ export class PencilAction extends ToolActionBase {
 export class BrushAction extends ToolActionBase {
   constructor(activeLayer, dispatch, translateData, params) {
     super(activeLayer, dispatch, translateData);
-    this.composite = params.composite;
     this.width = params.width;
     this.opacity = params.opacity;
     this.hardness = params.hardness;
@@ -245,18 +243,6 @@ export class BrushAction extends ToolActionBase {
     this._moveStaging();
     this.origin = this._getCoordinates(ev);
     this.lastDest = this.origin;
-    draw(this.layerData.staging.getContext("2d"), {
-      action: "drawQuadPoints",
-      params: {
-        orig: this.origin,
-        destArray: [this.origin, this.origin, this.origin],
-        gradient: this.gradient,
-        width: this.width,
-        hardness: this.hardness,
-        composite: this.composite,
-        clip: this.clip
-      }
-    });
   }
 
   move(ev, layerData) {
@@ -295,7 +281,6 @@ export class BrushAction extends ToolActionBase {
         width: this.width,
         hardness: this.hardness,
         density: 0.25,
-        composite: this.composite,
         clip: this.clip
       }
     });
@@ -319,13 +304,88 @@ export class BrushAction extends ToolActionBase {
       () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.layerData.staging.getContext("2d"),
+          sourceCtx: this.layerData.staging.getContext("2d")
         }
       })
     ))
     
     this._clearStaging();
     this.processing = null;
+  }
+}
+
+export class EraserAction extends ToolActionBase {
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
+    this.composite = params.composite;
+    this.width = params.width;
+    this.clip = params.clip;
+    this.gradient = getGradient("rgba(0, 0, 0, 1)", 100, params.hardness);
+  }
+
+  start(ev, layerData) {
+    this.layerData = layerData;
+    const ctx = this.layerData[this.activeLayer].getContext("2d");
+    const viewWidth = Math.ceil(ctx.canvas.width);
+    const viewHeight = Math.ceil(ctx.canvas.height);
+    this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
+    this.origin = this._getCoordinates(ev);
+    this.lastDest = this.origin;
+  }
+
+  move(ev, layerData) {
+    this.layerData = layerData;
+    this._setLockedAxis(ev);
+    let x, y;
+    if (this.lockedAxis === "x") {
+      x = this.origin.x;
+    } else if (this.lockedAxis === "y") {
+      y = this.origin.y;
+    } else {
+      const coords = this._getCoordinates(ev);
+      x = coords.x;
+      y = coords.y;
+    }
+
+    const newMid = midpoint(this.lastDest, {x, y});
+
+    if (
+      getQuadLength(
+        this.lastMid || this.origin,
+        this.lastDest,
+        newMid
+      ) <
+      this.width * 0.25
+    ) {
+      return;
+    }
+
+    draw(this.layerData[this.activeLayer].getContext("2d"), {
+      action: "drawQuadPoints",
+      params: {
+        orig: this.origin,
+        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
+        gradient: this.gradient,
+        width: this.width,
+        hardness: this.hardness,
+        density: 0.25,
+        composite: this.composite,
+        clip: this.clip
+      }
+    });
+    this.lastDest = {x, y};
+    this.lastMid = newMid;
+  }
+
+  end(layerData) {
+    this.layerData = layerData;
+    this.dispatch(putHistoryData(
+      this.activeLayer,
+      this.layerData[this.activeLayer].getContext("2d"),
+      null,
+      this.prevImgData
+    ));
+    this.prevImgData = null;
   }
 }
 
