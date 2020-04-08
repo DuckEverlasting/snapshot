@@ -4,7 +4,7 @@ export const helpHierarchy = [
   {
     slug: "tools",
     displayName: "Tools",
-    children: [
+    contents: [
       {
         slug: "pencil",
         displayName: "Pencil Tool"
@@ -31,6 +31,7 @@ export const helpHierarchy = [
 
 const tools = (
   <div>
+    <h2>Tools</h2>
     <p>
       Tools are things that are tools. Here are some tools:{" "}
       <button name="pencil">pencil</button>,<button name="brush">brush</button>,
@@ -41,18 +42,21 @@ const tools = (
 
 const pencil = (
   <div>
+    <h2>Pencil Tool</h2>
     <p>The pencil is a tool that is a pencil. Pencil.</p>
   </div>
 );
 
 const brush = (
   <div>
+    <h2>Brush Tool</h2>
     <p>Brush brush brush tool. Tool.</p>
   </div>
 );
 
 const line = (
   <div>
+    <h2>Line Tool</h2>
     <p>
       Lorem Ipsum is simply dummy text of the printing and typesetting industry.
       Lorem Ipsum has been the industry's standard dummy text ever since the
@@ -69,12 +73,14 @@ const line = (
 
 const eraser = (
   <div>
+    <h2>Eraser Tool</h2>
     <p>Eraser stuff.</p>
   </div>
 );
 
 const layerPanel = (
   <div>
+    <h2>Layer Panel</h2>
     <p>Layer Panel stuff.</p>
   </div>
 );

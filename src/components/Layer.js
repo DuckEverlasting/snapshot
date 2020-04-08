@@ -8,7 +8,8 @@ const LayerWrapperSC = styled.div.attrs(props => ({
     width: `${props.width}px`,
     height: `${props.height}px`,
     title: props.title,
-    zIndex: props.index
+    zIndex: props.index,
+    opacity: props.opacity
   }
 }))`
   position: absolute;
@@ -48,7 +49,7 @@ function Layer(props) {
     }
   }, [onUndelete, props.id])
 
-  console.log("LAYER ", props.id, " HAS ZINDEX OF ", props.index)
+  console.log("LAYER ", props.id, " HAS OPACITY OF ", props.opacity)
 
   return <LayerWrapperSC width={props.width} height={props.height} index={props.index}>
     <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width)} height={Math.floor(props.height)} hidden={props.hidden} ref={canvasRef} />

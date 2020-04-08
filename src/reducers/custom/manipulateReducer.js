@@ -15,8 +15,8 @@ export default function(ctx, { action, params }) {
   if (params.filter) {
     ctx.filter = params.filter;
   }
-  if (params.globalOpacity) {
-    ctx.globalOpacity = params.globalOpacity;
+  if (params.globalAlpha) {
+    ctx.globalAlpha = params.globalAlpha;
   }
   if (params.composite) {
     ctx.globalCompositeOperation = params.composite;

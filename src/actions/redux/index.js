@@ -180,10 +180,10 @@ export const updateSelectionPath = path => {
   };
 };
 
-export const updateLayerOpacity = (id, opacity) => {
+export const updateLayerOpacity = (id, opacity, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_OPACITY,
-    payload: {id, opacity, ignoreHistory: true}
+    payload: {id, opacity, ignoreHistory}
   };
 };
 

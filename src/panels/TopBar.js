@@ -162,10 +162,10 @@ export default function TopBar() {
             label="About Photosmith"
             onClick={() => dispatch(toggleAboutModal())}
           />
-          {/* <MenuItem
+          <MenuItem
             label="Photosmith Help"
             onClick={() => dispatch(toggleHelp())}
-          /> */}
+          />
         </Menu>
       </MenuBar>
       <RightBoxSC>

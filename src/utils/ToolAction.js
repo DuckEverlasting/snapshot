@@ -9,6 +9,7 @@ import {
   updateColor,
   updateSelectionPath,
   updateStagingPosition,
+  updateLayerOpacity,
   putHistoryData
 } from "../actions/redux/index";
 
@@ -228,18 +229,34 @@ export class BrushAction extends ToolActionBase {
     super(activeLayer, dispatch, translateData);
     this.composite = params.composite;
     this.width = params.width;
+    this.opacity = params.opacity;
+    this.hardness = params.hardness;
     this.clip = params.clip;
-    this.gradient = getGradient(params.color, params.opacity, params.hardness);
+    this.gradient = getGradient(params.color, params.hardness);
+    this.processing = document.createElement('canvas');
   }
 
   start(ev, layerData) {
     this.layerData = layerData;
-    const ctx = this.layerData[this.activeLayer].getContext("2d");
-    const viewWidth = Math.ceil(ctx.canvas.width);
-    const viewHeight = Math.ceil(ctx.canvas.height);
-    this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
+    this.processing.width = this.layerData.staging.width;
+    this.processing.height = this.layerData.staging.height;
+    this.processing.getContext("2d").imageSmoothingEnabled = false;
+    this._clearStaging();
+    this._moveStaging();
     this.origin = this._getCoordinates(ev);
     this.lastDest = this.origin;
+    draw(this.layerData.staging.getContext("2d"), {
+      action: "drawQuadPoints",
+      params: {
+        orig: this.origin,
+        destArray: [this.origin, this.origin, this.origin],
+        gradient: this.gradient,
+        width: this.width,
+        hardness: this.hardness,
+        composite: this.composite,
+        clip: this.clip
+      }
+    });
   }
 
   move(ev, layerData) {
@@ -264,22 +281,31 @@ export class BrushAction extends ToolActionBase {
         this.lastDest,
         newMid
       ) <
-      this.width * 0.125
+      this.width * 0.25
     ) {
       return;
     }
 
-    draw(this.layerData[this.activeLayer].getContext("2d"), {
+    draw(this.processing.getContext("2d"), {
       action: "drawQuadPoints",
       params: {
         orig: this.origin,
         destArray: [this.lastMid || this.origin, this.lastDest, newMid],
         gradient: this.gradient,
         width: this.width,
-        density: 0.125,
+        hardness: this.hardness,
+        density: 0.25,
         composite: this.composite,
         clip: this.clip
       }
+    });
+    manipulate(this.layerData.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.processing.getContext("2d"),
+        globalAlpha: this.opacity / 100,
+        clearFirst: true
+      },
     });
     this.lastDest = {x, y};
     this.lastMid = newMid;
@@ -290,10 +316,16 @@ export class BrushAction extends ToolActionBase {
     this.dispatch(putHistoryData(
       this.activeLayer,
       this.layerData[this.activeLayer].getContext("2d"),
-      null,
-      this.prevImgData
-    ));
-    this.prevImgData = null;
+      () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.layerData.staging.getContext("2d"),
+        }
+      })
+    ))
+    
+    this._clearStaging();
+    this.processing = null;
   }
 }
 
@@ -480,10 +512,6 @@ export class EyeDropperAction extends ToolActionBase {
 }
 
 export class MoveAction extends ToolActionBase {
-  constructor(activeLayer, dispatch, translateData) {
-    super(activeLayer, dispatch, translateData);
-  }
-
   start(ev, layerData) {
     this.layerData = layerData;
     const ctx = this.layerData[this.activeLayer].getContext("2d");

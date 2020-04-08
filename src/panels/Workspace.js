@@ -443,7 +443,7 @@ function LayerRenderer({
         index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
         data={layerData.staging}
         hidden={false}
-        opacity={1}
+        opacity={layerSettings.staging.opacity}
       />
     </>
   );
