@@ -88,5 +88,6 @@ export const initUiState = {
   menuIsActive: false,
   activeMenuList: null,
   overlayVisible: null,
+  currentHelpTopic: "tools",
   currentFilter: null
 }

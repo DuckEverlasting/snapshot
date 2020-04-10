@@ -28,6 +28,7 @@ export const [
   SET_CLIPBOARD_IS_USED,
   TOGGLE_ABOUT_MODAL,
   TOGGLE_HELP,
+  SET_HELP_TOPIC,
   SET_FILTER_TOOL
 ] = [
   "UNDO",
@@ -57,6 +58,7 @@ export const [
   "SET_CLIPBOARD_IS_USED",
   "TOGGLE_ABOUT_MODAL",
   "TOGGLE_HELP",
+  "SET_HELP_TOPIC",
   "SET_FILTER_TOOL"
 ];
 
@@ -295,9 +297,17 @@ export const toggleAboutModal = () => {
   }
 }
 
-export const toggleHelp = () => {
+export const toggleHelp = topic => {
   return {
-    type: TOGGLE_HELP
+    type: TOGGLE_HELP,
+    payload: topic
+  }
+}
+
+export const setHelpTopic = (topic=null) => {
+  return {
+    type: SET_HELP_TOPIC,
+    payload: topic
   }
 }
 

@@ -34,8 +34,7 @@ const tools = (
     <h2>Tools</h2>
     <p>
       Tools are things that are tools. Here are some tools:{" "}
-      <button name="pencil">pencil</button>,<button name="brush">brush</button>,
-      <button name="line">line</button>... and there are more.
+      <button name="pencil">pencil</button>, <button name="brush">brush</button>, <button name="line">line</button>... and there are more.
     </p>
   </div>
 );
