@@ -13,33 +13,20 @@ export const initMainState = {
     1: null,
     selection: null,
     clipboard: null,
-    staging: null
+    staging: null,
+    transform: null
   },
   layerSettings: {
     1: {
       name: "Layer 1",
       nameEditable: false,
       hidden: false,
-      opacity: 1
-    },
-    staging: {
-      name: undefined,
-      nameEditable: false,
-      hidden: false,
-      opacity: 1
-    },
-    selection: {
-      name: undefined,
-      nameEditable: false,
-      hidden: false,
-      opacity: 1
-    },
-    clipboard: {
-      name: undefined,
-      nameEditable: false,
-      hidden: true,
-      opacity: 1
     }
+  },
+  transformSettings: {
+    active: false,
+    width: 0,
+    height: 0,
   },
   selectionPath: null,
   stagingPinnedTo: 1,

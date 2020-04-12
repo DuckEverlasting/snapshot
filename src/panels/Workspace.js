@@ -77,6 +77,7 @@ export default function Workspace() {
     layerData,
     layerSettings,
     layerOrder,
+    transformSettings,
     stagingPinnedTo
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
@@ -347,7 +348,7 @@ export default function Workspace() {
   };
     
   const handleMouseUp = ev => {
-    if (ev.button === 1 || ev.button === 0 && activeTool === "hand") {
+    if (ev.button === 1 || (ev.button === 0 && activeTool === "hand")) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
     } else if (ev.button === 0 && activeTool === "zoom") {
@@ -382,9 +383,11 @@ export default function Workspace() {
           layerData={layerData}
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
+          activeLayer={activeLayer}
           width={canvasWidth}
           height={canvasHeight}
-          />
+          transformSettings={transformSettings}
+        />
       </CanvasPaneSC>
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
@@ -398,8 +401,10 @@ function LayerRenderer({
   layerData,
   layerSettings,
   stagingPinnedTo,
+  activeLayer,
   width,
-  height
+  height,
+  transformSettings
 }) {
   return (
     <>
@@ -409,8 +414,7 @@ function LayerRenderer({
         height={height}
         index={1}
         data={layerData.clipboard}
-        hidden={true}
-        opacity={1}
+        hidden
       />
       {layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
@@ -424,7 +428,6 @@ function LayerRenderer({
             index={i + 1}
             data={layerDat}
             hidden={layerSet.hidden}
-            opacity={layerSet.opacity}
           />
         })}
       <Layer
@@ -433,8 +436,6 @@ function LayerRenderer({
         height={height}
         index={layerOrder.length + 2}
         data={layerData.selection}
-        hidden={false}
-        opacity={1}
       />
       <Layer
         key={"staging"}
@@ -443,9 +444,20 @@ function LayerRenderer({
         height={height}
         index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
         data={layerData.staging}
-        hidden={false}
-        opacity={layerSettings.staging.opacity}
       />
+      {
+        transformSettings.active &&
+        <Layer
+          key={"transform"}
+          id={"transform"}
+          width={transformSettings.width}
+          height={transformSettings.height}
+          translateX={transformSettings.translateX}
+          translateY={transformSettings.translateY}
+          index={layerOrder.indexOf(activeLayer) + 1}
+          data={layerData.transform}
+        />
+      }
     </>
   );
 }

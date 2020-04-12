@@ -9,7 +9,7 @@ const LayerWrapperSC = styled.div.attrs(props => ({
     height: `${props.height}px`,
     title: props.title,
     zIndex: props.index,
-    opacity: props.opacity
+    transform: `translateX(${props.translateX}px) translateY(${props.translateY}px)`
   }
 }))`
   position: absolute;
