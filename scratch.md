@@ -174,3 +174,23 @@ properties can include:
 - isSelectionTool
 (bit of extra about that one: selection tools right now are all pencil-like or shape (with a fill on the way). selection behaviors should probably be integrated into their onStart, onMove, etc functions. Unless I come up with a better idea.)
 
+NOTES ON TRANSFORM LAYER
+
+Steps to do a transform action:
+- make selection (done)
+- trigger transform
+- check to make sure something is inside path on active layer
+- cut selection from active layer
+- transform layer is created
+  - position: smallest x and smallest y in selection
+  - size: largest x - smallest x, largest y - smallest y
+  - content: paste selection from active layer
+- every action other than applying the transformation and moving / transforming the transform layer is disabled
+- transform controls = horizontal size, vertical size, rotation, horizontal skew, vertical skew
+- hold shift to lock aspect ratio on resize, and to lock rotation to nearest eighth. hold ctrl or alt to skew?
+- maybe create a movable anchor point if you really want a headache (would only affect rotation)
+- render controls on top of transform layer. somehow. also, enable them.
+  - probably want to make the transform layer it's own component. maybe it contains a "regular" layer?
+- once transform is applied, cut from transform layer, paste to active. Then disable transform layer, reenable other actions.
+
+When importing an image, create new layer, paste image into a transform layer, then when tranform is applied, paste that to the created new layer.  

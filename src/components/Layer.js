@@ -49,8 +49,6 @@ function Layer(props) {
     }
   }, [onUndelete, props.id])
 
-  console.log("LAYER ", props.id, " HAS OPACITY OF ", props.opacity)
-
   return <LayerWrapperSC width={props.width} height={props.height} index={props.index}>
     <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width)} height={Math.floor(props.height)} hidden={props.hidden} ref={canvasRef} />
   </LayerWrapperSC>
