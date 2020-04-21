@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { toggleHelp, setHelpTopic } from "../actions/redux";
 
-import { helpHierarchy, helpContent } from "../enums/helpDocumentation";
+import { helpHierarchy } from "../constants/helpDocumentation";
+import helpContent from "../constants/helpContent.json";
 
 import DraggableWindow from "./DraggableWindow";
 import Button from "./Button";
@@ -65,15 +66,22 @@ const CurrentTopicSC = styled(ContentBoxSC)`
     }
   }
 
+  & i {
+    font-style: italic;
+  }
+
+  & b {
+    font-weight: bold;
+  }
+
   & button {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 1rem;
     font-family: "PT Sans";
-    color: white;
+    color: #ffe312;
     padding: 0;
-    font-weight: bold;
   }
 `;
 
@@ -83,20 +91,21 @@ const TopicSC = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   margin-left: 20px;
-  color: ${(props) => (props.isCurrentTopic ? "yellow" : "white")};
+  color: ${(props) => (props.isCurrentTopic ? "#ffe312" : "white")};
 
   & p {
     display: flex;
     align-items: center;
-    padding: 5px 0;
     cursor: pointer;
 
     & span {
-      padding: 3px 0;
+      padding: 8px 0;
+      margin-right: 5px;
     }
 
     & button {
-      margin-left: 5px;
+      width: 18px;
+      height: 18px;
       border: none;
       background: none;
       outline: none;
@@ -132,7 +141,7 @@ export default function HelpModal() {
     dispatch(toggleHelp());
   }
 
-  console.log(currentTopic)
+  console.log(helpContent);
 
   return (
     <DraggableWindow name="Help" onKeyDown={handleKeyDown}>
@@ -140,13 +149,13 @@ export default function HelpModal() {
         <MainContentSC>
           <TopicMenu
             height={height * 0.6}
-            width={width * 0.3}
+            width={width * 0.2}
             currentTopic={currentTopic}
             setCurrentTopic={topic => dispatch(setHelpTopic(topic))}
           />
           <TopicDisplay
             height={height * 0.6}
-            width={width * 0.3}
+            width={width * 0.2}
             data={helpContent[currentTopic]}
             setCurrentTopic={topic => dispatch(setHelpTopic(topic))}
           />
@@ -186,7 +195,8 @@ function TopicDisplay({ height, width, data, setCurrentTopic }) {
 
   return (
     <CurrentTopicSC onClick={handleClick} height={height} width={width}>
-      {data}
+      <h2>{data.title}</h2>
+      <p dangerouslySetInnerHTML={{__html: data.text}} />
     </CurrentTopicSC>
   );
 }
@@ -196,7 +206,10 @@ function Topic({ data, currentTopic, setCurrentTopic }) {
   return (
     <TopicSC isOpen={isOpen} isCurrentTopic={data.slug === currentTopic}>
       <p>
-        <span onClick={() => setCurrentTopic(data.slug)}>
+        <span onClick={() => {
+          if (data.contents) {setIsOpen(true)}
+          setCurrentTopic(data.slug)
+        }}>
           {data.displayName}
         </span>
         {data.contents && <button onClick={() => setIsOpen(!isOpen)}>></button>}

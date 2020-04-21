@@ -1,0 +1,26 @@
+{
+    "tools": {
+        "title": "Tools",
+        "text": "Tools are things that are tools. Here are some tools: <button name='pencil'>pencil</button>, <button name='brush'>brush</button>, <button name='line'>line</button>... and there are more."
+    },
+    "pencil": {
+        "title": "Pencil Tool",
+        "text": "This is a further test of features of this text parser. <br/>First, a simple new line. Should be a simple break. Next... a <b>bold line</b>. Those words should be bold! Let's try italics: <i>this should be in italics!</i>"
+    },
+    "brush": {
+        "title": "Brush Tool",
+        "text": "Brush brush brush tool. Tool."
+    },
+    "line": {
+        "title": "Line Tool",
+        "text": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+    },
+    "eraser": {
+        "title": "Eraser Tool",
+        "text": "Eraser stuff."
+    },
+    "layerPanel": {
+        "title": "Layer Panel",
+        "text": "Layer Panel stuff."
+    }
+}

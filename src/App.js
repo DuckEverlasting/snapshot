@@ -15,7 +15,7 @@ import {
 } from "./actions/redux";
 import menuAction from "./actions/redux/menuAction";
 
-import { hotkey, hotkeyCtrl } from "./enums/hotkeys";
+import { hotkey, hotkeyCtrl } from "./constants/hotkeys";
 
 const AppSC = styled.div`
   text-align: center;

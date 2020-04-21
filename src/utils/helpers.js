@@ -1,4 +1,4 @@
-import { zoomSteps } from "../enums/constants";
+import { zoomSteps } from "../constants/constants";
 
 export function getZoomAmount(steps, zoomPct) {
   let amount;
