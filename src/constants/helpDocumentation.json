@@ -1,0 +1,82 @@
+{
+  "helpHierarchy": [
+    {
+      "slug": "panels",
+      "displayName": "Panels",
+      "contents": [
+        {
+          "slug": "toolsPanel",
+          "displayName": "Tools Panel"
+        },
+        {
+          "slug": "layersPanel",
+          "displayName": "Layers Panels"
+        }
+      ]
+    },
+    {
+      "slug": "tools",
+      "displayName": "Tools",
+      "contents": [
+        {
+          "slug": "pencil",
+          "displayName": "Pencil Tool"
+        },
+        {
+          "slug": "brush",
+          "displayName": "Brush Tool"
+        },
+        {
+          "slug": "line",
+          "displayName": "Line Tool"
+        },
+        {
+          "slug": "eraser",
+          "displayName": "Eraser Tool"
+        }
+      ]
+    },
+    {
+      "slug": "layerPanel",
+      "displayName": "Layer Panel"
+    }
+  ],
+  "helpContent": {
+    "panels": {
+      "title": "",
+      "text": ""
+    },
+    "toolsPanel": {
+      "title": "Tools Panel",
+      "text": "The tools panel is located on the left side of the screen. It contains buttons that allow you to switch between the various <button name='tools'>tools</button> PhotoSmith has to offer. Below these buttons, the tools panel contains the <button name='colorSelector'>color selector</button> and input ranges to customize the currently selected tool. (See <button name='toolSettings'>tool settings</button> for more info.)"
+    },
+    "layersPanel": {
+      "title": "Layers Panel",
+      "text": "The layers panel is located on the right side of the screen. It contains a visual representation of all the layers in your current project, as well as controls to manipulate, create and delete layers. The layers are each shown on their own \"card\", displayed from top to bottom in the order they appear in the <button name='workspacePanel'>workspace</button>.</br><ul><li>The active layer is shown with a yellow background. To change the active layer, click on the layer card representing the layer you would like to make active.</li><li>The 'New Layer' button at the bottom of this panel creates a new layer, sets it as the active layer, and places it at the highest level of the project.</li><li>To change the order of a layer, click and drag the desired layer card to a different spot in the list.</li><li>To rename a layer, double click on its name.</li><li>To hide or delete a layer, click on the corresponding button on its card. (The \"eye\" icon hides and unhides a layer, while the \"trash can\" deletes a layer.)</li></ul>"
+    },
+    "tools": {
+      "title": "Tools",
+      "text": "Tools are the"
+    },
+    "pencil": {
+      "title": "Pencil Tool",
+      "text": "This is a further test of features of this text parser. <br/>First, a simple new line. Should be a simple break. Next... a <b>bold line</b>. Those words should be bold! Let's try italics: <i>this should be in italics!</i>"
+    },
+    "brush": {
+      "title": "Brush Tool",
+      "text": "Brush brush brush tool. Tool."
+    },
+    "line": {
+      "title": "Line Tool",
+      "text": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+    },
+    "eraser": {
+      "title": "Eraser Tool",
+      "text": "Eraser stuff."
+    },
+    "layerPanel": {
+      "title": "Layer Panel",
+      "text": "Layer Panel stuff."
+    }
+  }
+}

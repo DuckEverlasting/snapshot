@@ -29,6 +29,21 @@ const LayerBoxSC = styled.div`
   border-top: 1px solid black;
   border-bottom: 1px solid black;
   overflow-y: scroll;
+
+  scrollbar-width: thin;
+  scrollbar-color: #777777 #303030;
+  
+  &::-webkit-scrollbar {
+    width: 11px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #303030;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #777777;
+    border-radius: 6px;
+    border: 2px solid #303030;
+  }
 `;
 
 const TitleSC = styled.h3`

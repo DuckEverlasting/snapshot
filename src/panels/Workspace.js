@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import styled from "styled-components";
@@ -23,6 +23,7 @@ import getCursor from "../utils/cursors";
 import { updateWorkspaceSettings } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
+import useEventListener from "../hooks/useEventListener";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -86,6 +87,7 @@ export default function Workspace() {
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
 
   const workspaceRef = useRef(null);
+  let workspaceElement = workspaceRef.current;
 
   const dispatch = useDispatch();
 
@@ -94,15 +96,6 @@ export default function Workspace() {
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
-  
-  useEffect(() => {
-    let workspaceElement = workspaceRef.current;
-    workspaceElement.addEventListener("wheel", handleMouseWheel);
-
-    return () => {
-      workspaceElement.removeEventListener("wheel", handleMouseWheel);
-    };
-  }, [dispatch, translateX, translateY, zoomPct]);
 
   function updateAnimatedLayers() {
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
@@ -295,14 +288,17 @@ export default function Workspace() {
     }
   }
   
-  const handleMouseWheel = ev => {
+  const handleMouseWheel = useCallback(ev => {
     ev.preventDefault();
+    console.log("RUNNING");
     if (ev.altKey) {
       zoomTool(ev, ev.deltaY < 0);
     } else {
       translateTool(ev);
     }
-  };
+  }, [zoomTool, translateTool]);
+
+  useEventListener("wheel", handleMouseWheel, workspaceElement);
 
   const handleMouseDown = ev => {
     if (ev.buttons === 4 || activeTool === "hand") {
