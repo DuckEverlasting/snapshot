@@ -11,7 +11,8 @@ import {
   TOGGLE_ABOUT_MODAL,
   TOGGLE_HELP,
   SET_HELP_TOPIC,
-  SET_FILTER_TOOL
+  SET_FILTER_TOOL,
+  SET_TRANSFORM_IMAGE
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -110,6 +111,11 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         ...state,
         overlayVisible: payload.bool ? "filterTool" : null,
         currentFilter: payload.filter
+      }
+    case SET_TRANSFORM_IMAGE:
+      return {
+        ...state,
+        transformImage: payload
       }
 
     default:

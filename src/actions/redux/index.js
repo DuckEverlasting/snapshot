@@ -29,7 +29,8 @@ export const [
   TOGGLE_ABOUT_MODAL,
   TOGGLE_HELP,
   SET_HELP_TOPIC,
-  SET_FILTER_TOOL
+  SET_FILTER_TOOL,
+  SET_TRANSFORM_IMAGE
 ] = [
   "UNDO",
   "REDO",
@@ -59,7 +60,8 @@ export const [
   "TOGGLE_ABOUT_MODAL",
   "TOGGLE_HELP",
   "SET_HELP_TOPIC",
-  "SET_FILTER_TOOL"
+  "SET_FILTER_TOOL",
+  "SET_TRANSFORM_IMAGE"
 ];
 
 export const undo = () => {
@@ -318,5 +320,12 @@ export const setFilterTool = (state, filter=null) => {
       bool: state === "on",
       filter
     }
+  }
+}
+
+export const setTransformImage = (image) => {
+  return {
+    type: SET_TRANSFORM_IMAGE,
+    payload: image
   }
 }

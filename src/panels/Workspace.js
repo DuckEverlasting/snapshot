@@ -61,7 +61,6 @@ const CanvasPaneSC = styled.div.attrs(props => ({
   margin: auto;
   background: white;
   flex: none;
-  pointer-events: none;
 `;
 
 let animationFrame = 0;
@@ -84,6 +83,7 @@ export default function Workspace() {
     stagingPinnedTo
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
+  const transformImage = useSelector(state => state.ui.transformImage);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -386,7 +386,7 @@ export default function Workspace() {
           transformSettings={transformSettings}
         />
       </CanvasPaneSC>
-      {/* <TransformObject /> */}
+      {transformImage && <TransformObject initImage={transformImage} />}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
