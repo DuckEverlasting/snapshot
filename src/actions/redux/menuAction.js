@@ -134,6 +134,26 @@ export default function menuAction(action) {
           );
         }
       };
+    case "import":
+      return async (dispatch, getState) => {
+        const length = getState().main.present.layerOrder.length
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.addEventListener("change", addFile, false)
+        fileInput.click();
+        
+        async function addFile() {
+          await dispatch(createLayer(length, true));
+          const image = new Image();
+          image.src = URL.createObjectURL(fileInput.files[0]);
+          image.onload = () => {
+            const ctx = getState().main.present.layerData[length + 1].getContext("2d");
+            ctx.drawImage(image, 0, 0);
+          }
+          fileInput.removeEventListener("change", addFile, false)
+        }
+      }
     default:
       break;
   }

@@ -23,8 +23,8 @@ const InnerModalSC = styled.div.attrs((props) => ({
     transform: `translateX(${props.offset.x}px)
     translateY(${props.offset.y}px)`,
     boxShadow: props.dragging ? "0 1.5px 6px #111111" : "0 .5px 3px #222222",
-    width: props.size ? props.size.x + "px" : "auto",
-    height: props.size ? props.size.y + "px": "auto"
+    width: props.dimensions ? props.dimensions.x + "px" : "auto",
+    height: props.dimensions ? props.dimensions.y + "px": "auto"
   },
 }))`
   position: absolute;
@@ -87,10 +87,10 @@ export default function DraggableWindow({
   const [isResizing, setIsResizing] = useState("");
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState(null);
+  const [modalDimensions, setModalDimensions] = useState(null);
   const [minSize, setMinSize] = useState(null);
   const [caution, setCaution] = useState(false);
-  const [dimensions, setDimensions] = useState({});
+  const [boundingDimensions, setBoundingDimensions] = useState({});
 
   const boundingBoxRef = useRef(null);
   const modalRef = useRef(null);
@@ -104,11 +104,11 @@ export default function DraggableWindow({
       initWidth = modalRef.current.clientWidth;
       initHeight = modalRef.current.clientHeight;
     }
-    setDimensions({
+    setBoundingDimensions({
       x: boundingBoxRef.current.clientWidth,
       y: boundingBoxRef.current.clientHeight,
     });
-    setSize({
+    setModalDimensions({
       x: initWidth,
       y: initHeight
     });
@@ -131,8 +131,8 @@ export default function DraggableWindow({
     setDragOrigin({
       x: ev.screenX,
       y: ev.screenY,
-      w: size.x,
-      h: size.y,
+      w: modalDimensions.x,
+      h: modalDimensions.y,
       offX: offset.x,
       offY: offset.y,
     });
@@ -154,15 +154,15 @@ export default function DraggableWindow({
       setOffset({
         x: Math.min(
           Math.max(x, 0),
-          dimensions.x - dragOrigin.w
+          boundingDimensions.x - dragOrigin.w
         ),
         y: Math.min(
           Math.max(y, 0),
-          dimensions.y - dragOrigin.h
+          boundingDimensions.y - dragOrigin.h
         ),
       });
     } else if (isResizing === "se") {
-      setSize({
+      setModalDimensions({
         x: Math.max(minSize.x, dragOrigin.w + (ev.screenX - dragOrigin.x)),
         y: Math.max(minSize.y, dragOrigin.h + (ev.screenY - dragOrigin.y))
       });
@@ -174,8 +174,7 @@ export default function DraggableWindow({
         ),
         y: prevOffset.y
       }));
-      console.log(dragOrigin.x)
-      setSize({
+      setModalDimensions({
         x: Math.min(Math.max(minSize.x, dragOrigin.w - (ev.screenX - dragOrigin.x)), dragOrigin.offX + dragOrigin.w),
         y: Math.max(minSize.y, dragOrigin.h + (ev.screenY - dragOrigin.y))
       });
@@ -206,11 +205,10 @@ export default function DraggableWindow({
       <InnerModalSC
         ref={modalRef}
         onMouseMove={handleMouseMove}
-        onMouseDown={(ev) => ev.stopPropagation()}
+        onMouseDown={ev => ev.stopPropagation()}
         dragging={isDragging}
         offset={offset}
-        size={size}
-        dimensions={dimensions}
+        dimensions={modalDimensions}
       >
         <TitleSC
           caution={caution}

@@ -5,6 +5,8 @@ import styled from "styled-components";
 
 import Layer from "../components/Layer";
 
+import TransformObject from "../components/TransformObject";
+
 import { 
   PencilAction,
   BrushAction,
@@ -290,13 +292,12 @@ export default function Workspace() {
   
   const handleMouseWheel = useCallback(ev => {
     ev.preventDefault();
-    console.log("RUNNING");
     if (ev.altKey) {
       zoomTool(ev, ev.deltaY < 0);
     } else {
       translateTool(ev);
     }
-  }, [zoomTool, translateTool]);
+  }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);
 
@@ -385,6 +386,7 @@ export default function Workspace() {
           transformSettings={transformSettings}
         />
       </CanvasPaneSC>
+      {/* <TransformObject /> */}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}

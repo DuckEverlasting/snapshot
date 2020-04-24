@@ -56,7 +56,7 @@ export default function TopBar() {
         <Menu id="File" label="File">
           <MenuItem disabled>New</MenuItem>
           <MenuItem disabled>Save</MenuItem>
-          <MenuItem disabled>Import</MenuItem>
+          <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
           <MenuBranch label="Export As">
             <MenuItem disabled>PDF</MenuItem>
             <MenuItem disabled>JPG</MenuItem>

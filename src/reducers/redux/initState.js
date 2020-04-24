@@ -1,5 +1,5 @@
-let initWidth = (window.innerWidth - 300) * .8;
-let initHeight = (window.innerHeight - 30) * .8;
+const initWidth = (window.innerWidth - 300) * .8;
+const initHeight = (window.innerHeight - 30) * .8;
 
 export const initMainState = {
   onUndo: null,
