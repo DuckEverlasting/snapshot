@@ -144,8 +144,9 @@ export default function menuAction(action) {
         fileInput.click();
         
         async function addFile() {
+          dispatch(createLayer(getState().main.present.layerOrder.length, false, fileInput.files[0].name));
           dispatch(setTransformImage(fileInput.files[0]));
-          fileInput.removeEventListener("change", addFile, false)
+          fileInput.removeEventListener("change", addFile, false);
         }
       }
     default:

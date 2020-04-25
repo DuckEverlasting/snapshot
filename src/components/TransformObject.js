@@ -157,6 +157,7 @@ export default function TransformObject({initImage}) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
   const [transformImage, setTransformImage] = useState(null);
+  const [canvasSize, setCanvasSize] = useState({ x: 0, y: 0 });
 
   const { workspaceOffset, zoom } = useSelector(state => {
     let settings = state.ui.workspaceSettings;
@@ -167,15 +168,16 @@ export default function TransformObject({initImage}) {
   });
 
   const canvasRef = useRef();
+  const boundingBoxRef = useRef();
 
   useEffect(() => {
+    canvasRef.current.getContext('2d').imageSmoothingEnabled = false;
     const image = new Image();
     image.src = URL.createObjectURL(initImage);
     image.onload = () => {
       setTransformImage(image);
       let initWidth = image.width;
       let initHeight = image.height;
-      console.log(initWidth)
       setOffset({
         x: 0,
         y: 0
@@ -184,15 +186,17 @@ export default function TransformObject({initImage}) {
         w: initWidth,
         h: initHeight
       });
-      canvasRef.current.width = initWidth;
-      canvasRef.current.height = initHeight;
+      setCanvasSize({
+        w: initWidth,
+        h: initHeight
+      })
     }
   }, [initImage]);
 
   useEffect(() => {
     if (!transformImage) return;
-    canvasRef.current.getContext('2d').drawImage(transformImage, 0, 0, transformImage.width, transformImage.height, 0, 0, size.w, size.h);
-  }, [size, offset, transformImage])
+    canvasRef.current.getContext('2d').drawImage(transformImage, 0, 0);
+  }, [canvasSize])
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
@@ -311,6 +315,7 @@ export default function TransformObject({initImage}) {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       overrideCursor={currentAction}
+      ref={boundingBoxRef}
     >
       <ContainerSC
         offset={calculateOffset()}
@@ -319,9 +324,7 @@ export default function TransformObject({initImage}) {
         onMouseDown={ev => handleMouseDown(ev, "move")}
         overrideCursor={currentAction}
       >
-        <CanvasSC width={size.w} height={size.h} ref={canvasRef}/>
-        <p style={{color: "black"}}>{`OFFSET: ${offset.x}, ${offset.y}`}</p>
-        <p style={{color: "black"}}>{`SIZE: ${size.w}, ${size.h}`}</p>
+        <CanvasSC width={canvasSize.w} height={canvasSize.h} ref={canvasRef}/>
         <NResizeSC
           zoom={zoom}
           onMouseDown={ev => handleMouseDown(ev, "n-resize")}
