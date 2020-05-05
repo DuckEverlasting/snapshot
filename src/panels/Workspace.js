@@ -61,6 +61,7 @@ const CanvasPaneSC = styled.div.attrs(props => ({
   margin: auto;
   background: white;
   flex: none;
+  pointer-events: none;
 `;
 
 let animationFrame = 0;
