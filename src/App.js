@@ -41,6 +41,7 @@ const AppContainerSC = styled.div`
 function App() {
   const height = useSelector(state => state.ui.workspaceSettings.height);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
+  const transformImage = useSelector(state => state.ui.transformImage);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -52,32 +53,32 @@ function App() {
         })
       );
     };
+    const handleKeyDown = ev => {
+      ev.preventDefault();
+      if (overlayVisible !== null || transformImage !== null) {return}
+      let keyCombo;
+      let modifier = window.navigator.platform.includes("Mac")
+        ? ev.metaKey
+        : ev.ctrlKey;
+      if (modifier) {
+        keyCombo = hotkeyCtrl[ev.key];
+      } else {
+        keyCombo = hotkey[ev.key];
+      }
+      if (keyCombo === undefined) return;
+      if (keyCombo.type === "activeTool") {
+        dispatch(makeActiveTool(keyCombo.payload));
+      } else {
+        dispatch(menuAction(keyCombo.payload));
+      }
+    };
     window.addEventListener("resize", adjustSizing);
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("resize", adjustSizing);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
-
-  const handleKeyDown = ev => {
-    ev.preventDefault();
-    let keyCombo;
-    let modifier = window.navigator.platform.includes("Mac")
-      ? ev.metaKey
-      : ev.ctrlKey;
-    if (modifier) {
-      keyCombo = hotkeyCtrl[ev.key];
-    } else {
-      keyCombo = hotkey[ev.key];
-    }
-    if (keyCombo === undefined) return;
-    if (keyCombo.type === "activeTool") {
-      dispatch(makeActiveTool(keyCombo.payload));
-    } else {
-      dispatch(menuAction(keyCombo.payload));
-    }
-  };
+  }, [overlayVisible, transformImage]);
 
   return (
     <AppSC id="App" height={height}>

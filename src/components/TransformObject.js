@@ -288,15 +288,20 @@ export default function TransformObject({initImage}) {
     }
   }
 
+  function handleKeyDown(ev) {
+    console.log(ev.key)
+  }
+
   return (
     <BoundingBoxSC
         onMouseDown={ev => handleMouseDown(ev, "rotate")}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onKeyDown={handleKeyDown}
         overrideCursor={currentAction}
         ref={boundingBoxRef}
       >
-        <FullScreenBoxSC />
+        <FullScreenBoxSC tabIndex={0} />
         <ContainerSC
           offset={calculateOffset()}
           size={size}
