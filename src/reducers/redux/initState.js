@@ -6,8 +6,8 @@ export const initMainState = {
   onRedo: null,
   onUndelete: null,
   documentSettings: {
-    canvasWidth: initWidth,
-    canvasHeight: initHeight,
+    documentWidth: initWidth,
+    documentHeight: initHeight,
   },
   layerData: {
     1: null,

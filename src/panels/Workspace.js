@@ -36,6 +36,7 @@ const WorkspaceSC = styled.div`
   overflow: hidden;
   background: rgb(175, 175, 175);
   cursor: ${props => props.cursor};
+  z-index: 2;
 `;
 
 const ZoomDisplaySC = styled.div`
@@ -46,6 +47,7 @@ const ZoomDisplaySC = styled.div`
   color: rgb(235, 235, 235);
   padding: 10px 20px;
   border-bottom-left-radius: 3px;
+  pointer-events: none;
 `;
 
 const CanvasPaneSC = styled.div.attrs(props => ({
@@ -73,7 +75,7 @@ export default function Workspace() {
   const { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings);
   const primary = useSelector(state => state.ui.colorSettings.primary);
   const { activeTool, toolSettings } = useSelector(state => state.ui);
-  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
+  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
   const {
     activeLayer,
     selectionPath,
@@ -106,8 +108,8 @@ export default function Workspace() {
   }
 
   function getTranslateData() {
-    const marginLeft = .5 * (workspaceRef.current.clientWidth - canvasWidth * zoomPct / 100);
-    const marginTop = .5 * (workspaceRef.current.clientHeight - canvasHeight * zoomPct / 100);
+    const marginLeft = .5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100);
+    const marginTop = .5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
@@ -120,7 +122,7 @@ export default function Workspace() {
       x = ev.nativeEvent.offsetX + translateData.x,
       y = ev.nativeEvent.offsetY + translateData.y;
 
-    return x > 0 && y > 0 && x < canvasWidth && y < canvasWidth; 
+    return x > 0 && y > 0 && x < documentWidth && y < documentWidth; 
   }
   
   function buildAction() {
@@ -372,8 +374,8 @@ export default function Workspace() {
       <CanvasPaneSC
         translateX={translateX}
         translateY={translateY}
-        width={canvasWidth}
-        height={canvasHeight}
+        width={documentWidth}
+        height={documentHeight}
         zoomPct={zoomPct}
         >
         <LayerRenderer
@@ -382,8 +384,8 @@ export default function Workspace() {
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
           activeLayer={activeLayer}
-          width={canvasWidth}
-          height={canvasHeight}
+          width={documentWidth}
+          height={documentHeight}
           transformSettings={transformSettings}
         />
       </CanvasPaneSC>

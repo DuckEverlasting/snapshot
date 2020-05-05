@@ -2,7 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from "react-redux";
 import styled from 'styled-components';
 
-import pic from "../media/MattAtStonehenge.JPG";
+const FullScreenBoxSC = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+`
 
 const BoundingBoxSC = styled.div.attrs(props => ({
   style: {
@@ -12,9 +18,6 @@ const BoundingBoxSC = styled.div.attrs(props => ({
   position: absolute;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
 const ContainerSC = styled.div.attrs(props => ({
@@ -112,7 +115,11 @@ const NWResizeSC = styled.div`
 
 `;
 
-const CanvasSC = styled.canvas`
+const CanvasSC = styled.canvas.attrs(props => ({
+  style: {
+    clipPath: `inset(${props.clip.up}px ${props.clip.right}px ${props.clip.down}px ${props.clip.left}px)`
+  }
+}))`
   position: absolute;
   top: 0;
   left: 0;
@@ -126,7 +133,7 @@ export default function TransformObject({initImage}) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
   const [transformImage, setTransformImage] = useState(null);
-  const [canvasSize, setCanvasSize] = useState({ x: 0, y: 0 });
+  const [transformCanvasSize, setTransformCanvasSize] = useState({ x: 0, y: 0 });
 
   const { workspaceOffset, zoom } = useSelector(state => {
     let settings = state.ui.workspaceSettings;
@@ -135,6 +142,8 @@ export default function TransformObject({initImage}) {
       zoom: settings.zoomPct / 100
     }
   });
+
+  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
 
   const canvasRef = useRef();
   const boundingBoxRef = useRef();
@@ -155,7 +164,7 @@ export default function TransformObject({initImage}) {
         w: initWidth,
         h: initHeight
       });
-      setCanvasSize({
+      setTransformCanvasSize({
         w: initWidth,
         h: initHeight
       });
@@ -165,7 +174,7 @@ export default function TransformObject({initImage}) {
   useEffect(() => {
     if (!transformImage) return;
     canvasRef.current.getContext('2d').drawImage(transformImage, 0, 0);
-  }, [canvasSize]);
+  }, [transformCanvasSize]);
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
@@ -260,73 +269,75 @@ export default function TransformObject({initImage}) {
     setCurrentAction("")
   }
 
-  // function calculateOffset() {
-  //   if (!boundingBoxRef.current) return ({x: 0, y: 0})
-  //   const xFromCenter = (boundingBoxRef.current.clientWidth - size.w) / 2;
-  //   const yFromCenter = (boundingBoxRef.current.clientHeight - size.h) / 2;
-    
-  //   return {
-  //     x: workspaceOffset.x + .5 * size.w * (1 - zoom) + xFromCenter + offset.x * zoom,
-  //     y: workspaceOffset.y + .5 * size.h * (1 - zoom) + yFromCenter + offset.y * zoom
-  //   }
-  // }
-
   function calculateOffset() {
+    if (!boundingBoxRef.current) {return {x: 0, y: 0}}
+    const xFromCenter = (boundingBoxRef.current.clientWidth - size.w * zoom) / 2;
+    const yFromCenter = (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
     return {
-      x: workspaceOffset.x + offset.x * zoom,
-      y: workspaceOffset.y + offset.y * zoom
+      x: xFromCenter + workspaceOffset.x + offset.x * zoom,
+      y: yFromCenter + workspaceOffset.y + offset.y * zoom
+    }
+  }
+
+  function calculateClipping() {
+    return {
+      up: ((.5 * size.h - offset.y) - .5 * documentHeight) * zoom,
+      down: ((.5 * size.h + offset.y) - .5 * documentHeight) * zoom,
+      left: ((.5 * size.w - offset.x) - .5 * documentWidth) * zoom,
+      right: ((.5 * size.w + offset.x) - .5 * documentWidth) * zoom
     }
   }
 
   return (
     <BoundingBoxSC
-      onMouseDown={ev => handleMouseDown(ev, "rotate")}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      overrideCursor={currentAction}
-      ref={boundingBoxRef}
-    >
-      <ContainerSC
-        offset={calculateOffset()}
-        size={size}
-        zoom={zoom}
-        onMouseDown={ev => handleMouseDown(ev, "move")}
+        onMouseDown={ev => handleMouseDown(ev, "rotate")}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         overrideCursor={currentAction}
+        ref={boundingBoxRef}
       >
-        <CanvasSC width={canvasSize.w} height={canvasSize.h} ref={canvasRef}/>
-        <NResizeSC
+        <FullScreenBoxSC />
+        <ContainerSC
+          offset={calculateOffset()}
+          size={size}
           zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "n-resize")}
-        />
-        <SResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "s-resize")}
-        />
-        <EResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "e-resize")}
-        />
-        <WResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "w-resize")}
-        />
-        <NEResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "ne-resize")}
-        />
-        <SEResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "se-resize")}
-        />
-        <SWResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "sw-resize")}
-        />
-        <NWResizeSC
-          zoom={zoom}
-          onMouseDown={ev => handleMouseDown(ev, "nw-resize")}
-        />
-      </ContainerSC>
-    </BoundingBoxSC>
+          onMouseDown={ev => handleMouseDown(ev, "move")}
+          overrideCursor={currentAction}
+        >
+          <CanvasSC width={transformCanvasSize.w} height={transformCanvasSize.h} clip={calculateClipping()} ref={canvasRef}/>
+          <NResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "n-resize")}
+          />
+          <SResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "s-resize")}
+          />
+          <EResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "e-resize")}
+          />
+          <WResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "w-resize")}
+          />
+          <NEResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "ne-resize")}
+          />
+          <SEResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "se-resize")}
+          />
+          <SWResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "sw-resize")}
+          />
+          <NWResizeSC
+            zoom={zoom}
+            onMouseDown={ev => handleMouseDown(ev, "nw-resize")}
+          />
+        </ContainerSC>
+      </BoundingBoxSC>
   )
 }

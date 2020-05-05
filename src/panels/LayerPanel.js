@@ -16,6 +16,7 @@ const LayerPanelSC = styled.div`
   height: 100%;
   border-top: 1px solid black;
   background: #666666;
+  z-index: 1;
 `;
 
 const LayerBoxSC = styled.div`
