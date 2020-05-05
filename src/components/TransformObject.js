@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from "react-redux";
+import { convertDestToRegularShape } from "../utils/helpers";
 import styled from 'styled-components';
 
 const FullScreenBoxSC = styled.div`
@@ -210,33 +211,59 @@ export default function TransformObject({initImage}) {
   }
 
   function handleResizeUpdate(ev) {
-    let calculatedWidth = size.w;
-    let calculatedHeight = size.h;
-    let calculatedOffsetX = offset.x;
-    let calculatedOffsetY = offset.y;
+    let x, y, calculatedWidth, calculatedHeight, calculatedOffsetX, calculatedOffsetY;
+    calculatedWidth = size.w;
+    calculatedHeight = size.h;
+    calculatedOffsetX = offset.x;
+    calculatedOffsetY = offset.y;
+    x = ev.screenX;
+    y = ev.screenY;
+
+    if (!ev.shiftKey && !currentAction.slice(0, 2).includes("-")) {
+      const distX = x - dragOrigin.x;
+      const distY = y - dragOrigin.y;
+      let dist;
+      if (currentAction === "se-resize") {
+        dist = Math.min(-distX, -distY);
+        x = dragOrigin.x - dist;
+        y = dragOrigin.y - dist;
+      } else if (currentAction === "nw-resize") {
+        dist = Math.min(distX, distY);
+        x = dragOrigin.x + dist;
+        y = dragOrigin.y + dist;
+      } else if (currentAction === "sw-resize") {
+        dist = Math.min(distX, -distY);
+        x = dragOrigin.x + dist;
+        y = dragOrigin.y - dist;
+      } else if (currentAction === "ne-resize") {
+        dist = Math.min(-distX, distY);
+        x = dragOrigin.x - dist;
+        y = dragOrigin.y + dist;
+      }
+    }
 
     if (currentAction.slice(0, 2).includes("n")) {
-      calculatedHeight = dragOrigin.h - (ev.screenY - dragOrigin.y) / zoom;
+      calculatedHeight = dragOrigin.h - (y - dragOrigin.y) / zoom;
       if (calculatedHeight > 1) {
-        calculatedOffsetY = dragOrigin.offY + .5 * (ev.screenY - dragOrigin.y) / zoom;
+        calculatedOffsetY = dragOrigin.offY + .5 * (y - dragOrigin.y) / zoom;
       }
     }
     if (currentAction.slice(0, 2).includes("s")) {
-      calculatedHeight = dragOrigin.h + (ev.screenY - dragOrigin.y) / zoom;
+      calculatedHeight = dragOrigin.h + (y - dragOrigin.y) / zoom;
       if (calculatedHeight > 1) {
-        calculatedOffsetY = dragOrigin.offY + .5 * (ev.screenY - dragOrigin.y) / zoom;
+        calculatedOffsetY = dragOrigin.offY + .5 * (y - dragOrigin.y) / zoom;
       }
     }
     if (currentAction.slice(0, 2).includes("e")) {
-      calculatedWidth = dragOrigin.w + (ev.screenX - dragOrigin.x) / zoom;
+      calculatedWidth = dragOrigin.w + (x - dragOrigin.x) / zoom;
       if (calculatedWidth > 1) {
-        calculatedOffsetX = dragOrigin.offX + .5 * (ev.screenX - dragOrigin.x) / zoom;
+        calculatedOffsetX = dragOrigin.offX + .5 * (x - dragOrigin.x) / zoom;
       }
     }
     if (currentAction.slice(0, 2).includes("w")) {
-      calculatedWidth = dragOrigin.w - (ev.screenX - dragOrigin.x) / zoom;
+      calculatedWidth = dragOrigin.w - (x - dragOrigin.x) / zoom;
       if (calculatedWidth > 1) {
-        calculatedOffsetX = dragOrigin.offX + .5 * (ev.screenX - dragOrigin.x) / zoom;
+        calculatedOffsetX = dragOrigin.offX + .5 * (x - dragOrigin.x) / zoom;
       }
     }
 
