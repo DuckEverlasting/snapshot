@@ -20,23 +20,20 @@ const BoundingBoxSC = styled.div.attrs(props => ({
 const ContainerSC = styled.div.attrs(props => ({
   style: {
     transform: `translateX(${props.offset.x}px)
-                translateY(${props.offset.y}px)
-                scale(${props.zoom})`,
-    width: props.size ? props.size.w + "px" : "auto",
-    height: props.size ? props.size.h + "px": "auto",
+                translateY(${props.offset.y}px)`,
+    width: props.size ? props.size.w * props.zoom + "px" : "auto",
+    height: props.size ? props.size.h * props.zoom + "px": "auto",
     cursor: props.overrideCursor || "move",
-    boxShadow: `0 0 0 ${1 / props.zoom}px black`
+    border: "1px solid black"
   }
 }))`
+  flex-grow: 0;
+  flex-shrink: 0;
   position: relative;
   box-sizing: content-box;
 `;
 
-const NResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const NResizeSC = styled.div`
   position: absolute;
   top: -7.5px;
   left: 7.5px;
@@ -45,11 +42,7 @@ const NResizeSC = styled.div.attrs(props => ({
   cursor: n-resize;
 `;
 
-const SResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const SResizeSC = styled.div`
   position: absolute;
   bottom: -7.5px;
   left: 7.5px;
@@ -58,11 +51,7 @@ const SResizeSC = styled.div.attrs(props => ({
   cursor: s-resize;
 `;
 
-const EResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const EResizeSC = styled.div`
   position: absolute;
   bottom: 7.5px;
   left: calc(100% - 7.5px);
@@ -71,11 +60,7 @@ const EResizeSC = styled.div.attrs(props => ({
   cursor: e-resize;
 `;
 
-const WResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const WResizeSC = styled.div`
   position: absolute;
   bottom: 7.5px;
   left: -7.5px;
@@ -84,11 +69,7 @@ const WResizeSC = styled.div.attrs(props => ({
   cursor: w-resize;
 `;
 
-const NEResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const NEResizeSC = styled.div`
   position: absolute;
   top: -7.5px;
   left: calc(100% - 7.5px);
@@ -98,11 +79,7 @@ const NEResizeSC = styled.div.attrs(props => ({
   border: 1px solid black;
 `;
 
-const SEResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const SEResizeSC = styled.div`
   position: absolute;
   bottom: -7.5px;
   left: calc(100% - 7.5px);
@@ -113,11 +90,7 @@ const SEResizeSC = styled.div.attrs(props => ({
 
 `;
 
-const SWResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const SWResizeSC = styled.div`
   position: absolute;
   bottom: -7.5px;
   left: -7.5px;
@@ -128,11 +101,7 @@ const SWResizeSC = styled.div.attrs(props => ({
 
 `;
 
-const NWResizeSC = styled.div.attrs(props => ({
-  style: {
-    transform: `scale(${1 / props.zoom})`
-  }
-}))`
+const NWResizeSC = styled.div`
   position: absolute;
   top: -7.5px;
   left: -7.5px;
@@ -189,14 +158,14 @@ export default function TransformObject({initImage}) {
       setCanvasSize({
         w: initWidth,
         h: initHeight
-      })
+      });
     }
   }, [initImage]);
 
   useEffect(() => {
     if (!transformImage) return;
     canvasRef.current.getContext('2d').drawImage(transformImage, 0, 0);
-  }, [canvasSize])
+  }, [canvasSize]);
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
