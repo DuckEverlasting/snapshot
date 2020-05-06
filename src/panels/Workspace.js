@@ -5,7 +5,7 @@ import styled from "styled-components";
 
 import Layer from "../components/Layer";
 
-import TransformObject from "../components/TransformObject";
+import TransformObject from "../components/transform/TransformObject";
 
 import { 
   PencilAction,
@@ -296,6 +296,7 @@ export default function Workspace() {
   
   const handleMouseWheel = useCallback(ev => {
     ev.preventDefault();
+    if (ev.buttons !== 0) {return}
     if (ev.altKey) {
       zoomTool(ev, ev.deltaY < 0);
     } else {

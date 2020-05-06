@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from "react-redux";
-import useEventListener from "../hooks/useEventListener";
-import menuAction from "../actions/redux/menuAction";
-import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile } from "../actions/redux/index";
+import useEventListener from "../../hooks/useEventListener";
+import menuAction from "../../actions/redux/menuAction";
+import manipulate from "../../reducers/custom/manipulateReducer";
+import { setImportImageFile } from "../../actions/redux/index";
 
 import styled from 'styled-components';
 
@@ -128,7 +128,7 @@ const CanvasSC = styled.canvas.attrs(props => ({
   height: 100%;
 `
 
-export default function TransformObject() {
+export default function TransformObject({children}) {
   const [currentAction, setCurrentAction] = useState("");
   const [dragOrigin, setDragOrigin] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -363,38 +363,7 @@ export default function TransformObject() {
           overrideCursor={currentAction}
         >
           <CanvasSC width={transformCanvasSize.w} height={transformCanvasSize.h} clip={calculateClipping()} ref={canvasRef}/>
-          <NResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "n-resize")}
-          />
-          <SResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "s-resize")}
-          />
-          <EResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "e-resize")}
-          />
-          <WResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "w-resize")}
-          />
-          <NEResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "ne-resize")}
-          />
-          <SEResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "se-resize")}
-          />
-          <SWResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "sw-resize")}
-          />
-          <NWResizeSC
-            zoom={zoom}
-            onMouseDown={ev => handleMouseDown(ev, "nw-resize")}
-          />
+          {children}
         </ContainerSC>
       </BoundingBoxSC>
   )
