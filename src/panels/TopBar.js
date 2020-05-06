@@ -165,6 +165,7 @@ export default function TopBar() {
           <MenuItem
             label="Photosmith Help"
             onClick={() => dispatch(toggleHelp())}
+            disabled
           />
         </Menu>
       </MenuBar>
