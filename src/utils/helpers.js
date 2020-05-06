@@ -1,4 +1,4 @@
-import { zoomSteps } from "../enums/constants";
+import { zoomSteps } from "../constants/constants";
 
 export function getZoomAmount(steps, zoomPct) {
   let amount;
@@ -32,16 +32,24 @@ export function getQuadLength(p1, p2, p3) {
   return distA + distB;
 }
 
-export function getGradient(color, opacity, hardness) {          
-  const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` ${(opacity / 100) * .66})`
-  const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` ${(opacity / 100) * .33})`
-  const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
+export function getGradient(color, hardness) {         
+  const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
+  const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
+  const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` .1`
+  const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` .05`
+  const colorStep4 = color.substring(0, color.lastIndexOf(",") + 1) + ` .025`
+  const colorStep5 = color.substring(0, color.lastIndexOf(",") + 1) + ` .001`
+  const colorStep6 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
 
   return [
-    [0 + hardness * .01, color],
-    [.25 + hardness * .0075, colorStep1],
-    [.5 + hardness * .005, colorStep2],
-    [1, colorStep3]
+    [0 + hardness * .01, colorStep0],
+    [.1 + hardness * .009, colorStep0],
+    [.4 + hardness * .006, colorStep1],
+    [.45 + hardness * .0055, colorStep2],
+    [.49 + hardness * .0051, colorStep3],
+    [.5 + hardness * .005, colorStep4],
+    [.6 + hardness * .004, colorStep5],
+    [1, colorStep6]
   ];
 }
 

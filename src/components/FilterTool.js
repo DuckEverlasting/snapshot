@@ -9,6 +9,15 @@ import DraggableWindow from "./DraggableWindow";
 import SliderInput from "./SliderInput";
 import Button from "./Button";
 
+const FilterToolSC = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-top: -5px;
+  align-items: center;
+  width: 180px;
+`
+
 const CheckboxSC = styled.label`
   display: flex;
   justify-content: center;
@@ -76,28 +85,30 @@ export default function FilterTool() {
   }
 
   return (
-    <DraggableWindow name={filter.name} onKeyDown={handleKeyDown}>
-      {
-        Object.keys(filter.inputInfo).map(key => {
-          const {name, min, max, step, init} = filter.inputInfo[key];
-          return <SliderInput
-            name={name}
-            value={input[key]}
-            onChange={value => handleChange(key, value)}
-            max={max}
-            min={min}
-            step={step}
-          />
-        })
-      }
-      <CheckboxSC>
-        Show Preview
-        <input type="checkbox" value={showPreview} onChange={() => setShowPreview(!showPreview)}/>
-      </CheckboxSC>
-      <div>
-        <FilterButtonSC onClick={handleCancel}>CANCEL</FilterButtonSC>
-        <FilterButtonSC onClick={handleApply}>APPLY</FilterButtonSC>
-      </div>
+    <DraggableWindow name={filter.name} onKeyDown={handleKeyDown} resizable={false}>
+      <FilterToolSC>
+        {
+          Object.keys(filter.inputInfo).map(key => {
+            const {name, min, max, step, init} = filter.inputInfo[key];
+            return <SliderInput
+              name={name}
+              value={input[key]}
+              onChange={value => handleChange(key, value)}
+              max={max}
+              min={min}
+              step={step}
+            />
+          })
+        }
+        <CheckboxSC>
+          Show Preview
+          <input type="checkbox" value={showPreview} onChange={() => setShowPreview(!showPreview)}/>
+        </CheckboxSC>
+        <div>
+          <FilterButtonSC onClick={handleCancel}>CANCEL</FilterButtonSC>
+          <FilterButtonSC onClick={handleApply}>APPLY</FilterButtonSC>
+        </div>
+      </FilterToolSC>
     </DraggableWindow>
   );
 }

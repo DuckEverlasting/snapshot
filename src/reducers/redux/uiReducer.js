@@ -10,7 +10,9 @@ import {
   SET_ACTIVE_MENU_LIST,
   TOGGLE_ABOUT_MODAL,
   TOGGLE_HELP,
-  SET_FILTER_TOOL
+  SET_HELP_TOPIC,
+  SET_FILTER_TOOL,
+  SET_TRANSFORM_IMAGE
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -96,13 +98,24 @@ const uiReducer = (state = initUiState, {type, payload}) => {
     case TOGGLE_HELP:
       return {
         ...state,
-        overlayVisible: state.overlayVisible === "helpModal" ? null : "helpModal"
+        overlayVisible: state.overlayVisible === "helpModal" ? null : "helpModal",
+        currentHelpTopic: payload ? payload : state.currentHelpTopic
+      }
+    case SET_HELP_TOPIC:
+      return {
+        ...state,
+        currentHelpTopic: payload
       }
     case SET_FILTER_TOOL:
       return {
         ...state,
         overlayVisible: payload.bool ? "filterTool" : null,
         currentFilter: payload.filter
+      }
+    case SET_TRANSFORM_IMAGE:
+      return {
+        ...state,
+        transformImage: payload
       }
 
     default:

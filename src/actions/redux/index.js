@@ -28,7 +28,9 @@ export const [
   SET_CLIPBOARD_IS_USED,
   TOGGLE_ABOUT_MODAL,
   TOGGLE_HELP,
-  SET_FILTER_TOOL
+  SET_HELP_TOPIC,
+  SET_FILTER_TOOL,
+  SET_TRANSFORM_IMAGE
 ] = [
   "UNDO",
   "REDO",
@@ -57,7 +59,9 @@ export const [
   "SET_CLIPBOARD_IS_USED",
   "TOGGLE_ABOUT_MODAL",
   "TOGGLE_HELP",
-  "SET_FILTER_TOOL"
+  "SET_HELP_TOPIC",
+  "SET_FILTER_TOOL",
+  "SET_TRANSFORM_IMAGE"
 ];
 
 export const undo = () => {
@@ -124,10 +128,10 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
 }
 
-export const createLayer = (position, ignoreHistory=false) => {
+export const createLayer = (position, ignoreHistory=false, name) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, ignoreHistory}
+    payload: {position, ignoreHistory, name}
   };
 };
 
@@ -180,10 +184,10 @@ export const updateSelectionPath = path => {
   };
 };
 
-export const updateLayerOpacity = (id, opacity) => {
+export const updateLayerOpacity = (id, opacity, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_OPACITY,
-    payload: {id, opacity, ignoreHistory: true}
+    payload: {id, opacity, ignoreHistory}
   };
 };
 
@@ -295,9 +299,17 @@ export const toggleAboutModal = () => {
   }
 }
 
-export const toggleHelp = () => {
+export const toggleHelp = topic => {
   return {
-    type: TOGGLE_HELP
+    type: TOGGLE_HELP,
+    payload: topic
+  }
+}
+
+export const setHelpTopic = (topic=null) => {
+  return {
+    type: SET_HELP_TOPIC,
+    payload: topic
   }
 }
 
@@ -308,5 +320,12 @@ export const setFilterTool = (state, filter=null) => {
       bool: state === "on",
       filter
     }
+  }
+}
+
+export const setTransformImage = (image) => {
+  return {
+    type: SET_TRANSFORM_IMAGE,
+    payload: image
   }
 }

@@ -14,6 +14,7 @@ const ToolPanelSC = styled.div`
   flex-shrink: 0;
   border-top: 1px solid black;
   background: #666666;
+  z-index: 1;
 `;
 
 const TitleSC = styled.h3`

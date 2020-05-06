@@ -1,0 +1,399 @@
+{
+  "helpHierarchy": [
+    {
+      "slug": "panels",
+      "displayName": "Panels",
+      "contents": [
+        {
+          "slug": "toolsPanel",
+          "displayName": "Tools Panel"
+        },
+        {
+          "slug": "layersPanel",
+          "displayName": "Layers Panels"
+        },
+        {
+          "slug": "workspace",
+          "displayName": "Workspace"
+        }
+      ]
+    },
+    {
+      "slug": "tools",
+      "displayName": "Tools",
+      "contents": [
+        {
+          "slug": "pencil",
+          "displayName": "Pencil Tool"
+        },
+        {
+          "slug": "brush",
+          "displayName": "Brush Tool"
+        },
+        {
+          "slug": "line",
+          "displayName": "Line Tool"
+        },
+        {
+          "slug": "eraser",
+          "displayName": "Eraser Tool"
+        },
+        {
+          "slug": "rectangle",
+          "displayName": "Rectangle Tool"
+        },
+        {
+          "slug": "ellipse",
+          "displayName": "Ellipse Tool"
+        },
+        {
+          "slug": "eyeDropper",
+          "displayName": "Eyedropper Tool"
+        },
+        {
+          "slug": "bucket",
+          "displayName": "Bucket Fill Tool"
+        },
+        {
+          "slug": "selectRectangle",
+          "displayName": "Select Rectangle Tool"
+        },
+        {
+          "slug": "selectEllipse",
+          "displayName": "Select Ellipse Tool"
+        },
+        {
+          "slug": "lasso",
+          "displayName": "Lasso Selection Tool"
+        },
+        {
+          "slug": "move",
+          "displayName": "Move Tool"
+        },
+        {
+          "slug": "hand",
+          "displayName": "Hand Tool"
+        },
+        {
+          "slug": "zoom",
+          "displayName": "Zoom Tool"
+        }
+      ]
+    },
+    {
+      "slug": "fileMenu",
+      "displayName": "File Menu",
+      "contents": [
+        {
+          "slug": "new",
+          "displayName": "New"
+        },
+        {
+          "slug": "save",
+          "displayName": "Save"
+        },
+        {
+          "slug": "import",
+          "displayName": "Import"
+        },
+        {
+          "slug": "exportAs",
+          "displayName": "Export As"
+        }
+      ]
+    },
+    {
+      "slug": "editMenu",
+      "displayName": "Edit Menu",
+      "contents": [
+        {
+          "slug": "undo",
+          "displayName": "Undo"
+        },
+        {
+          "slug": "redo",
+          "displayName": "Redo"
+        },
+        {
+          "slug": "copy",
+          "displayName": "Copy"
+        },
+        {
+          "slug": "paste",
+          "displayName": "Paste"
+        },
+        {
+          "slug": "clear",
+          "displayName": "Clear"
+        }
+      ]
+    },
+    {
+      "slug": "imageMenu",
+      "displayName": "Image Menu",
+      "contents": [
+        {
+          "slug": "brightnessContrast",
+          "displayName": "Brightness / Contrast"
+        },
+        {
+          "slug": "hueSaturation",
+          "displayName": "Hue / Saturation"
+        },
+        {
+          "slug": "desaturate",
+          "displayName": "Desaturate"
+        },
+        {
+          "slug": "filter",
+          "displayName": "Filter Menu",
+          "contents": [
+            {
+              "slug": "blur",
+              "displayName": "Blur"
+            },
+            {
+              "slug": "sharpen",
+              "displayName": "Sharpen"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "layerMenu",
+      "displayName": "Layer Menu",
+      "contents": [
+        {
+          "slug": "newLayer",
+          "displayName": "New Layer"
+        },
+        {
+          "slug": "duplicateLayer",
+          "displayName": "Duplicate Layer"
+        },
+        {
+          "slug": "deleteLayer",
+          "displayName": "Delete Layer"
+        },
+        {
+          "slug": "hideLayer",
+          "displayName": "Hide Layer"
+        },
+        {
+          "slug": "renameLayer",
+          "displayName": "Rename Layer"
+        }
+
+      ]
+    },
+    {
+      "slug": "selectionMenu",
+      "displayName": "Selection Menu",
+      "contents": [
+        {
+          "slug": "deselect",
+          "displayName": "Deselect"
+        }
+      ]
+    },
+    {
+      "slug": "toolSettings",
+      "displayName": "Tool Settings"
+    },
+    {
+      "slug": "colorSelector",
+      "displayName": "Color Selector"
+    }
+  ],
+  "helpContent": {
+    "panels": {
+      "title": "",
+      "text": ""
+    },
+    "toolsPanel": {
+      "title": "Tools Panel",
+      "text": "The tools panel is located on the left side of the screen. It contains buttons that allow you to switch between the various <button name='tools'>tools</button> PhotoSmith has to offer. Below these buttons, the tools panel contains the <button name='colorSelector'>color selector</button> and input ranges to customize the currently selected tool. (See <button name='toolSettings'>tool settings</button> for more info.)"
+    },
+    "layersPanel": {
+      "title": "Layers Panel",
+      "text": "The layers panel is located on the right side of the screen. It contains a visual representation of all the layers in your current project, as well as controls to manipulate, create and delete layers. The layers are each shown on their own \"card\", displayed from top to bottom in the order they appear in the <button name='workspacePanel'>workspace</button>.</br><ul><li>The active layer is shown with a yellow background. To change the active layer, click on the layer card representing the layer you would like to make active.</li><li>The 'New Layer' button at the bottom of this panel creates a new layer, sets it as the active layer, and places it at the highest level of the project.</li><li>To change the order of a layer, click and drag the desired layer card to a different spot in the list.</li><li>To rename a layer, double click on its name.</li><li>To hide or delete a layer, click on the corresponding button on its card. (The \"eye\" icon hides and unhides a layer, while the \"trash can\" deletes a layer.)</li></ul>"
+    },
+    "workspace": {
+      "title": "",
+      "text": ""
+    },
+    "tools": {
+      "title": "",
+      "text": ""
+    },
+    "pencil": {
+      "title": "Pencil Tool",
+      "text": "The pencil tool is a drawing tool that lets you draw smooth, freehand lines. It it path-based and draws a single line across the path you provide (as opposed to brush-based tools like the <button name='brush'>brush tool</button> or the <button name='eraser'>eraser tool</button>). This ensures a smooth, consistent line throughout, though it also means the hardness of the tool cannot be adjusted.<ul><li>The pencil tool uses the <button name='colorSelector'>foreground color</button> and has two <button name='toolSettings'>adjustable properties</button>: width and opacity.</li><li>Hold the <b>SHIFT</b> key down to lock the pencil tool onto a vertical or horizontal path (based on the first point you clicked).</li></ul>"
+    },
+    "brush": {
+      "title": "Brush Tool",
+      "text": "The brush tool gives you the option to draw freely with softer strokes. Unlike the <button name='pencil'>pencil tool</button>, the brush tool operates by drawing an array of circles along a path; since the edge feather on these circles can be customised, the brush tool (and other similar tools that use brush heads) has to option to customise the hardness of its stroke.<ul><li>The brush tool uses the <button name='colorSelector'>foreground color</button> and has three <button name='toolSettings'>adjustable properties</button>: width, opacity, and hardness.</li><li>Hold the <b>SHIFT</b> key down to lock the brush tool onto a vertical or horizontal path (based on the first point you clicked). [DEV NOTE: THIS FEATURE IS CURRENTLY BROKEN.]</li></ul>"
+    },
+    "line": {
+      "title": "Line Tool",
+      "text": "The line tool is very straightforward. Click the mouse and drag to make a straight line to a second point of your choosing.<ul><li>The line tool uses the <button name='colorSelector'>foreground color</button> and has two <button name='toolSettings'>adjustable properties</button>: width and opacity.</li><li>Hold the <b>SHIFT</b> key down to lock the line tool onto a vertical or horizontal path.</li><li>In case you were wondering, that was indeed a pun at the beginning of this article. We at PhotoSmith believe that allowing a bit of levity to enter our documentation helps to keep our priorities... aligned.</li></ul>"
+    },
+    "eraser": {
+      "title": "",
+      "text": ""
+    },
+    "rectangle": {
+      "title": "",
+      "text": ""
+    },
+    "ellipse": {
+      "title": "",
+      "text": ""
+    },
+    "eyeDropper": {
+      "title": "",
+      "text": ""
+    },
+    "bucket": {
+      "title": "",
+      "text": ""
+    },
+    "selectRectangle": {
+      "title": "",
+      "text": ""
+    },
+    "selectEllipse": {
+      "title": "",
+      "text": ""
+    },
+    "lasso": {
+      "title": "",
+      "text": ""
+    },
+    "move": {
+      "title": "",
+      "text": ""
+    },
+    "hand": {
+      "title": "",
+      "text": ""
+    },
+    "zoom": {
+      "title": "",
+      "text": ""
+    },
+    "fileMenu": {
+      "title": "",
+      "text": ""
+    },
+    "new": {
+      "title": "",
+      "text": ""
+    },
+    "save": {
+      "title": "",
+      "text": ""
+    },
+    "import": {
+      "title": "",
+      "text": ""
+    },
+    "exportAs": {
+      "title": "",
+      "text": ""
+    },
+    "editMenu": {
+      "title": "",
+      "text": ""
+    },
+    "undo": {
+      "title": "",
+      "text": ""
+    },
+    "redo": {
+      "title": "",
+      "text": ""
+    },
+    "copy": {
+      "title": "",
+      "text": ""
+    },
+    "paste": {
+      "title": "",
+      "text": ""
+    },
+    "clear": {
+      "title": "",
+      "text": ""
+    },
+    "imageMenu": {
+      "title": "",
+      "text": ""
+    },
+    "brightnessContrast": {
+      "title": "",
+      "text": ""
+    },
+    "hueSaturation": {
+      "title": "",
+      "text": ""
+    },
+    "desaturate": {
+      "title": "",
+      "text": ""
+    },
+    "filter": {
+      "title": "",
+      "text": ""
+    },
+    "blur": {
+      "title": "",
+      "text": ""
+    },
+    "sharpen": {
+      "title": "",
+      "text": ""
+    },
+    "layerMenu": {
+      "title": "",
+      "text": ""
+    },
+    "newLayer": {
+      "title": "",
+      "text": ""
+    },
+    "duplicateLayer": {
+      "title": "",
+      "text": ""
+    },
+    "deleteLayer": {
+      "title": "",
+      "text": ""
+    },
+    "hideLayer": {
+      "title": "",
+      "text": ""
+    },
+    "renameLayer": {
+      "title": "",
+      "text": ""
+    },
+    "selectionMenu": {
+      "title": "",
+      "text": ""
+    },
+    "deselect": {
+      "title": "",
+      "text": ""
+    },
+    "toolSettings": {
+      "title": "",
+      "text": ""
+    },
+    "colorSelector": {
+      "title": "",
+      "text": ""
+    }
+  }
+}

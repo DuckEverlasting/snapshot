@@ -8,7 +8,8 @@ import {
   undo,
   redo,
   setClipboardIsUsed,
-  putHistoryData
+  putHistoryData,
+  setTransformImage
 } from "./index";
 
 import manipulate from "../../reducers/custom/manipulateReducer";
@@ -48,7 +49,7 @@ export default function menuAction(action) {
           action: "paste",
           params: {
             sourceCtx,
-            dest: [0, 0],
+            dest: {x: 0, y: 0},
             clip: selectionPath,
             clearFirst: true
           }
@@ -65,7 +66,7 @@ export default function menuAction(action) {
             action: "paste",
             params: {
               sourceCtx,
-              dest: [0, 0]
+              dest: {x: 0, y: 0}
             }
           })
         );
@@ -83,7 +84,7 @@ export default function menuAction(action) {
     //       action: "paste",
     //       params: {
     //         sourceCtx,
-    //         dest: [0, 0],
+    //         dest: {x: 0, y: 0},
     //         clearFirst: true
     //       }
     //     });
@@ -134,6 +135,21 @@ export default function menuAction(action) {
           );
         }
       };
+    case "import":
+      return async (dispatch, getState) => {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.addEventListener("change", addFile, false)
+        fileInput.click();
+        
+        async function addFile() {
+          const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
+          dispatch(createLayer(getState().main.present.layerOrder.length, false, name));
+          dispatch(setTransformImage(fileInput.files[0]));
+          fileInput.removeEventListener("change", addFile, false);
+        }
+      }
     default:
       break;
   }

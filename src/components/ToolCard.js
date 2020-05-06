@@ -52,6 +52,7 @@ export default function ToolCard() {
         onChange={value => inputHandler(value, "hardness")}
         value={hardness}
         name={"Hardness"}
+        min={0}
       />}
       {tolerance !== undefined && <SliderInput
         onChange={value => inputHandler(value, "tolerance")}

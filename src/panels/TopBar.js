@@ -19,7 +19,7 @@ const TopBarSC = styled.div`
   position: relative;
   display: flex;
   justify-content: space-between;
-  z-index: 1;
+  z-index: ${props => props.overlayVisible ? 1 : 3};
   pointer-events: ${props => props.overlayVisible ? "none" : "auto"};
 `;
 
@@ -56,7 +56,7 @@ export default function TopBar() {
         <Menu id="File" label="File">
           <MenuItem disabled>New</MenuItem>
           <MenuItem disabled>Save</MenuItem>
-          <MenuItem disabled>Import</MenuItem>
+          <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
           <MenuBranch label="Export As">
             <MenuItem disabled>PDF</MenuItem>
             <MenuItem disabled>JPG</MenuItem>
@@ -162,10 +162,11 @@ export default function TopBar() {
             label="About Photosmith"
             onClick={() => dispatch(toggleAboutModal())}
           />
-          {/* <MenuItem
+          <MenuItem
             label="Photosmith Help"
             onClick={() => dispatch(toggleHelp())}
-          /> */}
+            disabled
+          />
         </Menu>
       </MenuBar>
       <RightBoxSC>

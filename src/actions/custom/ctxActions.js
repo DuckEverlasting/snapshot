@@ -49,7 +49,7 @@ export function quadratic(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadraticPoints(ctx, { destArray, width, gradient, density = .25, translation }) {
+export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100, density = .25, translation }) {
   // density in this case = percentage of width between each point
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -57,12 +57,12 @@ export function quadraticPoints(ctx, { destArray, width, gradient, density = .25
   const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
     ctx.beginPath();
-    let grad = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, width / 2);
+    let grad = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, width * (2 - hardness / 100) / 2);
     gradient.forEach(data => {
       grad.addColorStop(data[0], data[1]);
     })
     ctx.fillStyle = grad;
-    ctx.arc(point.x, point.y, width / 2, 0,Math.PI * 2);
+    ctx.arc(point.x, point.y, (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
     ctx.fill();
   })
   if (translation) ctx.translate(-translation, -translation);
@@ -103,8 +103,12 @@ export function move(ctx, { orig, dest }) {
   ctx.putImageData(data, x, y);
 }
 
-export function paste(ctx, { sourceCtx, dest }) {
-  ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y));
+export function paste(ctx, { sourceCtx, dest={x: 0, y: 0}, size=null }) {
+  if (size) {
+    ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
+  } else {
+    ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y));
+  }
 }
 
 export function undelete(ctx, { source }) {

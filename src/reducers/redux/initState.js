@@ -1,13 +1,13 @@
-let initWidth = (window.innerWidth - 300) * .8;
-let initHeight = (window.innerHeight - 30) * .8;
+const initWidth = (window.innerWidth - 300) * .8;
+const initHeight = (window.innerHeight - 30) * .8;
 
 export const initMainState = {
   onUndo: null,
   onRedo: null,
   onUndelete: null,
   documentSettings: {
-    canvasWidth: initWidth,
-    canvasHeight: initHeight,
+    documentWidth: initWidth,
+    documentHeight: initHeight,
   },
   layerData: {
     1: null,
@@ -20,26 +20,12 @@ export const initMainState = {
       name: "Layer 1",
       nameEditable: false,
       hidden: false,
-      opacity: 1
-    },
-    staging: {
-      name: undefined,
-      nameEditable: false,
-      hidden: false,
-      opacity: 1
-    },
-    selection: {
-      name: undefined,
-      nameEditable: false,
-      hidden: false,
-      opacity: 1
-    },
-    clipboard: {
-      name: undefined,
-      nameEditable: false,
-      hidden: true,
-      opacity: 1
     }
+  },
+  transformSettings: {
+    active: false,
+    width: 0,
+    height: 0,
   },
   selectionPath: null,
   stagingPinnedTo: 1,
@@ -68,7 +54,7 @@ export const initUiState = {
     drawRect: { name: "Draw Rectangle", width: 5, opacity: 100 },
     fillEllipse: { name: "Fill Ellipse", opacity: 100 },
     drawEllipse: { name: "Draw Ellipse", width: 5, opacity: 100 },
-    eraser: { name: "Eraser", width: 5, hardness: 50 },
+    eraser: { name: "Eraser", width: 5, opacity: 100, hardness: 50 },
     eyeDropper: { name: "Eye Dropper" },
     selectRect: { name: "Select Rectangle" },
     selectEllipse: { name: "Select Ellipse" },
@@ -88,5 +74,7 @@ export const initUiState = {
   menuIsActive: false,
   activeMenuList: null,
   overlayVisible: null,
-  currentFilter: null
+  currentHelpTopic: "tools",
+  currentFilter: null,
+  transformImage: null
 }

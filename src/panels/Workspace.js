@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import styled from "styled-components";
 
 import Layer from "../components/Layer";
 
+import TransformObject from "../components/TransformObject";
+
 import { 
   PencilAction,
   BrushAction,
+  EraserAction,
   ShapeAction,
   EyeDropperAction,
   MoveAction,
@@ -22,6 +25,7 @@ import getCursor from "../utils/cursors";
 import { updateWorkspaceSettings } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
+import useEventListener from "../hooks/useEventListener";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -32,6 +36,7 @@ const WorkspaceSC = styled.div`
   overflow: hidden;
   background: rgb(175, 175, 175);
   cursor: ${props => props.cursor};
+  z-index: 2;
 `;
 
 const ZoomDisplaySC = styled.div`
@@ -42,6 +47,7 @@ const ZoomDisplaySC = styled.div`
   color: rgb(235, 235, 235);
   padding: 10px 20px;
   border-bottom-left-radius: 3px;
+  pointer-events: none;
 `;
 
 const CanvasPaneSC = styled.div.attrs(props => ({
@@ -69,21 +75,24 @@ export default function Workspace() {
   const { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings);
   const primary = useSelector(state => state.ui.colorSettings.primary);
   const { activeTool, toolSettings } = useSelector(state => state.ui);
-  const { canvasWidth, canvasHeight } = useSelector(state => state.main.present.documentSettings);
+  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
   const {
     activeLayer,
     selectionPath,
     layerData,
     layerSettings,
     layerOrder,
+    transformSettings,
     stagingPinnedTo
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
+  const transformImage = useSelector(state => state.ui.transformImage);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
 
   const workspaceRef = useRef(null);
+  let workspaceElement = workspaceRef.current;
 
   const dispatch = useDispatch();
 
@@ -92,15 +101,6 @@ export default function Workspace() {
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
-  
-  useEffect(() => {
-    let workspaceElement = workspaceRef.current;
-    workspaceElement.addEventListener("wheel", handleMouseWheel);
-
-    return () => {
-      workspaceElement.removeEventListener("wheel", handleMouseWheel);
-    };
-  }, [dispatch, translateX, translateY, zoomPct]);
 
   function updateAnimatedLayers() {
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
@@ -108,8 +108,8 @@ export default function Workspace() {
   }
 
   function getTranslateData() {
-    const marginLeft = .5 * (workspaceRef.current.clientWidth - canvasWidth * zoomPct / 100);
-    const marginTop = .5 * (workspaceRef.current.clientHeight - canvasHeight * zoomPct / 100);
+    const marginLeft = .5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100);
+    const marginTop = .5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
@@ -122,7 +122,7 @@ export default function Workspace() {
       x = ev.nativeEvent.offsetX + translateData.x,
       y = ev.nativeEvent.offsetY + translateData.y;
 
-    return x > 0 && y > 0 && x < canvasWidth && y < canvasWidth; 
+    return x > 0 && y > 0 && x < documentWidth * zoomPct / 100 && y < documentHeight * zoomPct / 100; 
   }
   
   function buildAction() {
@@ -187,7 +187,7 @@ export default function Workspace() {
         });
       case "eraser":
         if (!activeLayer) {return}
-        return new BrushAction(activeLayer, dispatch, getTranslateData(), {
+        return new EraserAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.eraser.width,
           color: "rgba(0, 0, 0, 1)",
           opacity: 100,
@@ -293,14 +293,16 @@ export default function Workspace() {
     }
   }
   
-  const handleMouseWheel = ev => {
+  const handleMouseWheel = useCallback(ev => {
     ev.preventDefault();
     if (ev.altKey) {
       zoomTool(ev, ev.deltaY < 0);
     } else {
       translateTool(ev);
     }
-  };
+  }, [translateX, translateY, zoomPct]);
+
+  useEventListener("wheel", handleMouseWheel, workspaceElement);
 
   const handleMouseDown = ev => {
     if (ev.buttons === 4 || activeTool === "hand") {
@@ -346,7 +348,7 @@ export default function Workspace() {
   };
     
   const handleMouseUp = ev => {
-    if (ev.button === 1 || ev.button === 0 && activeTool === "hand") {
+    if (ev.button === 1 || (ev.button === 0 && activeTool === "hand")) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
     } else if (ev.button === 0 && activeTool === "zoom") {
@@ -372,8 +374,8 @@ export default function Workspace() {
       <CanvasPaneSC
         translateX={translateX}
         translateY={translateY}
-        width={canvasWidth}
-        height={canvasHeight}
+        width={documentWidth}
+        height={documentHeight}
         zoomPct={zoomPct}
         >
         <LayerRenderer
@@ -381,10 +383,13 @@ export default function Workspace() {
           layerData={layerData}
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
-          width={canvasWidth}
-          height={canvasHeight}
-          />
+          activeLayer={activeLayer}
+          width={documentWidth}
+          height={documentHeight}
+          transformSettings={transformSettings}
+        />
       </CanvasPaneSC>
+      {transformImage && <TransformObject initImage={transformImage} />}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
@@ -397,8 +402,10 @@ function LayerRenderer({
   layerData,
   layerSettings,
   stagingPinnedTo,
+  activeLayer,
   width,
-  height
+  height,
+  transformSettings
 }) {
   return (
     <>
@@ -408,8 +415,7 @@ function LayerRenderer({
         height={height}
         index={1}
         data={layerData.clipboard}
-        hidden={true}
-        opacity={1}
+        hidden
       />
       {layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
@@ -423,7 +429,6 @@ function LayerRenderer({
             index={i + 1}
             data={layerDat}
             hidden={layerSet.hidden}
-            opacity={layerSet.opacity}
           />
         })}
       <Layer
@@ -432,8 +437,6 @@ function LayerRenderer({
         height={height}
         index={layerOrder.length + 2}
         data={layerData.selection}
-        hidden={false}
-        opacity={1}
       />
       <Layer
         key={"staging"}
@@ -442,9 +445,20 @@ function LayerRenderer({
         height={height}
         index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
         data={layerData.staging}
-        hidden={false}
-        opacity={1}
       />
+      {
+        transformSettings.active &&
+        <Layer
+          key={"transform"}
+          id={"transform"}
+          width={transformSettings.width}
+          height={transformSettings.height}
+          translateX={transformSettings.translateX}
+          translateY={transformSettings.translateY}
+          index={layerOrder.indexOf(activeLayer) + 1}
+          data={layerData.transform}
+        />
+      }
     </>
   );
 }
