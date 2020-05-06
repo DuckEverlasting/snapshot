@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setTransformImage } from "../actions/redux/index";
+import { setImportImageFile } from "../actions/redux/index";
 
 import styled from 'styled-components';
 
@@ -128,7 +128,7 @@ const CanvasSC = styled.canvas.attrs(props => ({
   height: 100%;
 `
 
-export default function TransformObject({initImage}) {
+export default function TransformObject() {
   const [currentAction, setCurrentAction] = useState("");
   const [dragOrigin, setDragOrigin] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -136,6 +136,7 @@ export default function TransformObject({initImage}) {
   const [image, setImage] = useState(null);
   const [transformCanvasSize, setTransformCanvasSize] = useState({ x: 0, y: 0 });
 
+  const imageFile = useSelector(state => state.ui.importImageFile);
   const { workspaceOffset, zoom } = useSelector(state => {
     let settings = state.ui.workspaceSettings;
     return {
@@ -158,7 +159,7 @@ export default function TransformObject({initImage}) {
   useEffect(() => {
     // canvasRef.current.getContext('2d').imageSmoothingEnabled = false;
     const image = new Image();
-    image.src = URL.createObjectURL(initImage);
+    image.src = URL.createObjectURL(imageFile);
     image.onload = () => {
       setImage(image);
       let initWidth = image.width;
@@ -176,7 +177,7 @@ export default function TransformObject({initImage}) {
         h: initHeight
       });
     }
-  }, [initImage]);
+  }, [imageFile]);
 
   useEffect(() => {
     if (!image) return;
@@ -324,7 +325,7 @@ export default function TransformObject({initImage}) {
   const handleKeyDown = useCallback(ev => {
     if (ev.key === "Escape") {
       dispatch(menuAction("undo"))
-      dispatch(setTransformImage(null))
+      dispatch(setImportImageFile(null))
     } else if (ev.key === "Enter") {
       manipulate(targetCtx, {
         action: "paste",
@@ -337,7 +338,7 @@ export default function TransformObject({initImage}) {
           size
         }
       })
-      dispatch(setTransformImage(null))
+      dispatch(setImportImageFile(null))
     }
   }, [dispatch, offset, size, documentHeight, documentWidth])
 
@@ -349,6 +350,8 @@ export default function TransformObject({initImage}) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onKeyDown={handleKeyDown}
+        onDragOver={ev => ev.preventDefault()}
+        onDrop={ev => ev.preventDefault()}
         overrideCursor={currentAction}
         ref={boundingBoxRef}
       >

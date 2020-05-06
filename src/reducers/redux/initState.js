@@ -76,5 +76,5 @@ export const initUiState = {
   overlayVisible: null,
   currentHelpTopic: "tools",
   currentFilter: null,
-  transformImage: null
+  importImageFile: null
 }
