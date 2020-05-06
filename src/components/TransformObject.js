@@ -1,15 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from "react-redux";
-import { convertDestToRegularShape } from "../utils/helpers";
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSelector, useDispatch } from "react-redux";
+import useEventListener from "../hooks/useEventListener";
+import menuAction from "../actions/redux/menuAction";
+import manipulate from "../reducers/custom/manipulateReducer";
+import { setTransformImage } from "../actions/redux/index";
 
-const FullScreenBoxSC = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`
+import styled from 'styled-components';
 
 const BoundingBoxSC = styled.div.attrs(props => ({
   style: {
@@ -28,7 +24,7 @@ const ContainerSC = styled.div.attrs(props => ({
     width: props.size ? props.size.w * props.zoom + "px" : "auto",
     height: props.size ? props.size.h * props.zoom + "px": "auto",
     cursor: props.overrideCursor || "move",
-    border: "1px solid black"
+    border: "1px solid #ffe312"
   }
 }))`
   flex-grow: 0;
@@ -81,6 +77,7 @@ const NEResizeSC = styled.div`
   height: 15px;
   cursor: ne-resize;
   border: 1px solid black;
+  background: white;
 `;
 
 const SEResizeSC = styled.div`
@@ -91,6 +88,7 @@ const SEResizeSC = styled.div`
   height: 15px;
   cursor: se-resize;
   border: 1px solid black;
+  background: white;
 
 `;
 
@@ -102,6 +100,7 @@ const SWResizeSC = styled.div`
   height: 15px;
   cursor: sw-resize;
   border: 1px solid black;
+  background: white;
 
 `;
 
@@ -113,6 +112,7 @@ const NWResizeSC = styled.div`
   height: 15px;
   cursor: nw-resize;
   border: 1px solid black;
+  background: white;
 
 `;
 
@@ -133,28 +133,34 @@ export default function TransformObject({initImage}) {
   const [dragOrigin, setDragOrigin] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
-  const [transformImage, setTransformImage] = useState(null);
+  const [image, setImage] = useState(null);
   const [transformCanvasSize, setTransformCanvasSize] = useState({ x: 0, y: 0 });
 
   const { workspaceOffset, zoom } = useSelector(state => {
     let settings = state.ui.workspaceSettings;
     return {
-      workspaceOffset: {x: settings.translateX, y: settings.translateY},
+      workspaceOffset: { x: settings.translateX, y: settings.translateY },
       zoom: settings.zoomPct / 100
     }
   });
-
+  const targetCtx = useSelector(state => {
+    return state.main.present.layerData[
+      state.main.present.layerOrder[state.main.present.layerOrder.length - 1]
+    ].getContext("2d");
+  });
   const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
+
+  const dispatch = useDispatch();
 
   const canvasRef = useRef();
   const boundingBoxRef = useRef();
 
   useEffect(() => {
-    canvasRef.current.getContext('2d').imageSmoothingEnabled = false;
+    // canvasRef.current.getContext('2d').imageSmoothingEnabled = false;
     const image = new Image();
     image.src = URL.createObjectURL(initImage);
     image.onload = () => {
-      setTransformImage(image);
+      setImage(image);
       let initWidth = image.width;
       let initHeight = image.height;
       setOffset({
@@ -173,8 +179,8 @@ export default function TransformObject({initImage}) {
   }, [initImage]);
 
   useEffect(() => {
-    if (!transformImage) return;
-    canvasRef.current.getContext('2d').drawImage(transformImage, 0, 0);
+    if (!image) return;
+    canvasRef.current.getContext('2d').drawImage(image, 0, 0);
   }, [transformCanvasSize]);
 
   function handleMouseDown(ev, actionType) {
@@ -315,9 +321,27 @@ export default function TransformObject({initImage}) {
     }
   }
 
-  function handleKeyDown(ev) {
-    console.log(ev.key)
-  }
+  const handleKeyDown = useCallback(ev => {
+    if (ev.key === "Escape") {
+      dispatch(menuAction("undo"))
+      dispatch(setTransformImage(null))
+    } else if (ev.key === "Enter") {
+      manipulate(targetCtx, {
+        action: "paste",
+        params: {
+          sourceCtx: canvasRef.current.getContext("2d"),
+          dest: {
+            x: Math.ceil(offset.x - .5 * size.w + .5 * documentWidth),
+            y: Math.ceil(offset.y - .5 * size.h + .5 * documentHeight)
+          },
+          size
+        }
+      })
+      dispatch(setTransformImage(null))
+    }
+  }, [dispatch, offset, size, documentHeight, documentWidth])
+
+  useEventListener("keydown", handleKeyDown);
 
   return (
     <BoundingBoxSC
@@ -328,7 +352,6 @@ export default function TransformObject({initImage}) {
         overrideCursor={currentAction}
         ref={boundingBoxRef}
       >
-        <FullScreenBoxSC tabIndex={0} />
         <ContainerSC
           offset={calculateOffset()}
           size={size}

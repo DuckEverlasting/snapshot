@@ -13,8 +13,7 @@ export const initMainState = {
     1: null,
     selection: null,
     clipboard: null,
-    staging: null,
-    transform: null
+    staging: null
   },
   layerSettings: {
     1: {

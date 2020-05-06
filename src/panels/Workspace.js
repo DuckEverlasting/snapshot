@@ -122,7 +122,7 @@ export default function Workspace() {
       x = ev.nativeEvent.offsetX + translateData.x,
       y = ev.nativeEvent.offsetY + translateData.y;
 
-    return x > 0 && y > 0 && x < documentWidth && y < documentWidth; 
+    return x > 0 && y > 0 && x < documentWidth * zoomPct / 100 && y < documentHeight * zoomPct / 100; 
   }
   
   function buildAction() {
