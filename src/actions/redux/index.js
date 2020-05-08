@@ -128,17 +128,17 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
 }
 
-export const createLayer = (position, ignoreHistory=false, name) => {
+export const createLayer = (position, ignoreHistory=false, params={}) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, ignoreHistory, name}
+    payload: {position, ignoreHistory, params}
   };
 };
 
-export const createLayerFrom = (position, source, ignoreHistory=false) => {
+export const createLayerFrom = (position, source, ignoreHistory=false, params={}) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, source, ignoreHistory}
+    payload: {position, source, ignoreHistory, params}
   };
 };
 

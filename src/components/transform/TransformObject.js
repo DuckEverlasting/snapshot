@@ -4,6 +4,7 @@ import useEventListener from "../../hooks/useEventListener";
 import menuAction from "../../actions/redux/menuAction";
 import manipulate from "../../reducers/custom/manipulateReducer";
 import { setImportImageFile } from "../../actions/redux/index";
+import transformActionFactory from "../../utils/TransformAction";
 
 import styled from 'styled-components';
 
@@ -23,97 +24,12 @@ const ContainerSC = styled.div.attrs(props => ({
                 translateY(${props.offset.y}px)`,
     width: props.size ? props.size.w * props.zoom + "px" : "auto",
     height: props.size ? props.size.h * props.zoom + "px": "auto",
-    cursor: props.overrideCursor || "move",
-    border: "1px solid #ffe312"
   }
 }))`
   flex-grow: 0;
   flex-shrink: 0;
   position: relative;
   box-sizing: content-box;
-`;
-
-const NResizeSC = styled.div`
-  position: absolute;
-  top: -7.5px;
-  left: 7.5px;
-  width: calc(100% - 15px);
-  height: 15px;
-  cursor: n-resize;
-`;
-
-const SResizeSC = styled.div`
-  position: absolute;
-  bottom: -7.5px;
-  left: 7.5px;
-  width: calc(100% - 15px);
-  height: 15px;
-  cursor: s-resize;
-`;
-
-const EResizeSC = styled.div`
-  position: absolute;
-  bottom: 7.5px;
-  left: calc(100% - 7.5px);
-  width: 15px;
-  height: calc(100% - 15px);
-  cursor: e-resize;
-`;
-
-const WResizeSC = styled.div`
-  position: absolute;
-  bottom: 7.5px;
-  left: -7.5px;
-  width: 15px;
-  height: calc(100% - 15px);
-  cursor: w-resize;
-`;
-
-const NEResizeSC = styled.div`
-  position: absolute;
-  top: -7.5px;
-  left: calc(100% - 7.5px);
-  width: 15px;
-  height: 15px;
-  cursor: ne-resize;
-  border: 1px solid black;
-  background: white;
-`;
-
-const SEResizeSC = styled.div`
-  position: absolute;
-  bottom: -7.5px;
-  left: calc(100% - 7.5px);
-  width: 15px;
-  height: 15px;
-  cursor: se-resize;
-  border: 1px solid black;
-  background: white;
-
-`;
-
-const SWResizeSC = styled.div`
-  position: absolute;
-  bottom: -7.5px;
-  left: -7.5px;
-  width: 15px;
-  height: 15px;
-  cursor: sw-resize;
-  border: 1px solid black;
-  background: white;
-
-`;
-
-const NWResizeSC = styled.div`
-  position: absolute;
-  top: -7.5px;
-  left: -7.5px;
-  width: 15px;
-  height: 15px;
-  cursor: nw-resize;
-  border: 1px solid black;
-  background: white;
-
 `;
 
 const CanvasSC = styled.canvas.attrs(props => ({
@@ -128,26 +44,20 @@ const CanvasSC = styled.canvas.attrs(props => ({
   height: 100%;
 `
 
-export default function TransformObject({children}) {
-  const [currentAction, setCurrentAction] = useState("");
-  const [dragOrigin, setDragOrigin] = useState(null);
+let currentTransformAction = null;
+
+export default function TransformObject({targetCtx, source, clip, children}) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
   const [image, setImage] = useState(null);
   const [transformCanvasSize, setTransformCanvasSize] = useState({ x: 0, y: 0 });
 
-  const imageFile = useSelector(state => state.ui.importImageFile);
   const { workspaceOffset, zoom } = useSelector(state => {
     let settings = state.ui.workspaceSettings;
     return {
       workspaceOffset: { x: settings.translateX, y: settings.translateY },
       zoom: settings.zoomPct / 100
     }
-  });
-  const targetCtx = useSelector(state => {
-    return state.main.present.layerData[
-      state.main.present.layerOrder[state.main.present.layerOrder.length - 1]
-    ].getContext("2d");
   });
   const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
 
@@ -157,27 +67,34 @@ export default function TransformObject({children}) {
   const boundingBoxRef = useRef();
 
   useEffect(() => {
-    // canvasRef.current.getContext('2d').imageSmoothingEnabled = false;
-    const image = new Image();
-    image.src = URL.createObjectURL(imageFile);
-    image.onload = () => {
-      setImage(image);
-      let initWidth = image.width;
-      let initHeight = image.height;
-      setOffset({
-        x: 0,
-        y: 0
-      });
-      setSize({
-        w: initWidth,
-        h: initHeight
-      });
-      setTransformCanvasSize({
-        w: initWidth,
-        h: initHeight
-      });
+    if (source instanceof File) {
+      const image = new Image();
+      image.src = URL.createObjectURL(source);
+      image.onload = () => {
+        setImage(image);
+        let initWidth = image.width;
+        let initHeight = image.height;
+        setOffset({
+          x: 0,
+          y: 0
+        });
+        setSize({
+          w: initWidth,
+          h: initHeight
+        });
+        setTransformCanvasSize({
+          w: initWidth,
+          h: initHeight
+        });
+      }
+    } else if (source instanceof HTMLCanvasElement) {
+      if (clip) {
+        const ctx = source.getContext("2d");
+        ctx.save();
+        ctx.clip(clip);
+      }
     }
-  }, [imageFile]);
+  }, [source]);
 
   useEffect(() => {
     if (!image) return;
@@ -187,120 +104,17 @@ export default function TransformObject({children}) {
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
     ev.stopPropagation();
-    setCurrentAction(actionType);
-    console.log({
-      x: ev.screenX,
-      y: ev.screenY,
-      w: size.w,
-      h: size.h,
-      offX: offset.x,
-      offY: offset.y,
-    })
-    setDragOrigin({
-      x: ev.screenX,
-      y: ev.screenY,
-      w: size.w,
-      h: size.h,
-      offX: offset.x,
-      offY: offset.y,
-    });
+    currentTransformAction = transformActionFactory(ev, size, setSize, offset, setOffset, zoom, {actionType});
+    currentTransformAction.start(ev);
   }
 
   function handleMouseMove(ev) {
-    if (!currentAction) return;
-    if (currentAction.endsWith("resize")) {
-      handleResizeUpdate(ev);
-    } else if (currentAction === "move") {
-      handleMoveUpdate(ev);
-    } else if (currentAction === "rotate") {
-      handleRotateUpdate(ev);
-    }
-  }
-
-  function handleResizeUpdate(ev) {
-    let x, y, calculatedWidth, calculatedHeight, calculatedOffsetX, calculatedOffsetY;
-    calculatedWidth = size.w;
-    calculatedHeight = size.h;
-    calculatedOffsetX = offset.x;
-    calculatedOffsetY = offset.y;
-    x = ev.screenX;
-    y = ev.screenY;
-
-    if (!ev.shiftKey && !currentAction.slice(0, 2).includes("-")) {
-      const distX = x - dragOrigin.x;
-      const distY = y - dragOrigin.y;
-      let dist;
-      if (currentAction === "se-resize") {
-        dist = Math.min(-distX, -distY);
-        x = dragOrigin.x - dist;
-        y = dragOrigin.y - dist;
-      } else if (currentAction === "nw-resize") {
-        dist = Math.min(distX, distY);
-        x = dragOrigin.x + dist;
-        y = dragOrigin.y + dist;
-      } else if (currentAction === "sw-resize") {
-        dist = Math.min(distX, -distY);
-        x = dragOrigin.x + dist;
-        y = dragOrigin.y - dist;
-      } else if (currentAction === "ne-resize") {
-        dist = Math.min(-distX, distY);
-        x = dragOrigin.x - dist;
-        y = dragOrigin.y + dist;
-      }
-    }
-
-    if (currentAction.slice(0, 2).includes("n")) {
-      calculatedHeight = dragOrigin.h - (y - dragOrigin.y) / zoom;
-      if (calculatedHeight > 1) {
-        calculatedOffsetY = dragOrigin.offY + .5 * (y - dragOrigin.y) / zoom;
-      }
-    }
-    if (currentAction.slice(0, 2).includes("s")) {
-      calculatedHeight = dragOrigin.h + (y - dragOrigin.y) / zoom;
-      if (calculatedHeight > 1) {
-        calculatedOffsetY = dragOrigin.offY + .5 * (y - dragOrigin.y) / zoom;
-      }
-    }
-    if (currentAction.slice(0, 2).includes("e")) {
-      calculatedWidth = dragOrigin.w + (x - dragOrigin.x) / zoom;
-      if (calculatedWidth > 1) {
-        calculatedOffsetX = dragOrigin.offX + .5 * (x - dragOrigin.x) / zoom;
-      }
-    }
-    if (currentAction.slice(0, 2).includes("w")) {
-      calculatedWidth = dragOrigin.w - (x - dragOrigin.x) / zoom;
-      if (calculatedWidth > 1) {
-        calculatedOffsetX = dragOrigin.offX + .5 * (x - dragOrigin.x) / zoom;
-      }
-    }
-
-    setOffset({
-      x: calculatedOffsetX,
-      y: calculatedOffsetY
-    });
-    setSize({
-      w: Math.max(calculatedWidth, 1),
-      h: Math.max(calculatedHeight, 1)
-    });
-  }
-
-  function handleMoveUpdate(ev) {
-    const x = (ev.screenX - (dragOrigin.x - dragOrigin.offX * zoom)) / zoom;
-    const y = (ev.screenY - (dragOrigin.y - dragOrigin.offY * zoom)) / zoom;
-   
-    setOffset({x, y});
-  }
-
-  function handleRotateUpdate(ev) {
-
+    if (!currentTransformAction) {return};
+    currentTransformAction.move(ev);
   }
 
   function handleMouseUp() {
-    if (dragOrigin) {
-      let moved = offset.x - dragOrigin.offX
-      console.log("x moved " + moved)
-    }
-    setCurrentAction("")
+    currentTransformAction = null;
   }
 
   function calculateOffset() {
@@ -352,7 +166,7 @@ export default function TransformObject({children}) {
         onKeyDown={handleKeyDown}
         onDragOver={ev => ev.preventDefault()}
         onDrop={ev => ev.preventDefault()}
-        overrideCursor={currentAction}
+        overrideCursor={currentTransformAction ? currentTransformAction.actionType : null}
         ref={boundingBoxRef}
       >
         <ContainerSC
@@ -360,7 +174,7 @@ export default function TransformObject({children}) {
           size={size}
           zoom={zoom}
           onMouseDown={ev => handleMouseDown(ev, "move")}
-          overrideCursor={currentAction}
+          overrideCursor={currentTransformAction ? currentTransformAction.actionType : null}
         >
           <CanvasSC width={transformCanvasSize.w} height={transformCanvasSize.h} clip={calculateClipping()} ref={canvasRef}/>
           {children}

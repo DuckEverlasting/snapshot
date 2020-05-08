@@ -378,7 +378,7 @@ export default function Workspace() {
     }
     if (!file || !file.type.startsWith("image")) {return}
     const name = file.name.replace(/\.[^/.]+$/, "");
-    await dispatch(createLayer(layerOrder.length, false, name));
+    await dispatch(createLayer(layerOrder.length, false, {name}));
     dispatch(setImportImageFile(file));
   }
   

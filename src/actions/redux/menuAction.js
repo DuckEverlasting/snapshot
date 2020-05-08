@@ -145,7 +145,7 @@ export default function menuAction(action) {
         
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
-          dispatch(createLayer(getState().main.present.layerOrder.length, false, name));
+          dispatch(createLayer(getState().main.present.layerOrder.length, false, {name}));
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }
