@@ -5,7 +5,7 @@ import styled from "styled-components";
 
 import Layer from "../components/Layer";
 
-import TransformObject from "../components/transform/TransformObject";
+import TransformObject from "../components/TransformObject";
 
 import { 
   PencilAction,
@@ -410,7 +410,10 @@ export default function Workspace() {
           transformSettings={transformSettings}
         />
       </CanvasPaneSC>
-      {importImageFile && <TransformObject />}
+      {importImageFile && <TransformObject
+        source={importImageFile}
+        targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
+      />}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}

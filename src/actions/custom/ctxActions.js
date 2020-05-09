@@ -103,12 +103,16 @@ export function move(ctx, { orig, dest }) {
   ctx.putImageData(data, x, y);
 }
 
-export function paste(ctx, { sourceCtx, dest={x: 0, y: 0}, size=null }) {
-  if (size) {
-    ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
-  } else {
-    ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y));
-  }
+export function paste(ctx, { sourceCtx, dest={x: 0, y: 0}, size={w: sourceCtx.canvas.width, h: sourceCtx.canvas.height}, anchorPoint={x:0,y:0}, rotation=0 }) {
+  ctx.save();
+  
+  const zoom = {x: size.w / sourceCtx.canvas.width, y: size.h / sourceCtx.canvas.height}
+  ctx.translate((zoom.x * sourceCtx.canvas.width * anchorPoint.x + dest.x), (zoom.y * sourceCtx.canvas.height * anchorPoint.y + dest.y));
+  ctx.rotate(rotation);
+  ctx.translate(-(zoom.x * sourceCtx.canvas.width * anchorPoint.x + dest.x), -(zoom.y * sourceCtx.canvas.height * anchorPoint.y + dest.y));
+
+  ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
+  ctx.restore();
 }
 
 export function undelete(ctx, { source }) {
