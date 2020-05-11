@@ -17,7 +17,7 @@ import { initMainState } from "./initState";
 const mainReducer = (state = initMainState, {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
-      let { position, source, name } = payload;
+      let { position, source, params } = payload;
       if (state.layerOrder.length >= 50) {
         return state
       };
@@ -27,8 +27,16 @@ const mainReducer = (state = initMainState, {type, payload}) => {
      
       const layerId = state.layerCounter;
       const newLayerSettings = {
-        name: name ? name : `Layer ${state.layerCounter}`,
+        name: params.name ? params.name : `Layer ${state.layerCounter}`,
         nameEditable: false,
+        size: params.size || {
+          w: state.documentSettings.documentWidth,
+          h: state.documentSettings.documentHeight
+        },
+        offset: params.offset || {
+          x: 0,
+          y: 0
+        },
         hidden: false,
         opacity: 1,
       };

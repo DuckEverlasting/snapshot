@@ -30,7 +30,7 @@ export const [
   TOGGLE_HELP,
   SET_HELP_TOPIC,
   SET_FILTER_TOOL,
-  SET_TRANSFORM_IMAGE
+  SET_IMPORT_IMAGE_FILE
 ] = [
   "UNDO",
   "REDO",
@@ -61,7 +61,7 @@ export const [
   "TOGGLE_HELP",
   "SET_HELP_TOPIC",
   "SET_FILTER_TOOL",
-  "SET_TRANSFORM_IMAGE"
+  "SET_IMPORT_IMAGE_FILE"
 ];
 
 export const undo = () => {
@@ -128,17 +128,17 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
 }
 
-export const createLayer = (position, ignoreHistory=false, name) => {
+export const createLayer = (position, ignoreHistory=false, params={}) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, ignoreHistory, name}
+    payload: {position, ignoreHistory, params}
   };
 };
 
-export const createLayerFrom = (position, source, ignoreHistory=false) => {
+export const createLayerFrom = (position, source, ignoreHistory=false, params={}) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, source, ignoreHistory}
+    payload: {position, source, ignoreHistory, params}
   };
 };
 
@@ -323,9 +323,9 @@ export const setFilterTool = (state, filter=null) => {
   }
 }
 
-export const setTransformImage = (image) => {
+export const setImportImageFile = (file) => {
   return {
-    type: SET_TRANSFORM_IMAGE,
-    payload: image
+    type: SET_IMPORT_IMAGE_FILE,
+    payload: file
   }
 }

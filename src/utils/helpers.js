@@ -72,3 +72,14 @@ export function convertDestToRegularShape({x: origX, y: origY}, {x, y}) {
   }
   return {x, y}
 }
+
+export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
+  if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
+    console.log(x1, y1, x2, y2);
+    throw new Error('ERROR: getDistance requires 2 points with an "x" and "y" property.');
+  }
+  if (typeof x1 !== "number" || typeof y1 !== "number" || typeof x2 !== "number" || typeof y2 !== "number") {
+    throw new Error('ERROR: coordinates in getDistance must be numbers.');
+  }
+  return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
+}

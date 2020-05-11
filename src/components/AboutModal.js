@@ -37,11 +37,11 @@ export default function AboutModal({turnOff}) {
       <InnerModalSC>
         <p>This app was created as an experiment testing the interactions between the Canvas API, React, and Redux. It is still a work in progress. Send all feedback to mklein246 at gmail.</p>
         <SpacerSC/>
-        <p>Some less obvious features that have been implemented:</p>
+        <p>Recent changes:</p>
         <ModalListSc>
-          <li>Double click on a layer name to rename it.</li>
-          <li>Hold shift while drawing with the brush, pencil, or eraser tools to lock the axis.</li>
-          <li>Hold ctrl while using the eyedropper tool to use the selection as the secondary color.</li>
+          <li>The app now supports importing images (through file menu or by drag-and-drop).</li>
+          <li>Imported images can be resized, moved, and rotated before their position is confirmed. (Working to implement this as a general transform tool.)</li>
+          <li>Shift behavior has been added for transforms, and for many other tools.</li>
         </ModalListSc>
       </InnerModalSC>
     </AboutModalSC>

@@ -22,9 +22,10 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import { updateWorkspaceSettings } from "../actions/redux";
+import { updateWorkspaceSettings, setImportImageFile, createLayer } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
+import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
 const WorkspaceSC = styled.div`
@@ -86,7 +87,7 @@ export default function Workspace() {
     stagingPinnedTo
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
-  const transformImage = useSelector(state => state.ui.transformImage);
+  const importImageFile = useSelector(state => state.ui.importImageFile);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -295,6 +296,7 @@ export default function Workspace() {
   
   const handleMouseWheel = useCallback(ev => {
     ev.preventDefault();
+    if (ev.buttons !== 0) {return}
     if (ev.altKey) {
       zoomTool(ev, ev.deltaY < 0);
     } else {
@@ -361,6 +363,24 @@ export default function Workspace() {
       currentAction = null;
     }
   };
+
+  const handleDrop = async ev => {
+    let file;
+    if (ev.dataTransfer.items) {
+      for (let i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          file = ev.dataTransfer.items[i].getAsFile();
+          break;
+        }
+      }
+    } else {
+      file = ev.dataTransfer.files[0];
+    }
+    if (!file || !file.type.startsWith("image")) {return}
+    const name = file.name.replace(/\.[^/.]+$/, "");
+    await dispatch(createLayer(layerOrder.length, false, {name}));
+    dispatch(setImportImageFile(file));
+  }
   
   return (
     <WorkspaceSC
@@ -371,13 +391,14 @@ export default function Workspace() {
       onMouseMove={handleMouseMove}
       cursor={getCursor(isDragging ? "activeHand" : activeTool)}
     >
+      <DropZone onDrop={handleDrop} />
       <CanvasPaneSC
         translateX={translateX}
         translateY={translateY}
         width={documentWidth}
         height={documentHeight}
         zoomPct={zoomPct}
-        >
+      >
         <LayerRenderer
           layerOrder={layerOrder}
           layerData={layerData}
@@ -389,7 +410,10 @@ export default function Workspace() {
           transformSettings={transformSettings}
         />
       </CanvasPaneSC>
-      {transformImage && <TransformObject initImage={transformImage} />}
+      {importImageFile && <TransformObject
+        source={importImageFile}
+        targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
+      />}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}

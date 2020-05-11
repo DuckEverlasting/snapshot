@@ -19,6 +19,14 @@ export const initMainState = {
     1: {
       name: "Layer 1",
       nameEditable: false,
+      size: {
+        w: initWidth,
+        h: initWidth
+      },
+      offset: {
+        x: 0,
+        y: 0
+      },
       hidden: false,
     }
   },
@@ -76,5 +84,5 @@ export const initUiState = {
   overlayVisible: null,
   currentHelpTopic: "tools",
   currentFilter: null,
-  transformImage: null
+  importImageFile: null
 }

@@ -9,7 +9,7 @@ import {
   redo,
   setClipboardIsUsed,
   putHistoryData,
-  setTransformImage
+  setImportImageFile
 } from "./index";
 
 import manipulate from "../../reducers/custom/manipulateReducer";
@@ -145,8 +145,8 @@ export default function menuAction(action) {
         
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
-          dispatch(createLayer(getState().main.present.layerOrder.length, false, name));
-          dispatch(setTransformImage(fileInput.files[0]));
+          dispatch(createLayer(getState().main.present.layerOrder.length, false, {name}));
+          dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }
       }
