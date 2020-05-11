@@ -40,7 +40,7 @@ class ResizeTransformAction extends TransformActionBase {
     x = ev.screenX;
     y = ev.screenY;
 
-    if (!ev.shiftKey && this.params.direction.length > 2) {
+    if (!ev.shiftKey || this.params.direction.length > 2) {
       const distX = x - this.origin.x;
       const distY = y - this.origin.y;
       let dist;
@@ -132,7 +132,11 @@ class RotateTransformAction extends TransformActionBase {
 
   move(ev) {
     const newAngle = Math.atan2(ev.clientY - this.origin.anchorPos.y, ev.clientX - this.origin.anchorPos.x);
-    this.setRotation(this.origin.rotation - (this.origin.angle - newAngle));
+    let newRotation = this.origin.rotation - (this.origin.angle - newAngle);
+    if (ev.shiftKey) {
+      newRotation = Math.floor((this.origin.rotation - (this.origin.angle - newAngle)) / (.25 * Math.PI)) * (.25 * Math.PI);
+    }
+    this.setRotation(newRotation);
   }
 }
 
