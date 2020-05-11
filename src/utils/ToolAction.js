@@ -248,15 +248,11 @@ export class BrushAction extends ToolActionBase {
   move(ev, layerData) {
     this.layerData = layerData;
     this._setLockedAxis(ev);
-    let x, y;
+    let {x, y} = this._getCoordinates(ev);
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
       y = this.origin.y;
-    } else {
-      const coords = this._getCoordinates(ev);
-      x = coords.x;
-      y = coords.y;
     }
 
     const newMid = midpoint(this.lastDest, {x, y});
@@ -336,15 +332,11 @@ export class EraserAction extends ToolActionBase {
   move(ev, layerData) {
     this.layerData = layerData;
     this._setLockedAxis(ev);
-    let x, y;
+    let {x, y} = this._getCoordinates(ev);
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
       y = this.origin.y;
-    } else {
-      const coords = this._getCoordinates(ev);
-      x = coords.x;
-      y = coords.y;
     }
 
     const newMid = midpoint(this.lastDest, {x, y});
@@ -586,8 +578,7 @@ export class MoveAction extends ToolActionBase {
     this.layerData = layerData;
     if (this.throttle) {return};
     this._setLockedAxis(ev);
-    const coords = this._getCoordinates(ev);
-    let x = coords.x, y = coords.y;
+    let {x, y} = this._getCoordinates(ev);
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
