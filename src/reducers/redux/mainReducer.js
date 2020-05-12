@@ -6,6 +6,7 @@ import {
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
+  UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
@@ -85,14 +86,12 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       }
 
     case UPDATE_LAYER_DATA:
-      let afterUpdateLayerData = {
-        ...state.layerData,
-        [payload.id]: payload.changes
-      }
-      
       return {
         ...state,
-        layerData: afterUpdateLayerData,
+        layerData: {
+          ...state.layerData,
+          [payload.id]: payload.changes
+        }
       };
     
     case UPDATE_SELECTION_PATH:
@@ -102,17 +101,15 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       }
 
     case UPDATE_LAYER_OPACITY:
-      let afterOpacitySettings = {
-        ...state.layerSettings, 
-        [payload.id]: {
-          ...state.layerSettings[payload.id],
-          opacity: payload.opacity,
-        }
-      }
-
       return {
         ...state,
-        layerSettings: afterOpacitySettings,
+        layerSettings: {
+          ...state.layerSettings, 
+          [payload.id]: {
+            ...state.layerSettings[payload.id],
+            opacity: payload.opacity,
+          }
+        }
       };
 
     case UPDATE_LAYER_ORDER:
@@ -122,6 +119,19 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         layerOrder: newLayerOrder,
+      };
+
+    case UPDATE_LAYER_POSITION:
+      return {
+        ...state,
+        layerSettings: {
+          ...state.layerSettings,
+          [payload.id]: {
+            ...state.layerSettings[payload.id],
+            size: payload.size ? payload.size : state.layerSettings[payload.id].size,
+            offset: payload.offset ? payload.offset : state.layerSettings[payload.id].offset,
+          }
+        },
       };
       
     case UPDATE_STAGING_POSITION:

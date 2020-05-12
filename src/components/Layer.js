@@ -5,11 +5,15 @@ import { updateLayerData } from '../actions/redux'
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
-    width: `${props.width}px`,
-    height: `${props.height}px`,
+    width: `${props.size.w}px`,
+    height: `${props.size.h}px`,
     title: props.title,
     zIndex: props.index,
-    transform: `translateX(${props.translateX}px) translateY(${props.translateY}px)`
+    transform: `
+      translateX(${props.offset.x}px)
+      translateY(${props.offset.y}px)
+    `,
+    clipPath: props.clip ? `inset(${props.clip.up}px ${props.clip.right}px ${props.clip.down}px ${props.clip.left}px)` : "none"
   }
 }))`
   position: absolute;
@@ -17,11 +21,7 @@ const LayerWrapperSC = styled.div.attrs(props => ({
   pointer-events: none;
 `
 
-const LayerSC = styled.canvas.attrs(props => ({
-  style: {
-    visibility: props => props.hidden ? "hidden" : "visible",
-  }
-}))`
+const LayerSC = styled.canvas`
   position: absolute;
   width: 100%;
   height: 100%;
@@ -31,26 +31,25 @@ const LayerSC = styled.canvas.attrs(props => ({
   pointer-events: none;
 `
 
-function Layer(props) {
+function Layer({id, docSize, size=docSize, offset={x: 0, y: 0}, index, data, hidden, clip}) {
   const canvasRef = useRef(null);
   const onUndelete = useSelector(state => state.main.present.onUndelete);
-  const layerData = useSelector(state => state.main.present.layerData[props.id]);
   const dispatch = useDispatch();
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    if (layerData) {
-      ctx.drawImage(layerData, 0, 0);
+    if (data) {
+      ctx.drawImage(data, 0, 0);
     }
-    dispatch(updateLayerData(props.id, canvasRef.current));
-    if (onUndelete && onUndelete.id === props.id) {
+    dispatch(updateLayerData(id, canvasRef.current));
+    if (onUndelete && onUndelete.id === id) {
       ctx.putImageData(onUndelete.data, 0, 0);
     }
-  }, [onUndelete, props.id])
+  }, [onUndelete, id])
 
-  return <LayerWrapperSC width={props.width} height={props.height} index={props.index}>
-    <LayerSC title={`Layer ${props.id}`} width={Math.floor(props.width)} height={Math.floor(props.height)} hidden={props.hidden} ref={canvasRef} />
+  return <LayerWrapperSC size={size} offset={offset} index={index} clip={clip}>
+    <LayerSC title={`Layer ${id}`} width={size.w} height={size.h} hidden={hidden} ref={canvasRef} />
   </LayerWrapperSC>
 }
 

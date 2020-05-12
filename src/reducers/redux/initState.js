@@ -21,7 +21,7 @@ export const initMainState = {
       nameEditable: false,
       size: {
         w: initWidth,
-        h: initWidth
+        h: initHeight
       },
       offset: {
         x: 0,
@@ -29,11 +29,6 @@ export const initMainState = {
       },
       hidden: false,
     }
-  },
-  transformSettings: {
-    active: false,
-    width: 0,
-    height: 0,
   },
   selectionPath: null,
   stagingPinnedTo: 1,
@@ -53,7 +48,7 @@ export const initUiState = {
   },
   // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. 
   // This is so the number input component won't get confused.
-  // Opacity is converted to 0 - 1 format in DrawSpace.
+  // Opacity is converted to 0 - 1 format when drawn.
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },
@@ -84,5 +79,7 @@ export const initUiState = {
   overlayVisible: null,
   currentHelpTopic: "tools",
   currentFilter: null,
-  importImageFile: null
+  importImageFile: null,
+  transformSelectionTarget: null,
+  transformSelectionSource: null
 }

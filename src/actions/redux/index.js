@@ -12,6 +12,7 @@ export const [
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
+  UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
@@ -43,6 +44,7 @@ export const [
   "UPDATE_SELECTION_PATH",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
+  "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
   "ENABLE_LAYER_RENAME",
   "UPDATE_LAYER_NAME",
@@ -195,6 +197,13 @@ export const updateLayerOrder = (from, to, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_ORDER,
     payload: {from, to, ignoreHistory}
+  };
+};
+
+export const updateLayerPosition = (id, size, offset, ignoreHistory=false) => {
+  return {
+    type: UPDATE_LAYER_POSITION,
+    payload: {id, size, offset, ignoreHistory}
   };
 };
 

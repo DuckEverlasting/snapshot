@@ -17,7 +17,7 @@ import {
   FillAction
 } from "../utils/ToolAction";
 
-import { getZoomAmount } from "../utils/helpers";
+import { getZoomAmount, calculateClipping } from "../utils/helpers";
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
@@ -83,11 +83,12 @@ export default function Workspace() {
     layerData,
     layerSettings,
     layerOrder,
-    transformSettings,
     stagingPinnedTo
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const importImageFile = useSelector(state => state.ui.importImageFile);
+  const transformSelectionTarget = useSelector(state => state.ui.transformSelectionTarget);
+  const transformSelectionSource = useSelector(state => state.ui.transformSelectionSource);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -114,7 +115,7 @@ export default function Workspace() {
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
-      zoom: zoomPct
+      zoom: zoomPct / 100
     }
   }
 
@@ -221,7 +222,9 @@ export default function Workspace() {
         });
       case "move":
         if (!activeLayer) {return}
-        return new MoveAction(activeLayer, dispatch, getTranslateData());
+        return new MoveAction(activeLayer, dispatch, getTranslateData(), {
+          offset: layerSettings[activeLayer].offset
+        });
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -404,10 +407,9 @@ export default function Workspace() {
           layerData={layerData}
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
-          activeLayer={activeLayer}
-          width={documentWidth}
-          height={documentHeight}
-          transformSettings={transformSettings}
+          transformPinnedTo={transformSelectionTarget}
+          transformSource={transformSelectionSource}
+          docSize={{w: documentWidth, h: documentHeight}}
         />
       </CanvasPaneSC>
       {importImageFile && <TransformObject
@@ -426,17 +428,15 @@ function LayerRenderer({
   layerData,
   layerSettings,
   stagingPinnedTo,
-  activeLayer,
-  width,
-  height,
-  transformSettings
+  transformSelectionTarget,
+  transformSelectionSource,
+  docSize
 }) {
   return (
     <>
       <Layer
         id={"clipboard"}
-        width={width}
-        height={height}
+        docSize={docSize}
         index={1}
         data={layerData.clipboard}
         hidden
@@ -448,39 +448,38 @@ function LayerRenderer({
           return <Layer
             key={layerId}
             id={layerId}
-            width={width}
-            height={height}
+            docSize={docSize}
+            size={layerSet.size}
+            offset={layerSet.offset}
             index={i + 1}
             data={layerDat}
             hidden={layerSet.hidden}
+            clip={calculateClipping(layerSet.size, layerSet.offset, docSize, 1)}
           />
         })}
       <Layer
         id={"selection"}
-        width={width}
-        height={height}
+        docSize={docSize}
         index={layerOrder.length + 2}
         data={layerData.selection}
       />
-      <Layer
-        key={"staging"}
-        id={"staging"}
-        width={width}
-        height={height}
-        index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
-        data={layerData.staging}
-      />
       {
-        transformSettings.active &&
-        <Layer
-          key={"transform"}
-          id={"transform"}
-          width={transformSettings.width}
-          height={transformSettings.height}
-          translateX={transformSettings.translateX}
-          translateY={transformSettings.translateY}
-          index={layerOrder.indexOf(activeLayer) + 1}
-          data={layerData.transform}
+        stagingPinnedTo && <Layer
+          key={"staging"}
+          id={"staging"}
+          docSize={docSize}
+          size={layerSettings[stagingPinnedTo].size}
+          offset={layerSettings[stagingPinnedTo].offset}
+          index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
+          data={layerData.staging}
+        />
+      }
+      {
+        transformSelectionTarget && <TransformObject
+          source={transformSelectionSource}
+          targetCtx={layerData[transformSelectionTarget]}
+          docSize={docSize}
+          index={layerOrder.indexOf(stagingPinnedTo) + 1}
         />
       }
     </>

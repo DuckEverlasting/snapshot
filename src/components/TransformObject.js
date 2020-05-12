@@ -5,6 +5,7 @@ import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
 import { setImportImageFile } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
+import { calculateClipping } from "../utils/helpers";
 
 import styled from "styled-components";
 
@@ -278,15 +279,6 @@ export default function TransformObject({
     };
   }
 
-  function calculateClipping() {
-    return {
-      up: (0.5 * size.h - offset.y - 0.5 * documentHeight) * zoom,
-      down: (0.5 * size.h + offset.y - 0.5 * documentHeight) * zoom,
-      left: (0.5 * size.w - offset.x - 0.5 * documentWidth) * zoom,
-      right: (0.5 * size.w + offset.x - 0.5 * documentWidth) * zoom,
-    };
-  }
-
   const handleKeyDown = useCallback(
     (ev) => {
       if (ev.key === "Escape") {
@@ -341,7 +333,7 @@ export default function TransformObject({
         <ClipCheckSC
           rotation={rotation}
           anchorPoint={anchorPoint}
-          clip={calculateClipping()}
+          clip={calculateClipping(size, offset, {w: documentWidth, h: documentHeight}, zoom)}
         >
           <CanvasSC
             width={transformCanvasSize.w}

@@ -9,7 +9,8 @@ import {
   updateColor,
   updateSelectionPath,
   updateStagingPosition,
-  putHistoryData
+  updateLayerPosition,
+  putHistoryData,
 } from "../actions/redux/index";
 
 import draw from "../reducers/custom/drawingReducer";
@@ -45,8 +46,8 @@ class ToolActionBase {
 
   _getCoordinates(ev) {
     return {
-      x: (ev.nativeEvent.offsetX + this.translateData.x) * 100 / this.translateData.zoom,
-      y: (ev.nativeEvent.offsetY + this.translateData.y) * 100 / this.translateData.zoom
+      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom,
+      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom
     };
   }
 
@@ -564,21 +565,28 @@ export class EyeDropperAction extends ToolActionBase {
 }
 
 export class MoveAction extends ToolActionBase {
-  start(ev, layerData) {
-    this.layerData = layerData;
-    const ctx = this.layerData[this.activeLayer].getContext("2d");
-    const viewWidth = Math.ceil(ctx.canvas.width);
-    const viewHeight = Math.ceil(ctx.canvas.height);
-    this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
-    this.origin = this._getCoordinates(ev);
-    this.lastDest = this.origin;
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
+    this.offset = params.offset;
+  }
+  start(ev) {
+    // this.layerData = layerData;
+    // const ctx = this.layerData[this.activeLayer].getContext("2d");
+    // const viewWidth = Math.ceil(ctx.canvas.width);
+    // const viewHeight = Math.ceil(ctx.canvas.height);
+    // this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
+    // this.origin = this._getCoordinates(ev);
+    this.origin = {x: ev.screenX, y: ev.screenY}
+    this.offsetOrigin = {x: this.offset.x, y: this.offset.y};
+    console.log("ORIGIN: ", this.offsetOrigin)
   }
 
-  move(ev, layerData) {
-    this.layerData = layerData;
+  move(ev) {
+    // this.layerData = layerData;
     if (this.throttle) {return};
     this._setLockedAxis(ev);
-    let {x, y} = this._getCoordinates(ev);
+    // let {x, y} = this._getCoordinates(ev);
+    let [x, y] = [ev.screenX, ev.screenY]
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
@@ -586,25 +594,42 @@ export class MoveAction extends ToolActionBase {
     }
     this.throttle = true;
     setTimeout(() => this.throttle = false, 25);
-    manipulate(this.layerData[this.activeLayer].getContext("2d"), {
-      action: "move",
-      params: {
-        orig: this.lastDest,
-        dest: {x, y}
-      }
-    });
-    this.lastDest = {x, y}
+    // manipulate(this.layerData[this.activeLayer].getContext("2d"), {
+    //   action: "move",
+    //   params: {
+    //     orig: this.lastDest,
+    //     dest: {x, y}
+    //   }
+    // });
+    const newOffset = {
+      x: this.offsetOrigin.x - (this.origin.x - x) / this.translateData.zoom,
+      y: this.offsetOrigin.y - (this.origin.y - y) / this.translateData.zoom
+    }
+    console.log(this.origin.x - x)
+    console.log(newOffset)
+    this.dispatch(updateLayerPosition(
+      this.activeLayer,
+      null,
+      newOffset,
+      true
+    ))
   }
 
-  end(layerData) {
-    this.layerData = layerData;
-    this.dispatch(putHistoryData(
+  end() {
+    // this.layerData = layerData;
+    // this.dispatch(putHistoryData(
+    //   this.activeLayer,
+    //   this.layerData[this.activeLayer].getContext("2d"),
+    //   null,
+    //   this.prevImgData
+    // ));
+    // this.prevImgData = null;
+    this.dispatch(updateLayerPosition(
       this.activeLayer,
-      this.layerData[this.activeLayer].getContext("2d"),
       null,
-      this.prevImgData
-    ));
-    this.prevImgData = null;
+      null,
+      false
+    ))
   }
 }
 
