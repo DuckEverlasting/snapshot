@@ -46,8 +46,8 @@ class ToolActionBase {
 
   _getCoordinates(ev) {
     return {
-      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom,
-      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom
+      x: (ev.nativeEvent.offsetX + this.translateData.x - this.translateData.offX) / this.translateData.zoom,
+      y: (ev.nativeEvent.offsetY + this.translateData.y - this.translateData.offY) / this.translateData.zoom
     };
   }
 
@@ -144,6 +144,7 @@ export class PencilAction extends ToolActionBase {
           width: this.width,
           strokeColor: this.color,
           clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
           clearFirst: true
         }
       });
@@ -214,7 +215,8 @@ export class PencilAction extends ToolActionBase {
               destArray: this.destArray,
               width: this.width,
               strokeColor: this.color,
-              clip: this.clip
+              clip: this.clip,
+              clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
             }
           })
         ));
@@ -278,7 +280,8 @@ export class BrushAction extends ToolActionBase {
         width: this.width,
         hardness: this.hardness,
         density: 0.25,
-        clip: this.clip
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
     manipulate(this.layerData.staging.getContext("2d"), {
@@ -363,7 +366,8 @@ export class EraserAction extends ToolActionBase {
         hardness: this.hardness,
         density: 0.25,
         composite: this.composite,
-        clip: this.clip
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
     this.lastDest = {x, y};
@@ -445,7 +449,8 @@ export class ShapeAction extends ToolActionBase {
           strokeColor: this.color,
           fillColor: this.color,
           clearFirst: true,
-          clip: this.clip
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       })
     };
@@ -515,7 +520,8 @@ export class ShapeAction extends ToolActionBase {
               width: this.width,
               strokeColor: this.color,
               fillColor: this.color,
-              clip: this.clip
+              clip: this.clip,
+              clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
             }
           })
         ));
@@ -565,10 +571,6 @@ export class EyeDropperAction extends ToolActionBase {
 }
 
 export class MoveAction extends ToolActionBase {
-  constructor(activeLayer, dispatch, translateData, params) {
-    super(activeLayer, dispatch, translateData);
-    this.offset = params.offset;
-  }
   start(ev) {
     // this.layerData = layerData;
     // const ctx = this.layerData[this.activeLayer].getContext("2d");
@@ -577,8 +579,13 @@ export class MoveAction extends ToolActionBase {
     // this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
     // this.origin = this._getCoordinates(ev);
     this.origin = {x: ev.screenX, y: ev.screenY}
-    this.offsetOrigin = {x: this.offset.x, y: this.offset.y};
-    console.log("ORIGIN: ", this.offsetOrigin)
+    this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
+    this.dispatch(updateLayerPosition(
+      this.activeLayer,
+      null,
+      null,
+      false
+    ))
   }
 
   move(ev) {
@@ -605,8 +612,6 @@ export class MoveAction extends ToolActionBase {
       x: this.offsetOrigin.x - (this.origin.x - x) / this.translateData.zoom,
       y: this.offsetOrigin.y - (this.origin.y - y) / this.translateData.zoom
     }
-    console.log(this.origin.x - x)
-    console.log(newOffset)
     this.dispatch(updateLayerPosition(
       this.activeLayer,
       null,
@@ -624,12 +629,6 @@ export class MoveAction extends ToolActionBase {
     //   this.prevImgData
     // ));
     // this.prevImgData = null;
-    this.dispatch(updateLayerPosition(
-      this.activeLayer,
-      null,
-      null,
-      false
-    ))
   }
 }
 
@@ -652,7 +651,8 @@ export class FillAction extends ToolActionBase {
           orig: this._getCoordinates(ev),
           colorArray: this.colorArray,
           tolerance: this.tolerance,
-          clip: this.clip
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       })
     ));

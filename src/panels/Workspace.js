@@ -109,13 +109,15 @@ export default function Workspace() {
     animationFrame = reqFrame;
   }
 
-  function getTranslateData() {
+  function getTranslateData(noOffset) {
     const marginLeft = .5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100);
     const marginTop = .5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
-      zoom: zoomPct / 100
+      zoom: zoomPct / 100,
+      offX: noOffset ? 0 : layerSettings[activeLayer].offset.x,
+      offY: noOffset ? 0 : layerSettings[activeLayer].offset.y
     }
   }
 
@@ -202,29 +204,27 @@ export default function Workspace() {
           layerOrder: layerOrder
         });
       case "selectRect":
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
           drawActionType: "drawRect",
           regularOnShift: true,
           isSelectionTool: true,
           clip: selectionPath
         });
       case "selectEllipse":
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
           drawActionType: "drawEllipse",
           regularOnShift: true,
           isSelectionTool: true,
           clip: selectionPath
         });
       case "lasso":
-        return new PencilAction(activeLayer, dispatch, getTranslateData(), {
+        return new PencilAction(activeLayer, dispatch, getTranslateData(true), {
           isSelectionTool: true,
           clip: selectionPath
         });
       case "move":
         if (!activeLayer) {return}
-        return new MoveAction(activeLayer, dispatch, getTranslateData(), {
-          offset: layerSettings[activeLayer].offset
-        });
+        return new MoveAction(activeLayer, dispatch, getTranslateData());
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -454,7 +454,7 @@ function LayerRenderer({
             index={i + 1}
             data={layerDat}
             hidden={layerSet.hidden}
-            clip={calculateClipping(layerSet.size, layerSet.offset, docSize, 1)}
+            edgeClip={calculateClipping(layerSet.size, layerSet.offset, docSize, 1)}
           />
         })}
       <Layer
@@ -472,6 +472,7 @@ function LayerRenderer({
           offset={layerSettings[stagingPinnedTo].offset}
           index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
           data={layerData.staging}
+          edgeClip={calculateClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
         />
       }
       {

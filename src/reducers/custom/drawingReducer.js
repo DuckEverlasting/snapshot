@@ -46,7 +46,13 @@ export default function(ctx, { action, params }) {
   ctx.strokeStyle = params.strokeColor;
   ctx.fillStyle = params.fillColor;
   if (params.clip) {
+    if (params.clipOffset) {
+      ctx.translate(-params.clipOffset.x, -params.clipOffset.y)
+    }
     ctx.clip(params.clip);
+    if (params.clipOffset) {
+      ctx.translate(params.clipOffset.x, params.clipOffset.y)
+    }
   }
 
   switch (action) {

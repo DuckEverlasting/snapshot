@@ -1,5 +1,7 @@
 const initWidth = (window.innerWidth - 300) * .8;
 const initHeight = (window.innerHeight - 30) * .8;
+const initSelectionPath = new Path2D();
+initSelectionPath.rect(0, 0, initWidth, initHeight);
 
 export const initMainState = {
   onUndo: null,
@@ -28,9 +30,19 @@ export const initMainState = {
         y: 0
       },
       hidden: false,
+    },
+    "selection": {
+      size: {
+        w: initWidth,
+        h: initHeight
+      },
+      offset: {
+        x: 0,
+        y: 0
+      },
     }
   },
-  selectionPath: null,
+  selectionPath: initSelectionPath,
   stagingPinnedTo: 1,
   layerOrder: [1],
   layerCounter: 2,

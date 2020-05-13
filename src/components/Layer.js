@@ -13,7 +13,7 @@ const LayerWrapperSC = styled.div.attrs(props => ({
       translateX(${props.offset.x}px)
       translateY(${props.offset.y}px)
     `,
-    clipPath: props.clip ? `inset(${props.clip.up}px ${props.clip.right}px ${props.clip.down}px ${props.clip.left}px)` : "none"
+    clipPath: props.edgeClip ? `inset(${props.edgeClip.up}px ${props.edgeClip.right}px ${props.edgeClip.down}px ${props.edgeClip.left}px)` : "none"
   }
 }))`
   position: absolute;
@@ -31,7 +31,7 @@ const LayerSC = styled.canvas`
   pointer-events: none;
 `
 
-function Layer({id, docSize, size=docSize, offset={x: 0, y: 0}, index, data, hidden, clip}) {
+function Layer({id, docSize, size=docSize, offset={x: 0, y: 0}, index, data, hidden, edgeClip}) {
   const canvasRef = useRef(null);
   const onUndelete = useSelector(state => state.main.present.onUndelete);
   const dispatch = useDispatch();
@@ -48,7 +48,7 @@ function Layer({id, docSize, size=docSize, offset={x: 0, y: 0}, index, data, hid
     }
   }, [onUndelete, id])
 
-  return <LayerWrapperSC size={size} offset={offset} index={index} clip={clip}>
+  return <LayerWrapperSC size={size} offset={offset} index={index} edgeClip={edgeClip}>
     <LayerSC title={`Layer ${id}`} width={size.w} height={size.h} hidden={hidden} ref={canvasRef} />
   </LayerWrapperSC>
 }

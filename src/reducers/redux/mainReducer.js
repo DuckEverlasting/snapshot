@@ -95,9 +95,17 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       };
     
     case UPDATE_SELECTION_PATH:
+      function getDefaultPath() {
+        const defaultPath = new Path2D();
+        defaultPath.rect(0, 0, state.documentSettings.documentWidth, state.documentSettings.documentHeight);
+        return defaultPath;
+      }
+      const newPath = payload.path ?
+        payload.path :
+        getDefaultPath()
       return {
         ...state,
-        selectionPath: payload.path,
+        selectionPath: newPath,
       }
 
     case UPDATE_LAYER_OPACITY:
