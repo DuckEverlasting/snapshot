@@ -5,6 +5,8 @@ import {
   convertDestToRegularShape
 } from "../utils/helpers";
 
+import getImageRect from "../utils/getImageRect";
+
 import {
   updateColor,
   updateSelectionPath,
@@ -580,6 +582,7 @@ export class MoveAction extends ToolActionBase {
     // this.origin = this._getCoordinates(ev);
     this.origin = {x: ev.screenX, y: ev.screenY}
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
+    this.offset = this.offsetOrigin;
     this.dispatch(updateLayerPosition(
       this.activeLayer,
       null,
@@ -592,7 +595,6 @@ export class MoveAction extends ToolActionBase {
     // this.layerData = layerData;
     if (this.throttle) {return};
     this._setLockedAxis(ev);
-    // let {x, y} = this._getCoordinates(ev);
     let [x, y] = [ev.screenX, ev.screenY]
     if (this.lockedAxis === "x") {
       x = this.origin.x;
@@ -601,17 +603,11 @@ export class MoveAction extends ToolActionBase {
     }
     this.throttle = true;
     setTimeout(() => this.throttle = false, 25);
-    // manipulate(this.layerData[this.activeLayer].getContext("2d"), {
-    //   action: "move",
-    //   params: {
-    //     orig: this.lastDest,
-    //     dest: {x, y}
-    //   }
-    // });
     const newOffset = {
       x: this.offsetOrigin.x - (this.origin.x - x) / this.translateData.zoom,
       y: this.offsetOrigin.y - (this.origin.y - y) / this.translateData.zoom
     }
+    this.offset = newOffset;
     this.dispatch(updateLayerPosition(
       this.activeLayer,
       null,
@@ -620,15 +616,29 @@ export class MoveAction extends ToolActionBase {
     ))
   }
 
-  end() {
-    // this.layerData = layerData;
-    // this.dispatch(putHistoryData(
-    //   this.activeLayer,
-    //   this.layerData[this.activeLayer].getContext("2d"),
-    //   null,
-    //   this.prevImgData
-    // ));
-    // this.prevImgData = null;
+  end(layerData) {
+    this.layerData = layerData;
+    const canvas = this.layerData[this.activeLayer];
+    const canvasRect = getImageRect(canvas);
+    const data = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
+    const newOffset = {
+      x: Math.min(0, this.offset.x + canvasRect.x),
+      y: Math.min(0, this.offset.y + canvasRect.y)
+    }
+    const newSize = {
+      w: Math.max(this.translateData.documentWidth, this.offset.x + canvasRect.x + canvasRect.w),
+      h: Math.max(this.translateData.documentHeight, this.offset.y + canvasRect.y + canvasRect.h)
+    }
+    this.dispatch(updateLayerPosition(
+      this.activeLayer,
+      newSize,
+      newOffset,
+      true
+    ))
+    setTimeout(() => {
+      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      canvas.getContext("2d").putImageData(data, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
+    }, 0)
   }
 }
 

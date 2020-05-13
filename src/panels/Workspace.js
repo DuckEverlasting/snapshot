@@ -117,7 +117,9 @@ export default function Workspace() {
       y: -(translateY + marginTop),
       zoom: zoomPct / 100,
       offX: noOffset ? 0 : layerSettings[activeLayer].offset.x,
-      offY: noOffset ? 0 : layerSettings[activeLayer].offset.y
+      offY: noOffset ? 0 : layerSettings[activeLayer].offset.y,
+      documentWidth,
+      documentHeight
     }
   }
 
