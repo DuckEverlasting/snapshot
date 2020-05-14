@@ -4,7 +4,7 @@ export default function getImageRect(canvas) {
   const h = canvas.height;
   const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
   let x, y, i;
-  let left = 0, right = w - 1, top = 0, bottom = h - 1;
+  let left, right, top, bottom;
 
   for (y = 0; y < h; y++) {
     let isBlank = true;
@@ -21,7 +21,7 @@ export default function getImageRect(canvas) {
     }
   }
 
-  if (top === h-1) {
+  if (top === undefined) {
     return null
   }
 

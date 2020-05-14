@@ -92,3 +92,12 @@ export function calculateClipping(size, offset, docSize, zoom) {
     right: (0.5 * size.w + offset.x - 0.5 * docSize.w) * zoom,
   };
 }
+
+export function calculateLayerClipping(size, offset, docSize) {
+  return {
+    up: 0.5 * size.h - offset.y - 0.5 * docSize.h - .5 * (size.h - docSize.h),
+    down: 0.5 * size.h + offset.y - 0.5 * docSize.h + .5 * (size.h - docSize.h),
+    left: 0.5 * size.w - offset.x - 0.5 * docSize.w - .5 * (size.w - docSize.w),
+    right: 0.5 * size.w + offset.x - 0.5 * docSize.w + .5 * (size.w - docSize.w),
+  };
+}

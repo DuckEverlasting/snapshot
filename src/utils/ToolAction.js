@@ -574,12 +574,7 @@ export class EyeDropperAction extends ToolActionBase {
 
 export class MoveAction extends ToolActionBase {
   start(ev) {
-    // this.layerData = layerData;
-    // const ctx = this.layerData[this.activeLayer].getContext("2d");
-    // const viewWidth = Math.ceil(ctx.canvas.width);
-    // const viewHeight = Math.ceil(ctx.canvas.height);
-    // this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
-    // this.origin = this._getCoordinates(ev);
+    this.alwaysFire = true;
     this.origin = {x: ev.screenX, y: ev.screenY}
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
@@ -591,8 +586,7 @@ export class MoveAction extends ToolActionBase {
     ))
   }
 
-  move(ev, layerData) {
-    // this.layerData = layerData;
+  move(ev) {
     if (this.throttle) {return};
     this._setLockedAxis(ev);
     let [x, y] = [ev.screenX, ev.screenY]
@@ -620,14 +614,31 @@ export class MoveAction extends ToolActionBase {
     this.layerData = layerData;
     const canvas = this.layerData[this.activeLayer];
     const canvasRect = getImageRect(canvas);
-    const data = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
-    const newOffset = {
-      x: Math.min(0, this.offset.x + canvasRect.x),
-      y: Math.min(0, this.offset.y + canvasRect.y)
-    }
-    const newSize = {
-      w: Math.max(this.translateData.documentWidth, this.offset.x + canvasRect.x + canvasRect.w),
-      h: Math.max(this.translateData.documentHeight, this.offset.y + canvasRect.y + canvasRect.h)
+    let newOffset, newSize;
+    if (canvasRect === null) {
+      newOffset = {
+        x: 0,
+        y: 0
+      }
+      newSize = {
+        w: this.translateData.documentWidth,
+        h: this.translateData.documentHeight
+      }
+    } else {
+      const data = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
+      newOffset = {
+        x: Math.min(0, this.offset.x + canvasRect.x),
+        y: Math.min(0, this.offset.y + canvasRect.y)
+      }
+      newSize = {
+        w: Math.max(this.translateData.documentWidth - newOffset.x, this.offset.x + canvasRect.x + canvasRect.w),
+        h: Math.max(this.translateData.documentHeight - newOffset.y, this.offset.y + canvasRect.y + canvasRect.h)
+      }
+      console.log(newOffset, newSize);
+      setTimeout(() => {
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        canvas.getContext("2d").putImageData(data, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
+      }, 0)
     }
     this.dispatch(updateLayerPosition(
       this.activeLayer,
@@ -635,10 +646,6 @@ export class MoveAction extends ToolActionBase {
       newOffset,
       true
     ))
-    setTimeout(() => {
-      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-      canvas.getContext("2d").putImageData(data, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
-    }, 0)
   }
 }
 

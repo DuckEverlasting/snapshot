@@ -17,7 +17,7 @@ import {
   FillAction
 } from "../utils/ToolAction";
 
-import { getZoomAmount, calculateClipping } from "../utils/helpers";
+import { getZoomAmount, calculateLayerClipping } from "../utils/helpers";
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
@@ -361,7 +361,7 @@ export default function Workspace() {
     } else if (ev.button === 0 && activeTool === "zoom") {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
-      if (isDrawing) {
+      if (isDrawing || currentAction.alwaysFire) {
         currentAction.end(layerData);
         isDrawing = false;
       };
@@ -456,7 +456,9 @@ function LayerRenderer({
             index={i + 1}
             data={layerDat}
             hidden={layerSet.hidden}
-            edgeClip={calculateClipping(layerSet.size, layerSet.offset, docSize, 1)}
+            edgeClip={
+              calculateLayerClipping(layerSet.size, layerSet.offset, docSize)
+            }
           />
         })}
       <Layer
@@ -474,7 +476,7 @@ function LayerRenderer({
           offset={layerSettings[stagingPinnedTo].offset}
           index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
           data={layerData.staging}
-          edgeClip={calculateClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
+          edgeClip={calculateLayerClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
         />
       }
       {

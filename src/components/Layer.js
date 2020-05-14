@@ -13,13 +13,12 @@ const LayerWrapperSC = styled.div.attrs(props => ({
       translateX(${props.offset.x}px)
       translateY(${props.offset.y}px)
     `,
-    // clipPath: props.edgeClip ? `inset(${props.edgeClip.up}px ${props.edgeClip.right}px ${props.edgeClip.down}px ${props.edgeClip.left}px)` : "none"
+    clipPath: props.edgeClip ? `inset(${props.edgeClip.up}px ${props.edgeClip.right}px ${props.edgeClip.down}px ${props.edgeClip.left}px)` : "none"
   }
 }))`
   position: absolute;
   overflow: hidden;
   pointer-events: none;
-  background: rgba(0, 0, 255, .2);
 `
 
 const LayerSC = styled.canvas`
