@@ -48,8 +48,8 @@ class ToolActionBase {
 
   _getCoordinates(ev) {
     return {
-      x: (ev.nativeEvent.offsetX + this.translateData.x - this.translateData.offX) / this.translateData.zoom,
-      y: (ev.nativeEvent.offsetY + this.translateData.y - this.translateData.offY) / this.translateData.zoom
+      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY
     };
   }
 
@@ -591,7 +591,7 @@ export class MoveAction extends ToolActionBase {
     ))
   }
 
-  move(ev) {
+  move(ev, layerData) {
     // this.layerData = layerData;
     if (this.throttle) {return};
     this._setLockedAxis(ev);

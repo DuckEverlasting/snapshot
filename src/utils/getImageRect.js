@@ -73,7 +73,7 @@ export default function getImageRect(canvas) {
   return {
     x: left,
     y: top,
-    w: right - left,
-    h: bottom - top
+    w: right - left + 1,
+    h: bottom - top + 1
   }
 }
