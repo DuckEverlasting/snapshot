@@ -634,7 +634,6 @@ export class MoveAction extends ToolActionBase {
         w: Math.max(this.translateData.documentWidth - newOffset.x, this.offset.x + canvasRect.x + canvasRect.w),
         h: Math.max(this.translateData.documentHeight - newOffset.y, this.offset.y + canvasRect.y + canvasRect.h)
       }
-      console.log(newOffset, newSize);
       setTimeout(() => {
         canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
         canvas.getContext("2d").putImageData(data, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
