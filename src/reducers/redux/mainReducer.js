@@ -4,6 +4,7 @@ import {
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
   UPDATE_SELECTION_PATH,
+  SET_TRANSFORM_SELECTION,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
@@ -93,7 +94,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           [payload.id]: payload.changes
         }
       };
-    
+
     case UPDATE_SELECTION_PATH:
       function getDefaultPath() {
         const defaultPath = new Path2D();
@@ -106,6 +107,14 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         selectionPath: newPath,
+        selectionActive: payload.path
+      }
+
+    case SET_TRANSFORM_SELECTION:
+      return {
+        ...state,
+        transformSelectionTarget: payload.target,
+        transformSelectionSource: payload.source
       }
 
     case UPDATE_LAYER_OPACITY:

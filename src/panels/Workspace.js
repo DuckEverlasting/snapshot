@@ -80,6 +80,9 @@ export default function Workspace() {
   const {
     activeLayer,
     selectionPath,
+    selectionActive,
+    transformSelectionTarget,
+    transformSelectionSource,
     layerData,
     layerSettings,
     layerOrder,
@@ -87,8 +90,6 @@ export default function Workspace() {
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const importImageFile = useSelector(state => state.ui.importImageFile);
-  const transformSelectionTarget = useSelector(state => state.ui.transformSelectionTarget);
-  const transformSelectionSource = useSelector(state => state.ui.transformSelectionSource);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
@@ -226,7 +227,10 @@ export default function Workspace() {
         });
       case "move":
         if (!activeLayer) {return}
-        return new MoveAction(activeLayer, dispatch, getTranslateData());
+        return new MoveAction(activeLayer, dispatch, getTranslateData(), {
+          selectionActive,
+          clip: selectionPath
+        });
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -409,8 +413,6 @@ export default function Workspace() {
           layerData={layerData}
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
-          transformPinnedTo={transformSelectionTarget}
-          transformSource={transformSelectionSource}
           docSize={{w: documentWidth, h: documentHeight}}
         />
       </CanvasPaneSC>
@@ -418,6 +420,14 @@ export default function Workspace() {
         source={importImageFile}
         targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
       />}
+      {
+        transformSelectionTarget && <TransformObject
+          source={transformSelectionSource}
+          targetCtx={layerData[transformSelectionTarget].getContext("2d")}
+          docSize={{w: documentWidth, h: documentHeight}}
+          index={layerOrder.indexOf(stagingPinnedTo) + 1}
+        />
+      }
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
@@ -430,8 +440,6 @@ function LayerRenderer({
   layerData,
   layerSettings,
   stagingPinnedTo,
-  transformSelectionTarget,
-  transformSelectionSource,
   docSize
 }) {
   return (
@@ -477,14 +485,6 @@ function LayerRenderer({
           index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
           data={layerData.staging}
           edgeClip={calculateLayerClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
-        />
-      }
-      {
-        transformSelectionTarget && <TransformObject
-          source={transformSelectionSource}
-          targetCtx={layerData[transformSelectionTarget]}
-          docSize={docSize}
-          index={layerOrder.indexOf(stagingPinnedTo) + 1}
         />
       }
     </>

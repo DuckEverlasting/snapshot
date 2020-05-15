@@ -43,6 +43,7 @@ export const initMainState = {
     }
   },
   selectionPath: initSelectionPath,
+  selectionActive: false,
   stagingPinnedTo: 1,
   layerOrder: [1],
   layerCounter: 2,

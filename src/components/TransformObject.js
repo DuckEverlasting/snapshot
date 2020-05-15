@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, updateSelectionPath } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import { calculateClipping } from "../utils/helpers";
 
@@ -168,7 +168,6 @@ let currentTransformAction = null;
 export default function TransformObject({
   targetCtx,
   source,
-  clip,
   resizable=true,
   rotatable=true
 }) {
@@ -192,6 +191,8 @@ export default function TransformObject({
   const { documentWidth, documentHeight } = useSelector(
     (state) => state.main.present.documentSettings
   );
+  const selectionPath = useSelector(state => state.main.present.selectionPath);
+  const selectionCtx = useSelector(state => state.main.present.layerData.selection.getContext("2d"));
 
   const dispatch = useDispatch();
 
@@ -220,23 +221,55 @@ export default function TransformObject({
           h: initHeight,
         });
       };
-    } else if (source instanceof HTMLCanvasElement) {
-      if (clip) {
-        const ctx = source.getContext("2d");
-        ctx.save();
-        ctx.clip(clip);
-      }
+    } else if (source && source.ctx) {
+      setImage(source);
+      setOffset({
+        x: 0,
+        y: 0,
+      });
+      setSize({
+        w: source.ctx.canvas.width,
+        h: source.ctx.canvas.height,
+      });
+      setTransformCanvasSize({
+        w: source.ctx.canvas.width,
+        h: source.ctx.canvas.height,
+      });
     }
   }, [source]);
 
   useEffect(() => {
     if (!image) return;
-    canvasRef.current.getContext("2d").drawImage(image, 0, 0);
-  }, [transformCanvasSize]);
+    if (image.ctx) {
+      console.log(canvasRef.current)
+      manipulate(canvasRef.current.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: image.ctx,
+          dest: {x: 0, y: 0},
+          clip: selectionPath
+        }
+      });
+      manipulate(image.ctx, {
+        action: "clear",
+        params: {
+          clip: selectionPath
+        }
+      })
+      manipulate(selectionCtx, {
+        action: "clear",
+        params: { selectionPath: null }
+      })
+      dispatch(updateSelectionPath(null, true));
+    } else {
+      canvasRef.current.getContext("2d").drawImage(image, 0, 0);
+    }
+  }, [image, transformCanvasSize]);
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
     ev.stopPropagation();
+    console.log("YO")
     currentTransformAction = transformActionFactory(
       ev,
       size,
@@ -299,6 +332,7 @@ export default function TransformObject({
           },
         });
         dispatch(setImportImageFile(null));
+        dispatch(setTransformSelection(null, null));
       }
     },
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]

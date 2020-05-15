@@ -10,9 +10,10 @@ import getImageRect from "../utils/getImageRect";
 import {
   updateColor,
   updateSelectionPath,
+  setTransformSelection,
   updateStagingPosition,
   updateLayerPosition,
-  putHistoryData,
+  putHistoryData
 } from "../actions/redux/index";
 
 import draw from "../reducers/custom/drawingReducer";
@@ -573,21 +574,36 @@ export class EyeDropperAction extends ToolActionBase {
 }
 
 export class MoveAction extends ToolActionBase {
-  start(ev) {
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
+    this.clip = params.clip;
+    this.selectionActive = params.selectionActive;
     this.alwaysFire = true;
+  }
+
+  start(ev, layerData) {
     this.origin = {x: ev.screenX, y: ev.screenY}
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
-    this.dispatch(updateLayerPosition(
-      this.activeLayer,
-      null,
-      null,
-      false
-    ))
+    if (this.selectionActive) {
+      this.dispatch(setTransformSelection(
+        this.activeLayer, // target
+        layerData[this.activeLayer].getContext("2d"), // source ctx
+        this.translateData, // translate data
+        ev // "start active" event data
+      ))
+    } else {
+      this.dispatch(updateLayerPosition(
+        this.activeLayer,
+        null,
+        null,
+        false
+      ))
+    }
   }
 
   move(ev) {
-    if (this.throttle) {return};
+    if (this.throttle || this.selectionActive) {return};
     this._setLockedAxis(ev);
     let [x, y] = [ev.screenX, ev.screenY]
     if (this.lockedAxis === "x") {
@@ -611,6 +627,7 @@ export class MoveAction extends ToolActionBase {
   }
 
   end(layerData) {
+    if (this.selectionActive) {return};
     this.layerData = layerData;
     const canvas = this.layerData[this.activeLayer];
     const canvasRect = getImageRect(canvas);
