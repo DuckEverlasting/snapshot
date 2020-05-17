@@ -630,7 +630,7 @@ export class MoveAction extends ToolActionBase {
     this.layerData = layerData;
     const canvas = this.layerData[this.activeLayer];
     const canvasRect = getImageRect(canvas);
-    let newOffset, newSize;
+    let newOffset, newSize, redrawData;
     if (canvasRect === null) {
       newOffset = {
         x: 0,
@@ -641,7 +641,7 @@ export class MoveAction extends ToolActionBase {
         h: this.translateData.documentHeight
       }
     } else {
-      const data = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
+      redrawData = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
       newOffset = {
         x: Math.min(0, this.offset.x + canvasRect.x),
         y: Math.min(0, this.offset.y + canvasRect.y)
@@ -650,17 +650,19 @@ export class MoveAction extends ToolActionBase {
         w: Math.max(this.translateData.documentWidth - newOffset.x, this.offset.x + canvasRect.x + canvasRect.w),
         h: Math.max(this.translateData.documentHeight - newOffset.y, this.offset.y + canvasRect.y + canvasRect.h)
       }
-      setTimeout(() => {
-        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-        canvas.getContext("2d").putImageData(data, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
-      }, 0)
     }
-    this.dispatch(updateLayerPosition(
-      this.activeLayer,
-      newSize,
-      newOffset,
-      true
-    ))
+    this.dispatch(async dispatch => {
+      await dispatch(updateLayerPosition(
+        this.activeLayer,
+        newSize,
+        newOffset,
+        true
+      ))
+      if (redrawData) {
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        canvas.getContext("2d").putImageData(redrawData, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
+      }
+    })
   }
 }
 
