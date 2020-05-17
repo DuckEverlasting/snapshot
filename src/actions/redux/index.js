@@ -188,13 +188,12 @@ export const updateSelectionPath = path => {
   };
 };
 
-export const setTransformSelection = (target, sourceCtx, translateData, startEvent=null, ignoreHistory=false) => {
+export const setTransformSelection = (target, sourceCtx, startEvent=null, ignoreHistory=false) => {
   return {
     type: SET_TRANSFORM_SELECTION,
     payload: {
       source: {
         ctx: sourceCtx,
-        translateData,
         startEvent
       },
       target,

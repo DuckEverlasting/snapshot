@@ -263,6 +263,9 @@ export default function TransformObject({
         params: { selectionPath: null }
       })
       dispatch(updateSelectionPath(null, true));
+      if (image.startEvent) {
+        handleMouseDown(image.startEvent, "move");
+      }
     } else {
       canvasRef.current.getContext("2d").drawImage(image, 0, 0);
     }
@@ -270,7 +273,7 @@ export default function TransformObject({
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
-    ev.stopPropagation();
+    ev.stopPropagation && ev.stopPropagation();
     currentTransformAction = transformActionFactory(
       ev,
       size,
@@ -315,6 +318,7 @@ export default function TransformObject({
 
   const handleKeyDown = useCallback(
     (ev) => {
+      ev.stopPropagation();
       if (ev.key === "Escape") {
         dispatch(menuAction("undo"));
         dispatch(setImportImageFile(null));

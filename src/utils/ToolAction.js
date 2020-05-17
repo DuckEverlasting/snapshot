@@ -589,8 +589,7 @@ export class MoveAction extends ToolActionBase {
       this.dispatch(setTransformSelection(
         this.activeLayer, // target
         layerData[this.activeLayer].getContext("2d"), // source ctx
-        this.translateData, // translate data
-        ev // "start active" event data
+        {button: 0, screenX: ev.screenX, screenY: ev.screenY}
       ))
     } else {
       this.dispatch(updateLayerPosition(
