@@ -93,11 +93,11 @@ export function calculateClipping(size, offset, docSize, zoom) {
   };
 }
 
-export function calculateLayerClipping(size, offset, docSize) {
+export function calculateLayerClipping(size, offset, docSize, zoom=1) {
   return {
-    up: 0.5 * size.h - offset.y - 0.5 * docSize.h - .5 * (size.h - docSize.h),
-    down: 0.5 * size.h + offset.y - 0.5 * docSize.h + .5 * (size.h - docSize.h),
-    left: 0.5 * size.w - offset.x - 0.5 * docSize.w - .5 * (size.w - docSize.w),
-    right: 0.5 * size.w + offset.x - 0.5 * docSize.w + .5 * (size.w - docSize.w),
+    up: (0.5 * size.h - offset.y - 0.5 * docSize.h - .5 * (size.h - docSize.h)) * zoom,
+    down: (0.5 * size.h + offset.y - 0.5 * docSize.h + .5 * (size.h - docSize.h)) * zoom,
+    left: (0.5 * size.w - offset.x - 0.5 * docSize.w - .5 * (size.w - docSize.w)) * zoom,
+    right: (0.5 * size.w + offset.x - 0.5 * docSize.w + .5 * (size.w - docSize.w)) * zoom,
   };
 }
