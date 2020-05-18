@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile, setTransformSelection, updateSelectionPath } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, updateSelectionPath, putHistoryData } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
@@ -167,6 +167,7 @@ const AnchorPointCircleSC = styled.div`
 let currentTransformAction = null;
 
 export default function TransformObject({
+  target,
   targetCtx,
   source,
   resizable=true,
@@ -249,7 +250,7 @@ export default function TransformObject({
           sourceCtx: image.ctx,
           orig: {x: image.rect.x, y: image.rect.y},
           dest: {x: 0, y: 0},
-          clarp: selectionPath
+          clipWithOffset: selectionPath
         }
       });
       manipulate(image.ctx, {
@@ -335,9 +336,9 @@ export default function TransformObject({
             anchorPoint,
             rotation
           },
-        });
+        })
         dispatch(setImportImageFile(null));
-        dispatch(setTransformSelection(null, null));
+        dispatch(setTransformSelection(null, null, null, true));
       }
     },
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]

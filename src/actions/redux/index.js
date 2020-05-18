@@ -70,7 +70,7 @@ export const [
 
 export const undo = () => {
   return (dispatch, getState) => {
-    const prevState = getState().main.past[getState().main.past.length - 1] 
+    const prevState = getState().main.past[getState().main.past.length - 1]
     if (prevState && prevState.onUndo) {
       const ctx = prevState.layerData[prevState.onUndo.id].getContext("2d")
       const changeData = prevState.onUndo.data
@@ -192,10 +192,8 @@ export const setTransformSelection = (target, sourceCtx, startEvent=null, ignore
   return {
     type: SET_TRANSFORM_SELECTION,
     payload: {
-      source: {
-        ctx: sourceCtx,
-        startEvent
-      },
+      sourceCtx,
+      startEvent,
       target,
       ignoreHistory
     }
