@@ -22,7 +22,7 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import { updateWorkspaceSettings, setImportImageFile, createLayer } from "../actions/redux";
+import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
 import DropZone from "../components/DropZone";
@@ -226,11 +226,8 @@ export default function Workspace() {
           clip: selectionPath
         });
       case "move":
-        if (!activeLayer) {return}
-        return new MoveAction(activeLayer, dispatch, getTranslateData(), {
-          selectionActive,
-          clip: selectionPath
-        });
+        if (!activeLayer || selectionActive) {return}
+        return new MoveAction(activeLayer, dispatch, getTranslateData());
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -323,6 +320,14 @@ export default function Workspace() {
         y: (ev.screenY - translateY) * 100 / zoomPct
       });
     } else if (ev.buttons === 1) {
+      if (activeTool === "move" && selectionActive) {
+        return dispatch(setTransformSelection(
+          activeLayer,
+          layerData[activeLayer].getContext("2d"),
+          {button: 0, screenX: ev.screenX, screenY: ev.screenY},
+          true
+        ));
+      }
       currentAction = buildAction();
       if (!currentAction) {return};
       currentAction.start(ev, layerData);
@@ -418,11 +423,13 @@ export default function Workspace() {
       </CanvasPaneSC>
       {importImageFile && <TransformObject
         source={importImageFile}
+        target={layerOrder[layerOrder.length - 1]}
         targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
       />}
       {
         transformSelectionTarget && <TransformObject
           source={transformSelectionSource}
+          target={transformSelectionTarget}
           targetCtx={layerData[transformSelectionTarget].getContext("2d")}
           docSize={{w: documentWidth, h: documentHeight}}
           index={layerOrder.indexOf(stagingPinnedTo) + 1}

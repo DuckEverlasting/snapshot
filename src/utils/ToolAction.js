@@ -574,35 +574,25 @@ export class EyeDropperAction extends ToolActionBase {
 }
 
 export class MoveAction extends ToolActionBase {
-  constructor(activeLayer, dispatch, translateData, params) {
+  constructor(activeLayer, dispatch, translateData) {
     super(activeLayer, dispatch, translateData);
-    this.clip = params.clip;
-    this.selectionActive = params.selectionActive;
     this.alwaysFire = true;
   }
 
-  start(ev, layerData) {
+  start(ev) {
     this.origin = {x: ev.screenX, y: ev.screenY}
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
-    if (this.selectionActive) {
-      this.dispatch(setTransformSelection(
-        this.activeLayer, // target
-        layerData[this.activeLayer].getContext("2d"), // source ctx
-        {button: 0, screenX: ev.screenX, screenY: ev.screenY}
-      ))
-    } else {
-      this.dispatch(updateLayerPosition(
-        this.activeLayer,
-        null,
-        null,
-        false
-      ))
-    }
+    this.dispatch(updateLayerPosition(
+      this.activeLayer,
+      null,
+      null,
+      false
+    ))
   }
 
   move(ev) {
-    if (this.throttle || this.selectionActive) {return};
+    if (this.throttle) {return};
     this._setLockedAxis(ev);
     let [x, y] = [ev.screenX, ev.screenY]
     if (this.lockedAxis === "x") {
@@ -626,7 +616,6 @@ export class MoveAction extends ToolActionBase {
   }
 
   end(layerData) {
-    if (this.selectionActive) {return};
     this.layerData = layerData;
     const canvas = this.layerData[this.activeLayer];
     const canvasRect = getImageRect(canvas);

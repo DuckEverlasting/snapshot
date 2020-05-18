@@ -44,6 +44,8 @@ export const initMainState = {
   },
   selectionPath: initSelectionPath,
   selectionActive: false,
+  transformSelectionTarget: null,
+  transformSelectionSource: null,
   stagingPinnedTo: 1,
   layerOrder: [1],
   layerCounter: 2,
@@ -92,7 +94,5 @@ export const initUiState = {
   overlayVisible: null,
   currentHelpTopic: "tools",
   currentFilter: null,
-  importImageFile: null,
-  transformSelectionTarget: null,
-  transformSelectionSource: null
+  importImageFile: null
 }
