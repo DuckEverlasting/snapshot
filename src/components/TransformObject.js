@@ -29,7 +29,7 @@ const ContainerSC = styled.div.attrs((props) => ({
     width: props.size ? props.size.w * props.zoom + "px" : "auto",
     height: props.size ? props.size.h * props.zoom + "px" : "auto",
     cursor: props.overrideCursor || "move",
-    border: props.borderStyle || "1px solid #ffe312",
+    border: props.borderStyle || "2px solid #ffe312",
   },
 }))`
   flex-grow: 0;
@@ -61,6 +61,7 @@ const CanvasSC = styled.canvas.attrs((props) => ({
   left: 0;
   width: 100%;
   height: 100%;
+  border: 1px solid black;
 `;
 
 const ResizeSideSC = styled.div`

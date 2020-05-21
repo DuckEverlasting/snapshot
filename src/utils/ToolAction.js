@@ -10,7 +10,6 @@ import getImageRect from "../utils/getImageRect";
 import {
   updateColor,
   updateSelectionPath,
-  setTransformSelection,
   updateStagingPosition,
   updateLayerPosition,
   putHistoryData
