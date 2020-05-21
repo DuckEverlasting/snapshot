@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile, setTransformSelection, updateSelectionPath, putHistoryData } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, updateSelectionPath, putHistoryDataMultiple } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
@@ -194,8 +194,6 @@ export default function TransformObject({
   const { documentWidth, documentHeight } = useSelector(
     (state) => state.main.present.documentSettings
   );
-  const selectionPath = useSelector(state => state.main.present.selectionPath);
-  const selectionCtx = useSelector(state => state.main.present.layerData.selection.getContext("2d"));
 
   const dispatch = useDispatch();
 
@@ -224,9 +222,9 @@ export default function TransformObject({
           h: initHeight,
         });
       };
-    } else if (source && source.ctx) {
-      const imageRect = getImageRect(source.ctx.canvas, selectionPath);
-      setImage({...source, rect: imageRect});
+    } else if (source instanceof HTMLCanvasElement) {
+      const imageRect = getImageRect(source);
+      setImage({ctx: source.getContext("2d"), rect: imageRect});
       setOffset({
         x: Math.floor(imageRect.x + (imageRect.w - documentWidth) / 2),
         y: Math.floor(imageRect.y + (imageRect.h - documentHeight) / 2),
@@ -251,20 +249,8 @@ export default function TransformObject({
           sourceCtx: image.ctx,
           orig: {x: image.rect.x, y: image.rect.y},
           dest: {x: 0, y: 0},
-          clipWithOffset: selectionPath
         }
       });
-      manipulate(image.ctx, {
-        action: "clear",
-        params: {
-          clip: selectionPath
-        }
-      })
-      manipulate(selectionCtx, {
-        action: "clear",
-        params: { selectionPath: null }
-      })
-      dispatch(updateSelectionPath(null, true));
       if (image.startEvent) {
         handleMouseDown(image.startEvent, "move");
       }

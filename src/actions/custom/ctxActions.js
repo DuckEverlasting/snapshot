@@ -103,18 +103,13 @@ export function move(ctx, { orig, dest }) {
   ctx.putImageData(data, x, y);
 }
 
-export function paste(ctx, { sourceCtx, clipWithOffset, orig={x:0,y:0}, dest={x:0,y:0}, size={w: sourceCtx.canvas.width, h: sourceCtx.canvas.height}, anchorPoint={x:0,y:0}, rotation=0 }) {
+export function paste(ctx, { sourceCtx, orig={x:0,y:0}, dest={x:0,y:0}, size={w: sourceCtx.canvas.width, h: sourceCtx.canvas.height}, anchorPoint={x:0,y:0}, rotation=0 }) {
   ctx.save();
   
   const zoom = {x: size.w / sourceCtx.canvas.width, y: size.h / sourceCtx.canvas.height}
   ctx.translate((zoom.x * sourceCtx.canvas.width * anchorPoint.x + dest.x), (zoom.y * sourceCtx.canvas.height * anchorPoint.y + dest.y));
   ctx.rotate(rotation);
   ctx.translate(-(zoom.x * sourceCtx.canvas.width * anchorPoint.x + dest.x), -(zoom.y * sourceCtx.canvas.height * anchorPoint.y + dest.y));
-  if (clipWithOffset) {
-    ctx.translate(-orig.x, -orig.y);
-    ctx.clip(clipWithOffset)
-    ctx.translate(orig.x, orig.y)
-  };
 
   ctx.drawImage(sourceCtx.canvas, orig.x, orig.y, sourceCtx.canvas.width, sourceCtx.canvas.height, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
   ctx.restore();

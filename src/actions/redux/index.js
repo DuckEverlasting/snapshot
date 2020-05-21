@@ -4,6 +4,7 @@ export const [
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
+  PUT_HISTORY_DATA_MULTIPLE,
   CREATE_LAYER,
   CREATE_LAYER_FROM,
   DELETE_LAYER,
@@ -37,6 +38,7 @@ export const [
   "UNDO",
   "REDO",
   "PUT_HISTORY_DATA",
+  "PUT_HISTORY_DATA_MULTIPLE",
   "CREATE_LAYER",
   "CREATE_LAYER_FROM",
   "DELETE_LAYER",
@@ -72,20 +74,28 @@ export const undo = () => {
   return (dispatch, getState) => {
     const prevState = getState().main.past[getState().main.past.length - 1]
     if (prevState && prevState.onUndo) {
-      const ctx = prevState.layerData[prevState.onUndo.id].getContext("2d")
-      const changeData = prevState.onUndo.data
-      const viewWidth = Math.ceil(ctx.canvas.width);
-      const viewHeight = Math.ceil(ctx.canvas.height);
-      const imgData = ctx.getImageData(
-        0,
-        0,
-        viewWidth,
-        viewHeight
-      );
-      for (let index in changeData) {
-        imgData.data[index] = changeData[index];
+      if (prevState.onUndo.length) {
+        prevState.onUndo.forEach(el => executeUndo(el));
+      } else {
+        executeUndo(prevState.onUndo);
       }
-      ctx.putImageData(imgData, 0, 0);
+
+      function executeUndo(onUndo) {
+        const ctx = prevState.layerData[onUndo.id].getContext("2d")
+        const changeData = onUndo.data
+        const viewWidth = Math.ceil(ctx.canvas.width);
+        const viewHeight = Math.ceil(ctx.canvas.height);
+        const imgData = ctx.getImageData(
+          0,
+          0,
+          viewWidth,
+          viewHeight
+        );
+        for (let index in changeData) {
+          imgData.data[index] = changeData[index];
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
     }
     dispatch({type: UNDO})
   };
@@ -95,20 +105,28 @@ export const redo = () => {
   return (dispatch, getState) => {
     const currState = getState().main.present 
     if (currState && currState.onRedo) {
-      const ctx = currState.layerData[currState.onRedo.id].getContext("2d")
-      const changeData = currState.onRedo.data
-      const viewWidth = Math.ceil(ctx.canvas.width);
-      const viewHeight = Math.ceil(ctx.canvas.height);
-      const imgData = ctx.getImageData(
-        0,
-        0,
-        viewWidth,
-        viewHeight
-      );
-      for (let index in changeData) {
-        imgData.data[index] = changeData[index];
+      if (currState.onRedo.length) {
+        currState.onRedo.forEach(el => executeRedo(el));
+      } else {
+        executeRedo(currState.onRedo);
       }
-      ctx.putImageData(imgData, 0, 0);
+
+      function executeRedo(onRedo) {
+        const ctx = currState.layerData[onRedo.id].getContext("2d")
+        const changeData = onRedo.data
+        const viewWidth = Math.ceil(ctx.canvas.width);
+        const viewHeight = Math.ceil(ctx.canvas.height);
+        const imgData = ctx.getImageData(
+          0,
+          0,
+          viewWidth,
+          viewHeight
+        );
+        for (let index in changeData) {
+          imgData.data[index] = changeData[index];
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
     }
     dispatch({type: REDO})
   };
@@ -129,6 +147,32 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   return {
     type: PUT_HISTORY_DATA,
     payload: {id, ...getDiff(ctx, {prevImgData})}
+  }
+}
+
+export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[]) => {
+  let differences = [];
+  for (let i = 0; i < ids.length; i++) {
+    const viewWidth = Math.ceil(ctxs[i].canvas.width);
+    const viewHeight = Math.ceil(ctxs[i].canvas.height);
+    if (!prevImgDatas[i]) {
+      prevImgDatas[i] = ctxs[i].getImageData(
+        0,
+        0,
+        viewWidth,
+        viewHeight
+      );
+      callbacks[i]();
+    }
+    differences[i] = {
+      id: ids[i],
+      ...getDiff(ctxs[i], {prevImgData: prevImgDatas[i]})
+    }
+  }
+  
+  return {
+    type: PUT_HISTORY_DATA_MULTIPLE,
+    payload: differences
   }
 }
 
@@ -188,11 +232,10 @@ export const updateSelectionPath = path => {
   };
 };
 
-export const setTransformSelection = (target, sourceCtx, startEvent=null, ignoreHistory=false) => {
+export const setTransformSelection = (target, startEvent=null, ignoreHistory=false) => {
   return {
     type: SET_TRANSFORM_SELECTION,
     payload: {
-      sourceCtx,
       startEvent,
       target,
       ignoreHistory

@@ -22,7 +22,9 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection } from "../actions/redux";
+import manipulate from "../reducers/custom/manipulateReducer";
+
+import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection, putHistoryDataMultiple, updateSelectionPath } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
 import DropZone from "../components/DropZone";
@@ -82,7 +84,6 @@ export default function Workspace() {
     selectionPath,
     selectionActive,
     transformSelectionTarget,
-    transformSelectionSource,
     layerData,
     layerSettings,
     layerOrder,
@@ -321,6 +322,31 @@ export default function Workspace() {
       });
     } else if (ev.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
+        const activeCtx = layerData[activeLayer].getContext("2d"),
+          selectionCtx = layerData.selection.getContext("2d"),
+          placeholderCtx = layerData.placeholder.getContext("2d");
+        manipulate(placeholderCtx, {
+          action: "paste",
+          params: {
+            sourceCtx: activeCtx,
+            dest: {x: 0, y: 0},
+            clip: selectionPath,
+            clearFirst: true
+          }
+        })
+        dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
+          () => {
+          manipulate(activeCtx, {
+            action: "clear",
+            params: { clip: selectionPath }
+          })
+        }, () => {
+          manipulate(selectionCtx, {
+            action: "clear",
+            params: { selectionPath: null }
+          })
+        }]));
+        dispatch(updateSelectionPath(null, true));
         return dispatch(setTransformSelection(
           activeLayer,
           layerData[activeLayer].getContext("2d"),
@@ -428,7 +454,7 @@ export default function Workspace() {
       />}
       {
         transformSelectionTarget && <TransformObject
-          source={transformSelectionSource}
+          source={layerData.placeholder}
           target={transformSelectionTarget}
           targetCtx={layerData[transformSelectionTarget].getContext("2d")}
           docSize={{w: documentWidth, h: documentHeight}}
@@ -456,6 +482,13 @@ function LayerRenderer({
         docSize={docSize}
         index={1}
         data={layerData.clipboard}
+        hidden
+      />
+      <Layer
+        id={"placeholder"}
+        docSize={docSize}
+        index={1}
+        data={layerData.placeholder}
         hidden
       />
       {layerOrder.length !== 0 &&

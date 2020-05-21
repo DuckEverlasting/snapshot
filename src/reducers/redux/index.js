@@ -5,6 +5,7 @@ import {
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
+  PUT_HISTORY_DATA_MULTIPLE,
   DELETE_LAYER
 } from "../../actions/redux/index";
 
@@ -39,6 +40,25 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
               ...present,
               onUndo: { id: payload.id, data: payload.old },
               onRedo: { id: payload.id, data: payload.new }
+            }
+          ],
+          present: { ...present }
+        };
+      case PUT_HISTORY_DATA_MULTIPLE:
+        const onUndoArray = payload.map(el => {
+          return {id: el.id, data: el.old}
+        });
+        const onRedoArray = payload.map(el => {
+          return {id: el.id, data: el.new}
+        });
+        return {
+          ...state,
+          past: [
+            ...past,
+            {
+              ...present,
+              onUndo: onUndoArray,
+              onRedo: onRedoArray
             }
           ],
           present: { ...present }

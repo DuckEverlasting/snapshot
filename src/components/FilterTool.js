@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 
 import { setFilterTool } from "../actions/redux";
-import filterAction from "../actions/redux/filterAction";
+import filterAction from "../utils/filterAction";
 
 import DraggableWindow from "./DraggableWindow";
 import SliderInput from "./SliderInput";

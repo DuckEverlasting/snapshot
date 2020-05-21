@@ -114,9 +114,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         transformSelectionTarget: payload.target,
-        transformSelectionSource: {
-          ctx: payload.sourceCtx, startEvent: payload.startEvent
-        }
+        transformStartEvent: payload.startEvent
       }
 
     case UPDATE_LAYER_OPACITY:

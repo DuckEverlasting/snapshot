@@ -1,4 +1,4 @@
-import { putHistoryData } from "./index"; 
+import { putHistoryData } from "../actions/redux/index"; 
 
 export default function filterAction(filter, input, preview) {
   return (dispatch, getState) => {
