@@ -61,7 +61,7 @@ const CanvasSC = styled.canvas.attrs((props) => ({
   left: 0;
   width: 100%;
   height: 100%;
-  border: 1px solid black;
+  border: 1px solid #888888;
 `;
 
 const ResizeSideSC = styled.div`
@@ -306,7 +306,7 @@ export default function TransformObject({
 
   const handleKeyDown = useCallback(
     (ev) => {
-      ev.stopPropagation();
+      ev.preventDefault();
       if (ev.key === "Escape") {
         dispatch(menuAction("undo"));
         dispatch(setImportImageFile(null));
