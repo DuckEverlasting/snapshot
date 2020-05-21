@@ -41,7 +41,9 @@ const AppContainerSC = styled.div`
 function App() {
   const height = useSelector(state => state.ui.workspaceSettings.height);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
+  const transformSelectionTarget = useSelector(state => state.main.present.transformSelectionTarget);
   const importImageFile = useSelector(state => state.ui.importImageFile);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -55,7 +57,7 @@ function App() {
     };
     const handleKeyDown = ev => {
       ev.preventDefault();
-      if (overlayVisible !== null || importImageFile !== null) {return}
+      if (overlayVisible || transformSelectionTarget || importImageFile) {return}
       let keyCombo;
       let modifier = window.navigator.platform.includes("Mac")
         ? ev.metaKey
@@ -78,7 +80,7 @@ function App() {
       window.removeEventListener("resize", adjustSizing);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [overlayVisible, importImageFile]);
+  }, [overlayVisible, transformSelectionTarget, importImageFile]);
 
   return (
     <AppSC id="App" height={height}>
