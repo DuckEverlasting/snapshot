@@ -98,7 +98,7 @@ export default function TopBar() {
           />
           <MenuItem
             label="Free Transform"
-            hotkey={`Delete`}
+            hotkey={`${mod}+R`}
             onClick={() => dispatch(menuAction("transform"))}
             disabled={!activeLayer}
           />

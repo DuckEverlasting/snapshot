@@ -224,6 +224,11 @@ export default function TransformObject({
       };
     } else if (source instanceof HTMLCanvasElement) {
       const imageRect = getImageRect(source);
+      if (!imageRect) {
+        dispatch(setImportImageFile(null));
+        dispatch(setTransformSelection(null, null, true));
+        return;
+      }
       setImage({ctx: source.getContext("2d"), rect: imageRect});
       setOffset({
         x: Math.floor(imageRect.x + (imageRect.w - documentWidth) / 2),
