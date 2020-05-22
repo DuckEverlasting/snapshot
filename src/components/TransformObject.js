@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile, setTransformSelection, updateSelectionPath, putHistoryDataMultiple } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, putHistoryData } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
@@ -310,22 +310,25 @@ export default function TransformObject({
       if (ev.key === "Escape") {
         dispatch(menuAction("undo"));
         dispatch(setImportImageFile(null));
+        dispatch(setTransformSelection(null, null, true));
       } else if (ev.key === "Enter") {
-        manipulate(targetCtx, {
-          action: "paste",
-          params: {
-            sourceCtx: canvasRef.current.getContext("2d"),
-            dest: {
-              x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth),
-              y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight),
+        dispatch(putHistoryData(target, targetCtx, () => {
+          manipulate(targetCtx, {
+            action: "paste",
+            params: {
+              sourceCtx: canvasRef.current.getContext("2d"),
+              dest: {
+                x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth),
+                y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight),
+              },
+              size,
+              anchorPoint,
+              rotation
             },
-            size,
-            anchorPoint,
-            rotation
-          },
-        })
+          });
+        }));
         dispatch(setImportImageFile(null));
-        dispatch(setTransformSelection(null, null, null, true));
+        dispatch(setTransformSelection(null, null, true));
       }
     },
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
