@@ -12,6 +12,7 @@ export const [
   UPDATE_LAYER_DATA,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
+  SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
@@ -46,6 +47,7 @@ export const [
   "UPDATE_LAYER_DATA",
   "UPDATE_SELECTION_PATH",
   "SET_TRANSFORM_SELECTION",
+  "SET_TRANSFORM_PARAMS",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
   "UPDATE_LAYER_POSITION",
@@ -240,12 +242,28 @@ export const updateSelectionPath = path => {
   };
 };
 
-export const setTransformSelection = (target, params={}, ignoreHistory=false) => {
+const defaultTransformParams = {
+  startEvent: null,
+  rotatable: null,
+  resizable: null
+}
+
+export const setTransformSelection = (target, params=defaultTransformParams, ignoreHistory=true) => {
   return {
     type: SET_TRANSFORM_SELECTION,
     payload: {
-      params,
+      params: params ? params : defaultTransformParams,
       target,
+      ignoreHistory
+    }
+  };
+};
+
+export const setTransformParams = (params=defaultTransformParams, ignoreHistory=true) => {
+  return {
+    type: SET_TRANSFORM_PARAMS,
+    payload: {
+      params: params ? params : defaultTransformParams,
       ignoreHistory
     }
   };

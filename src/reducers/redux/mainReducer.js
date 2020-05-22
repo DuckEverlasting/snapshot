@@ -5,6 +5,7 @@ import {
   UPDATE_LAYER_DATA,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
+  SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
@@ -114,6 +115,15 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         transformSelectionTarget: payload.target,
+        transformParams: {
+          ...state.transformParams,
+          ...payload.params
+        }
+      }
+
+    case SET_TRANSFORM_PARAMS:
+      return {
+        ...state,
         transformParams: {
           ...state.transformParams,
           ...payload.params

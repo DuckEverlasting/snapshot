@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile, setTransformSelection, putHistoryData } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, putHistoryData, setTransformParams } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
@@ -308,6 +308,9 @@ export default function TransformObject({
   const handleKeyDown = useCallback(
     (ev) => {
       ev.preventDefault();
+      let modifier = window.navigator.platform.includes("Mac")
+        ? ev.metaKey
+        : ev.ctrlKey;
       if (ev.key === "Escape") {
         dispatch(menuAction("undo"));
         dispatch(setImportImageFile(null));
@@ -330,6 +333,8 @@ export default function TransformObject({
         }, null, {groupWithPrevious: true}));
         dispatch(setImportImageFile(null));
         dispatch(setTransformSelection(null, null, true));
+      } else if (modifier && ev.key === "r") {
+        dispatch(setTransformParams({resizable: true, rotatable: true}))
       }
     },
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
