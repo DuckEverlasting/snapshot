@@ -9,7 +9,9 @@ import {
   redo,
   setClipboardIsUsed,
   putHistoryData,
-  setImportImageFile
+  putHistoryDataMultiple,
+  setImportImageFile,
+  setTransformSelection
 } from "./index";
 
 import manipulate from "../../reducers/custom/manipulateReducer";
@@ -153,6 +155,44 @@ export default function menuAction(action) {
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }
+      }
+    case "transform":
+      return async (dispatch, getState) => {
+        const { activeLayer, layerData, layerSettings, selectionPath } = getState().main.present;
+        if (!activeLayer) return
+        const activeCtx = layerData[activeLayer].getContext("2d"),
+          selectionCtx = layerData.selection.getContext("2d"),
+          placeholderCtx = layerData.placeholder.getContext("2d");
+        manipulate(placeholderCtx, {
+          action: "paste",
+          params: {
+            sourceCtx: activeCtx,
+            dest: {x: 0, y: 0},
+            clip: selectionPath,
+            clearFirst: true
+          }
+        })
+        dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
+          () => {
+          manipulate(activeCtx, {
+            action: "clear",
+            params: {
+              clip: selectionPath,
+              clipOffset: layerSettings[activeLayer].offset
+            }
+          })
+        }, () => {
+          manipulate(selectionCtx, {
+            action: "clear",
+            params: { selectionPath: null }
+          })
+        }]));
+        dispatch(updateSelectionPath(null, true));
+        return dispatch(setTransformSelection(
+          activeLayer,
+          {startEvent: null, resizable: true, rotatable: true},
+          true
+        ));
       }
     default:
       break;

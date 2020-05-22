@@ -96,6 +96,12 @@ export default function TopBar() {
             onClick={() => dispatch(menuAction("clear"))}
             disabled={!selectionPath}
           />
+          <MenuItem
+            label="Free Transform"
+            hotkey={`Delete`}
+            onClick={() => dispatch(menuAction("transform"))}
+            disabled={!activeLayer}
+          />
         </Menu>
         <Menu id="image" label="Image">
           <MenuItem 
