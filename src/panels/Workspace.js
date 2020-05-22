@@ -338,7 +338,10 @@ export default function Workspace() {
           () => {
           manipulate(activeCtx, {
             action: "clear",
-            params: { clip: selectionPath }
+            params: {
+              clip: selectionPath,
+              clipOffset: layerSettings[activeLayer].offset
+            }
           })
         }, () => {
           manipulate(selectionCtx, {
@@ -349,8 +352,7 @@ export default function Workspace() {
         dispatch(updateSelectionPath(null, true));
         return dispatch(setTransformSelection(
           activeLayer,
-          layerData[activeLayer].getContext("2d"),
-          {button: 0, screenX: ev.screenX, screenY: ev.screenY},
+          {startEvent: {button: 0, screenX: ev.screenX, screenY: ev.screenY}},
           true
         ));
       }
@@ -457,6 +459,7 @@ export default function Workspace() {
           source={layerData.placeholder}
           target={transformSelectionTarget}
           targetCtx={layerData[transformSelectionTarget].getContext("2d")}
+          targetOffset={layerSettings[transformSelectionTarget].offset}
           docSize={{w: documentWidth, h: documentHeight}}
           index={layerOrder.indexOf(stagingPinnedTo) + 1}
         />

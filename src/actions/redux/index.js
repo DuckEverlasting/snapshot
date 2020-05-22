@@ -71,7 +71,7 @@ export const [
 ];
 
 export const undo = () => {
-  return (dispatch, getState) => {
+  return async (dispatch, getState) => {
     const prevState = getState().main.past[getState().main.past.length - 1]
     if (prevState && prevState.onUndo) {
       if (prevState.onUndo.length) {
@@ -97,13 +97,17 @@ export const undo = () => {
         ctx.putImageData(imgData, 0, 0);
       }
     }
-    dispatch({type: UNDO})
+    await dispatch({type: UNDO})
+    if (prevState && prevState.historyParams && prevState.historyParams.groupWithPrevious) {
+      dispatch(undo());
+    }
   };
 };
 
 export const redo = () => {
   return (dispatch, getState) => {
-    const currState = getState().main.present 
+    const currState = getState().main.present;
+    const nextState = getState().main.future[0];
     if (currState && currState.onRedo) {
       if (currState.onRedo.length) {
         currState.onRedo.forEach(el => executeRedo(el));
@@ -129,10 +133,13 @@ export const redo = () => {
       }
     }
     dispatch({type: REDO})
+    if (nextState && nextState.historyParams && nextState.historyParams.groupWithPrevious) {
+      dispatch(redo());
+    }
   };
 }
 
-export const putHistoryData = (id, ctx, callback, prevImgData) => {
+export const putHistoryData = (id, ctx, callback, prevImgData, params) => {
   const viewWidth = Math.ceil(ctx.canvas.width);
   const viewHeight = Math.ceil(ctx.canvas.height);
   if (!prevImgData) {
@@ -146,11 +153,11 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
   return {
     type: PUT_HISTORY_DATA,
-    payload: {id, ...getDiff(ctx, {prevImgData})}
+    payload: {id, ...getDiff(ctx, {prevImgData}), params}
   }
 }
 
-export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[]) => {
+export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[], params) => {
   let differences = [];
   for (let i = 0; i < ids.length; i++) {
     const viewWidth = Math.ceil(ctxs[i].canvas.width);
@@ -166,7 +173,8 @@ export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[])
     }
     differences[i] = {
       id: ids[i],
-      ...getDiff(ctxs[i], {prevImgData: prevImgDatas[i]})
+      ...getDiff(ctxs[i], {prevImgData: prevImgDatas[i]}),
+      params
     }
   }
   
@@ -232,11 +240,11 @@ export const updateSelectionPath = path => {
   };
 };
 
-export const setTransformSelection = (target, startEvent=null, ignoreHistory=false) => {
+export const setTransformSelection = (target, params={}, ignoreHistory=false) => {
   return {
     type: SET_TRANSFORM_SELECTION,
     payload: {
-      startEvent,
+      params,
       target,
       ignoreHistory
     }

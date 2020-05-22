@@ -8,7 +8,6 @@ import {
 } from '../../actions/custom/ctxActions.js'
 
 export default function(ctx, { action, params }) {
-  console.log(ctx)
   if (params.clearFirst) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }
@@ -23,7 +22,13 @@ export default function(ctx, { action, params }) {
     ctx.globalCompositeOperation = params.composite;
   }
   if (params.clip) {
+    if (params.clipOffset) {
+      ctx.translate(-params.clipOffset.x, -params.clipOffset.y)
+    }
     ctx.clip(params.clip);
+    if (params.clipOffset) {
+      ctx.translate(params.clipOffset.x, params.clipOffset.y)
+    }
   }
   switch (action) {
     case "move":

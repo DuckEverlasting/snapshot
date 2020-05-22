@@ -39,7 +39,8 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
             {
               ...present,
               onUndo: { id: payload.id, data: payload.old },
-              onRedo: { id: payload.id, data: payload.new }
+              onRedo: { id: payload.id, data: payload.new },
+              historyParams: payload.params
             }
           ],
           present: { ...present }
@@ -58,7 +59,8 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
             {
               ...present,
               onUndo: onUndoArray,
-              onRedo: onRedoArray
+              onRedo: onRedoArray,
+              historyParams: payload.params
             }
           ],
           present: { ...present }

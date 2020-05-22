@@ -170,9 +170,8 @@ let currentTransformAction = null;
 export default function TransformObject({
   target,
   targetCtx,
-  source,
-  resizable=true,
-  rotatable=true
+  targetOffset = {x: 0, y: 0},
+  source
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
@@ -183,6 +182,7 @@ export default function TransformObject({
     x: 0,
     y: 0,
   });
+  const { startEvent, rotatable, resizable } = useSelector(state => state.main.present.transformParams);
 
   const { workspaceOffset, zoom } = useSelector((state) => {
     let settings = state.ui.workspaceSettings;
@@ -251,8 +251,8 @@ export default function TransformObject({
           dest: {x: 0, y: 0},
         }
       });
-      if (image.startEvent) {
-        handleMouseDown(image.startEvent, "move");
+      if (startEvent) {
+        handleMouseDown(startEvent, "move");
       }
     } else {
       canvasRef.current.getContext("2d").drawImage(image, 0, 0);
@@ -262,6 +262,7 @@ export default function TransformObject({
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
     ev.stopPropagation && ev.stopPropagation();
+    if (!actionType) return;
     currentTransformAction = transformActionFactory(
       ev,
       size,
@@ -318,15 +319,15 @@ export default function TransformObject({
             params: {
               sourceCtx: canvasRef.current.getContext("2d"),
               dest: {
-                x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth),
-                y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight),
+                x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth - targetOffset.x),
+                y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight - targetOffset.y),
               },
               size,
               anchorPoint,
               rotation
             },
           });
-        }));
+        }, null, {groupWithPrevious: true}));
         dispatch(setImportImageFile(null));
         dispatch(setTransformSelection(null, null, true));
       }
@@ -338,7 +339,7 @@ export default function TransformObject({
 
   return (
     <BoundingBoxSC
-      onMouseDown={(ev) => handleMouseDown(ev, "rotate")}
+      onMouseDown={(ev) => handleMouseDown(ev, rotatable ? "rotate" : null)}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onKeyDown={handleKeyDown}

@@ -45,12 +45,14 @@ export default function menuAction(action) {
         const sourceCtx = getState().main.present.layerData[
           activeLayer
         ].getContext("2d");
+        const offset = getState().main.present.layerSettings[activeLayer].offset;
         manipulate(ctx, {
           action: "paste",
           params: {
             sourceCtx,
             dest: {x: 0, y: 0},
             clip: selectionPath,
+            clipOffset: offset,
             clearFirst: true
           }
         });
@@ -120,6 +122,7 @@ export default function menuAction(action) {
       return (dispatch, getState) => {
         const { activeLayer, selectionPath } = getState().main.present;
         const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        const offset = getState().main.present.layerSettings[activeLayer].offset;
         if (!selectionPath) {
           return;
         } else {
@@ -128,7 +131,8 @@ export default function menuAction(action) {
               manipulate(ctx, {
                 action: "clear",
                 params: {
-                  clip: selectionPath
+                  clip: selectionPath,
+                  clipOffset: offset
                 }
               })
             )

@@ -46,7 +46,11 @@ export const initMainState = {
   selectionPath: initSelectionPath,
   selectionActive: false,
   transformSelectionTarget: null,
-  transformStartEvent: null,
+  transformParams: {
+    startEvent: null,
+    resizable: false,
+    rotatable: false
+  },
   stagingPinnedTo: 1,
   layerOrder: [1],
   layerCounter: 2,
