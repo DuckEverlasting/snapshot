@@ -11,8 +11,11 @@ import {
   putHistoryData,
   putHistoryDataMultiple,
   setImportImageFile,
-  setTransformSelection
+  setTransformSelection,
+  updateLayerPosition
 } from "./index";
+
+import { saveAs } from 'file-saver';
 
 import manipulate from "../../reducers/custom/manipulateReducer";
 
@@ -59,18 +62,21 @@ export default function menuAction(action) {
           }
         });
         dispatch(setClipboardIsUsed(true));
+        dispatch(updateLayerPosition("clipboard", null, offset, true));
       };
     case "paste":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
+        if (!activeLayer) return;
         const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
         const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
+        const offset = getState().main.present.layerSettings.clipboard.offset;
         putHistoryData(activeLayer, ctx, () =>
           manipulate(ctx, {
             action: "paste",
             params: {
               sourceCtx,
-              dest: {x: 0, y: 0}
+              dest: offset
             }
           })
         );
@@ -156,8 +162,33 @@ export default function menuAction(action) {
           fileInput.removeEventListener("change", addFile, false);
         }
       }
+    case "exportAsPng":
+      return (dispatch, getState) => {
+        const { layerData, layerSettings, layerOrder } = getState().main.present,
+          placeholderCtx = layerData.placeholder.getContext("2d"),
+          fileName = getState().main.present.documentSettings.documentName
+      
+        layerOrder.forEach(id => {
+          if (!layerSettings[id].hidden) {
+            const sourceCtx = layerData[id].getContext("2d"); 
+            manipulate(placeholderCtx, {
+              action: "paste",
+              params: {
+                sourceCtx,
+                dest: {x: 0, y: 0}
+              }
+            })
+          }
+        })
+
+        const href = placeholderCtx.canvas.toDataURL("image/png");
+      
+        saveAs(href, fileName);
+
+        window.URL.revokeObjectURL(href);
+      }
     case "transform":
-      return async (dispatch, getState) => {
+      return (dispatch, getState) => {
         const { activeLayer, layerData, layerSettings, selectionPath } = getState().main.present;
         if (!activeLayer) return
         const activeCtx = layerData[activeLayer].getContext("2d"),

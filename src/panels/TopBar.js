@@ -60,7 +60,7 @@ export default function TopBar() {
           <MenuBranch label="Export As">
             <MenuItem disabled>PDF</MenuItem>
             <MenuItem disabled>JPG</MenuItem>
-            <MenuItem disabled>PNG</MenuItem>
+            <MenuItem onClick={() => dispatch(menuAction("exportAsPng"))}>PNG</MenuItem>
           </MenuBranch>
         </Menu>
         <Menu id="Edit" label="Edit">

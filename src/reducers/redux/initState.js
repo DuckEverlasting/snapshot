@@ -10,6 +10,7 @@ export const initMainState = {
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
+    documentName: "Untitled_1"
   },
   layerData: {
     1: null,
@@ -33,6 +34,16 @@ export const initMainState = {
       hidden: false,
     },
     "selection": {
+      size: {
+        w: initWidth,
+        h: initHeight
+      },
+      offset: {
+        x: 0,
+        y: 0
+      },
+    },
+    "clipboard": {
       size: {
         w: initWidth,
         h: initHeight
