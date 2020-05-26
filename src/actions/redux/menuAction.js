@@ -19,6 +19,33 @@ import { saveAs } from 'file-saver';
 
 import manipulate from "../../reducers/custom/manipulateReducer";
 
+export function exportDocument(type, compression=null) {
+  return (dispatch, getState) => {
+    const { layerData, layerSettings, layerOrder } = getState().main.present,
+      placeholderCtx = layerData.placeholder.getContext("2d"),
+      fileName = getState().main.present.documentSettings.documentName
+  
+    layerOrder.forEach(id => {
+      if (!layerSettings[id].hidden) {
+        const sourceCtx = layerData[id].getContext("2d"); 
+        manipulate(placeholderCtx, {
+          action: "paste",
+          params: {
+            sourceCtx,
+            dest: {x: 0, y: 0}
+          }
+        })
+      }
+    })
+
+    const href = placeholderCtx.canvas.toDataURL(type, compression);
+  
+    saveAs(href, fileName);
+
+    window.URL.revokeObjectURL(href);
+  }
+}
+
 export default function menuAction(action) {
   switch (action) {
     case "switchColors":
@@ -162,11 +189,14 @@ export default function menuAction(action) {
           fileInput.removeEventListener("change", addFile, false);
         }
       }
-    case "exportAsPng":
+    case "export":
       return (dispatch, getState) => {
         const { layerData, layerSettings, layerOrder } = getState().main.present,
           placeholderCtx = layerData.placeholder.getContext("2d"),
-          fileName = getState().main.present.documentSettings.documentName
+          { type, compression } = getState().ui.exportOptions,
+          fileName = getState().main.present.documentSettings.documentName;
+
+        if (!type) return;
       
         layerOrder.forEach(id => {
           if (!layerSettings[id].hidden) {
@@ -181,7 +211,7 @@ export default function menuAction(action) {
           }
         })
 
-        const href = placeholderCtx.canvas.toDataURL("image/png");
+        const href = placeholderCtx.canvas.toDataURL(type, compression);
       
         saveAs(href, fileName);
 

@@ -34,7 +34,8 @@ export const [
   TOGGLE_HELP,
   SET_HELP_TOPIC,
   SET_FILTER_TOOL,
-  SET_IMPORT_IMAGE_FILE
+  SET_IMPORT_IMAGE_FILE,
+  SET_EXPORT_OPTIONS
 ] = [
   "UNDO",
   "REDO",
@@ -69,7 +70,8 @@ export const [
   "TOGGLE_HELP",
   "SET_HELP_TOPIC",
   "SET_FILTER_TOOL",
-  "SET_IMPORT_IMAGE_FILE"
+  "SET_IMPORT_IMAGE_FILE",
+  "SET_EXPORT_OPTIONS"
 ];
 
 export const undo = () => {
@@ -419,5 +421,12 @@ export const setImportImageFile = (file) => {
   return {
     type: SET_IMPORT_IMAGE_FILE,
     payload: file
+  }
+}
+
+export const setExportOptions = (type=null, compression=null) => {
+  return {
+    type: SET_EXPORT_OPTIONS,
+    payload: { type, compression }
   }
 }

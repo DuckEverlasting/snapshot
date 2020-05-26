@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { toggleAboutModal, setFilterTool, toggleHelp } from "../actions/redux/index";
+import { toggleAboutModal, setFilterTool, toggleHelp, setExportOptions } from "../actions/redux/index";
 
 import { filter } from "../utils/filters";
 
@@ -50,6 +50,15 @@ export default function TopBar() {
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const dispatch = useDispatch();
   let mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
+
+  function exportAs(type, compression) {
+    return async dispatch => {
+      await dispatch(setExportOptions(type, compression));
+      await dispatch(menuAction("export"));
+      dispatch(setExportOptions());
+    }  
+  }
+
   return (
     <TopBarSC overlayVisible={overlayVisible}>
       <MenuBar>
@@ -59,8 +68,8 @@ export default function TopBar() {
           <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
           <MenuBranch label="Export As">
             <MenuItem disabled>PDF</MenuItem>
-            <MenuItem disabled>JPG</MenuItem>
-            <MenuItem onClick={() => dispatch(menuAction("exportAsPng"))}>PNG</MenuItem>
+            <MenuItem onClick={() => dispatch(exportAs("image/jpeg"))}>JPG</MenuItem>
+            <MenuItem onClick={() => dispatch(exportAs("image/png"))}>PNG</MenuItem>
           </MenuBranch>
         </Menu>
         <Menu id="Edit" label="Edit">

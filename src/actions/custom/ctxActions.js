@@ -119,7 +119,7 @@ export function undelete(ctx, { source }) {
   ctx.putImageData(source, 0, 0);
 }
 
-export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
+export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
   const viewWidth = Math.ceil(ctx.canvas.width);
   const viewHeight = Math.ceil(ctx.canvas.height);
   orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
@@ -144,7 +144,8 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
 
   while (stack.length) {
     current = stack.pop();
-    if (colorMatch(current)) {
+    const { x, y } = getCoordsOf(current);
+    if (colorMatch(current) && (ctx.isPointInPath(clip, x, y))) {
       for (let i = 0; i < 4; i++) {
         data[current + i] = colorArray[i];
       }
@@ -171,6 +172,14 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
 
   function getPixelAt(origin) {
     return (origin.x + origin.y * viewWidth) * 4;
+  }
+
+  function getCoordsOf(num) {
+    num /= 4;
+    return {
+      x: num % viewWidth,
+      y: Math.floor(num / viewWidth)
+    }
   }
 
   function colorMatch(pixel) {

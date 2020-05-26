@@ -12,7 +12,8 @@ import {
   TOGGLE_HELP,
   SET_HELP_TOPIC,
   SET_FILTER_TOOL,
-  SET_IMPORT_IMAGE_FILE
+  SET_IMPORT_IMAGE_FILE,
+  SET_EXPORT_OPTIONS
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -117,7 +118,11 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         ...state,
         importImageFile: payload
       }
-
+    case SET_EXPORT_OPTIONS:
+      return {
+        ...state,
+        exportOptions: payload
+      }
     default:
       return state;
   }
