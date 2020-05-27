@@ -194,6 +194,20 @@ export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
   }
 }
 
+export function blend(ctx, { source }) {
+  const destData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const sourceData = source.getImageData(0, 0, source.canvas.width, source.canvas.height);
+  for (let i=0; i<destData.data.length; i+=4) {
+    if (sourceData.data[i+3]) {
+      const opacity = sourceData.data[i+3] / 255;
+      destData.data[i] = sourceData.data[i] * opacity + destData.data[i] * (1 - opacity);
+      destData.data[i + 1] = sourceData.data[i + 1] * opacity + destData.data[i + 1] * (1 - opacity);
+      destData.data[i + 2] = sourceData.data[i + 2] * opacity + destData.data[i + 2] * (1 - opacity);
+    }
+  }
+  ctx.putImageData(destData, 0, 0);
+}
+
 export function getDiff(ctx, { prevImgData }) {
   const viewWidth = Math.ceil(ctx.canvas.width);
   const viewHeight = Math.ceil(ctx.canvas.height);

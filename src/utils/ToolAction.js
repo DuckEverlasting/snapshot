@@ -316,6 +316,116 @@ export class BrushAction extends ToolActionBase {
   }
 }
 
+export class FilterBrushAction extends ToolActionBase {
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
+    this.width = params.width;
+    this.filter = params.filter;
+    this.filterInput = params.filterInput;
+    this.hardness = params.hardness;
+    this.clip = params.clip;
+    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.processing = document.createElement('canvas');
+    this.filtered = document.createElement('canvas');
+  }
+
+  // PLAN:
+  // 1: on start, filter entire layer (clipped) onto filtered
+  // 2: on move, create mask on processing layer
+  // 3: clear staging layer
+  // 4: draw processing layer onto staging
+  // 5: composite filtered onto staging
+  // 6: repeat until end, and then:
+  // 7: destination-out composite staging onto active layer
+  // 8: source-over composite staging onto active layer
+
+  start(ev, layerData) {
+    this.layerData = layerData;
+    const ctx = this.layerData[this.activeLayer].getContext("2d");
+    this.processing.width = ctx.canvas.width;
+    this.processing.height = ctx.canvas.height;
+    this.filtered.width = ctx.canvas.width;
+    this.filtered.height = ctx.canvas.height;
+    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    this.filter(imageData.data, this.filterInput);
+    this.filtered.getContext("2d").putImageData(imageData, 0, 0);
+    this._clearStaging();
+    this._moveStaging();
+    this.origin = this._getCoordinates(ev);
+    this.lastDest = this.origin;
+  }
+
+  move(ev, layerData) {
+    this.layerData = layerData;
+    this._setLockedAxis(ev);
+    let {x, y} = this._getCoordinates(ev);
+    if (this.lockedAxis === "x") {
+      x = this.origin.x;
+    } else if (this.lockedAxis === "y") {
+      y = this.origin.y;
+    }
+
+    const newMid = midpoint(this.lastDest, {x, y});
+
+    if (
+      getQuadLength(
+        this.lastMid || this.origin,
+        this.lastDest,
+        newMid
+      ) <
+      this.width * 0.25
+    ) {
+      return;
+    }
+
+    draw(this.processing.getContext("2d"), {
+      action: "drawQuadPoints",
+      params: {
+        orig: this.origin,
+        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
+        gradient: this.gradient,
+        width: this.width,
+        hardness: this.hardness,
+        density: 0.25,
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+      }
+    });
+    manipulate(this.layerData.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.processing.getContext("2d"),
+        clearFirst: true
+      }
+    });
+    manipulate(this.layerData.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.filtered.getContext("2d"),
+        composite: "source-in"
+      }
+    });
+    this.lastDest = {x, y};
+    this.lastMid = newMid;
+  }
+
+  async end(layerData) {
+    this.layerData = layerData;
+    await this.dispatch(putHistoryData(
+      this.activeLayer,
+      this.layerData[this.activeLayer].getContext("2d"),
+      () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
+        action: "blend",
+        params: {
+          source: this.layerData.staging.getContext("2d")
+        }
+      })
+    ))
+    this._clearStaging();
+    this.processing = null;
+  }
+}
+
 export class EraserAction extends ToolActionBase {
   constructor(activeLayer, dispatch, translateData, params) {
     super(activeLayer, dispatch, translateData);

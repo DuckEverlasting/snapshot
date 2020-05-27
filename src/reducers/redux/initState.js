@@ -97,7 +97,7 @@ export const initUiState = {
     hand: { name: "Hand" },
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
-    TEST: { name: "TEST" }
+    TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",

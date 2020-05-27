@@ -10,6 +10,7 @@ import TransformObject from "../components/TransformObject";
 import { 
   PencilAction,
   BrushAction,
+  FilterBrushAction,
   EraserAction,
   ShapeAction,
   EyeDropperAction,
@@ -29,6 +30,8 @@ import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
 import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
+
+import { brightness } from "../utils/filters";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -234,6 +237,15 @@ export default function Workspace() {
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
           colorArray: toArrayFromRgba(primary, toolSettings.bucketFill.opacity / 100),
           tolerance: toolSettings.bucketFill.tolerance,
+          clip: selectionPath
+        });
+      case "TEST":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.TEST.width,
+          hardness: toolSettings.TEST.hardness,
+          filter: brightness.apply,
+          filterInput: {amount: toolSettings.TEST.amount},
           clip: selectionPath
         });
       default:
