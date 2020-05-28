@@ -20,7 +20,7 @@ const TitleSC = styled.p`
 export default function ToolCard() {
   const activeTool = useSelector(state => state.ui.activeTool);
   const toolSettings = useSelector(state => state.ui.toolSettings);
-  const { width, opacity, hardness, tolerance } = toolSettings[activeTool];
+  const { width, amount, opacity, hardness, tolerance } = toolSettings[activeTool];
   const dispatch = useDispatch();
 
   const toolName = toolSettings[activeTool].name;
@@ -42,6 +42,13 @@ export default function ToolCard() {
         value={width}
         name={"Width"}
         max={255}
+      />}
+      {amount !== undefined && <SliderInput
+        onChange={value => inputHandler(value, "amount")}
+        value={amount}
+        name={"Amount"}
+        min={-100}
+        max={100}
       />}
       {opacity !== undefined && <SliderInput
         onChange={value => inputHandler(value, "opacity")}
