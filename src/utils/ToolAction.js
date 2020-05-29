@@ -329,16 +329,6 @@ export class FilterBrushAction extends ToolActionBase {
     this.filtered = document.createElement('canvas');
   }
 
-  // PLAN:
-  // 1: on start, filter entire layer (clipped) onto filtered
-  // 2: on move, create mask on processing layer
-  // 3: clear staging layer
-  // 4: draw processing layer onto staging
-  // 5: composite filtered onto staging
-  // 6: repeat until end, and then:
-  // 7: destination-out composite staging onto active layer
-  // 8: source-over composite staging onto active layer
-
   start(ev, layerData) {
     this.layerData = layerData;
     const ctx = this.layerData[this.activeLayer].getContext("2d");

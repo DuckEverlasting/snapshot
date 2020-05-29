@@ -14,6 +14,14 @@ const amount = {
   max: 100
 }
 
+const size = {
+  name: "Size",
+  type: "Number",
+  init: 1,
+  min: 0,
+  max: 10
+}
+
 function convolve(data, width, matrix, offset=0, divisor) {
   if (!divisor) {
     divisor = 0;
@@ -127,6 +135,75 @@ export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amo
   convolve(data, width, matrix);
 });
 
+export const boxBlur = new Filter("Box Blur", {size}, (data, {size, width}) => {
+  let count = null, total = null;
+  for (let i = 0; i < data.length; i += 4) {
+    const x = (i / 4) % width;
+    if (x === width - 1) {
+      count = null;
+      total = null;
+    }
+    if (data[i + 3] === 0) continue;
+    if (x === 0 || count === null) {
+      [count, total] = getAverage(x, i);
+    } else {
+      [count, total] = getAverageWithPrev(count, total, x, i);
+    }
+    data[i] = count[0] / total;
+    data[i + 1] = count[1] / total;
+    data[i + 2] = count[2] / total
+    if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0) {
+      break;
+    }
+  }
+  
+  function getAverage(x, i) {
+    let count = [0, 0, 0], total = 0;
+    for (let w = -size; w <= size; w++) {
+      for (let v = -size; v <= size; v++) {
+        const index = i + (v + w * width) * 4;
+        if (
+          data[index + 4] &&
+          x + v >= 0 &&
+          x + v < width
+        ) {
+          count[0] += data[index];
+          count[1] += data[index + 1];
+          count[2] += data[index + 2];
+          total++;
+        }
+      }
+    }
+    return [count, total]
+  }
+
+  function getAverageWithPrev(count, total, x, i) {
+    let leftIndex, rightIndex;
+    if (x + size < width) {
+      for (let w = -size; w <= size; w++) {
+        if (!data[i + w * width + 4]) continue;
+        leftIndex = i + (i - size + w * width) * 4;
+        rightIndex = i + (i + size + w * width) * 4;
+        count[0] -= data[leftIndex];
+        count[0] += data[rightIndex];
+        count[1] -= data[leftIndex + 1];
+        count[1] += data[rightIndex + 1];
+        count[2] -= data[leftIndex + 2];
+        count[2] += data[rightIndex + 2];
+      }
+    } else {
+      for (let w = -size; w <= size; w++) {
+        if (!data[i + w * width + 4]) continue;
+        count[0] -= data[leftIndex];
+        count[1] -= data[leftIndex + 1];
+        count[2] -= data[leftIndex + 2];
+        total--;
+      }
+    }
+    return [count, total]
+  }
+});
+
 export const sharpen = new Filter("Sharpen", {amount: {...amount, min:0}}, (data, {amount, width}) => {
   const strength = amount / 100;
   const a = -1 * strength, b = -8 * a + 1;
@@ -140,5 +217,6 @@ export const filter = {
   contrast,
   saturation,
   blur,
+  boxBlur,
   sharpen
 }
