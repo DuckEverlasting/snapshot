@@ -97,7 +97,8 @@ export const initUiState = {
     hand: { name: "Hand" },
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
-    saturationBrush: { name: "Saturation Brush", width: 20, hardness: 50, amount: 50 }
+    saturate: { name: "Saturate", width: 20, hardness: 0, amount: 50 },
+    blur: { name: "Blur", width: 20, hardness: 0, amount: 50 }
     // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }
   },
   colorSettings: {

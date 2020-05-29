@@ -31,7 +31,7 @@ import HelpModal from "../components/HelpModal";
 import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
-import { saturation } from "../utils/filters";
+import { filter } from "../utils/filters";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -239,13 +239,22 @@ export default function Workspace() {
           tolerance: toolSettings.bucketFill.tolerance,
           clip: selectionPath
         });
-      case "saturationBrush":
+      case "saturate":
         if (!activeLayer) {return}
         return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
-          width: toolSettings.saturationBrush.width,
-          hardness: toolSettings.saturationBrush.hardness,
-          filter: saturation.apply,
-          filterInput: {amount: toolSettings.saturationBrush.amount},
+          width: toolSettings.saturate.width,
+          hardness: toolSettings.saturate.hardness,
+          filter: filter.saturation.apply,
+          filterInput: {amount: toolSettings.saturate.amount},
+          clip: selectionPath
+        });
+      case "blur":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.blur.width,
+          hardness: toolSettings.blur.hardness,
+          filter: filter.blur.apply,
+          filterInput: {amount: toolSettings.blur.amount, width: layerData[activeLayer].width},
           clip: selectionPath
         });
       default:

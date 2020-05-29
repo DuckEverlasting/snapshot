@@ -49,7 +49,7 @@ export default function FilterTool() {
 
   useEffect(() => {
     if (showPreview) {
-      dispatch(filterAction(filter.apply, input, true))
+      dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
     } else if (stagingCanvas) {
       stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
     }
@@ -61,7 +61,7 @@ export default function FilterTool() {
     if (showPreview) {
       previewDelay = setTimeout(() => {
         if (showPreview) {
-          dispatch(filterAction(filter.apply, input, true))
+          dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
         }
       }, 20)
     }
@@ -75,7 +75,7 @@ export default function FilterTool() {
   }
 
   const handleApply = () => {
-    dispatch(filterAction(filter.apply, input))
+    dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}))
     dispatch(setFilterTool("off"));
   }
 

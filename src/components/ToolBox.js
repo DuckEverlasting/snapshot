@@ -50,7 +50,8 @@ function ToolBox() {
       <ToolButton title="Draw Ellipse" name="drawEllipse" icon="⚪"/>
       <ToolButton title="Eye Dropper (I)" name="eyeDropper" faIcon={faEyeDropper}/>
       <ToolButton title="Paint Bucket (G)" name="bucketFill" faIcon={faFillDrip}/>
-      <ToolButton title="Saturation Brush" name="saturationBrush" faIcon={faPalette}/>
+      <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
+      <ToolButton title="Blur" name="blur" icon="💧"/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img src={dashedSquareIcon} />}/>
       <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img src={dashedCircleIcon} />}/>
       <ToolButton title="Lasso (L)" name="lasso" icon={<img src={lassoIcon} />}/>
