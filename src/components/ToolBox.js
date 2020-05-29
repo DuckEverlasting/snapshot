@@ -11,7 +11,8 @@ import {
   faEyeDropper,
   faSearch,
   faFillDrip,
-  faPalette
+  faPalette,
+  faTint
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faHandPaper
@@ -19,6 +20,7 @@ import {
 import dashedCircleIcon from "../media/dashed-circle.svg"
 import dashedSquareIcon from "../media/dashed-square.svg"
 import lassoIcon from "../media/lasso.svg"
+import sharpenIcon from "../media/sharpen.svg"
 import styled from "styled-components";
 
 import Button from "./Button";
@@ -50,11 +52,12 @@ function ToolBox() {
       <ToolButton title="Draw Ellipse" name="drawEllipse" icon="⚪"/>
       <ToolButton title="Eye Dropper (I)" name="eyeDropper" faIcon={faEyeDropper}/>
       <ToolButton title="Paint Bucket (G)" name="bucketFill" faIcon={faFillDrip}/>
+      <ToolButton title="Blur" name="blur" faIcon={faTint}/>
+      <ToolButton title="Sharpen" name="sharpen" icon={<img alt="Sharpen" src={sharpenIcon} />}/>
       <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
-      <ToolButton title="Blur" name="blur" icon="💧"/>
-      <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img src={dashedSquareIcon} />}/>
-      <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img src={dashedCircleIcon} />}/>
-      <ToolButton title="Lasso (L)" name="lasso" icon={<img src={lassoIcon} />}/>
+      <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img alt="Select Rectangle" src={dashedSquareIcon} />}/>
+      <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img alt="Select Ellipse" src={dashedCircleIcon} />}/>
+      <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom (Z)" name="zoom" faIcon={faSearch}/>

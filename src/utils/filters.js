@@ -12,7 +12,7 @@ const amount = {
   init: 0,
   min: -100,
   max: 100
-};
+}
 
 function convolve(data, width, matrix, offset=0, divisor) {
   if (!divisor) {
@@ -124,14 +124,21 @@ export const saturation = new Filter("Saturation", {amount}, (data, {amount}) =>
 
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
   const matrix = getGaussianKernel(amount / 10);
-  console.log(matrix);
   convolve(data, width, matrix);
-})
+});
+
+export const sharpen = new Filter("Sharpen", {amount: {...amount, min:0}}, (data, {amount, width}) => {
+  const strength = amount / 100;
+  const a = -1 * strength, b = -8 * a + 1;
+  const matrix = [[a, a, a], [a, b, a], [a, a, a]];
+  convolve(data, width, matrix);
+});
 
 export const filter = {
   invert,
   brightness,
   contrast,
   saturation,
-  blur
-};
+  blur,
+  sharpen
+}

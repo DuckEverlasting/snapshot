@@ -132,7 +132,7 @@ export default function TopBar() {
             />
             <MenuItem 
               label="Sharpen"
-              disabled
+              onClick={() => dispatch(setFilterTool("on", filter.sharpen))}
             />
           </MenuBranch>
         </Menu>

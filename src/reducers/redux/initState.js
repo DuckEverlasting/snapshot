@@ -98,7 +98,8 @@ export const initUiState = {
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
     saturate: { name: "Saturate", width: 20, hardness: 0, amount: 50 },
-    blur: { name: "Blur", width: 20, hardness: 0, amount: 50 }
+    blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
+    sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 }
     // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }
   },
   colorSettings: {

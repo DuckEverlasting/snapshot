@@ -257,6 +257,15 @@ export default function Workspace() {
           filterInput: {amount: toolSettings.blur.amount, width: layerData[activeLayer].width},
           clip: selectionPath
         });
+      case "sharpen":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.sharpen.width,
+          hardness: toolSettings.sharpen.hardness,
+          filter: filter.sharpen.apply,
+          filterInput: {amount: toolSettings.sharpen.amount, width: layerData[activeLayer].width},
+          clip: selectionPath
+        });
       default:
         break;
     }
