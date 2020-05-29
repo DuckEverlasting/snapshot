@@ -55,9 +55,9 @@ function ToolBox() {
       <ToolButton title="Blur" name="blur" faIcon={faTint}/>
       <ToolButton title="Sharpen" name="sharpen" icon={<img alt="Sharpen" src={sharpenIcon} />}/>
       <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
+      <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img alt="Select Rectangle" src={dashedSquareIcon} />}/>
       <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img alt="Select Ellipse" src={dashedCircleIcon} />}/>
-      <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom (Z)" name="zoom" faIcon={faSearch}/>

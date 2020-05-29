@@ -47,7 +47,7 @@ export default function ToolCard() {
         onChange={value => inputHandler(value, "amount")}
         value={amount}
         name={"Amount"}
-        min={-100}
+        min={activeTool === "saturation" ? -100 : 0}
         max={100}
       />}
       {opacity !== undefined && <SliderInput
