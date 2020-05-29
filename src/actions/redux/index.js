@@ -4,14 +4,18 @@ export const [
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
+  PUT_HISTORY_DATA_MULTIPLE,
   CREATE_LAYER,
   CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
   UPDATE_LAYER_DATA,
   UPDATE_SELECTION_PATH,
+  SET_TRANSFORM_SELECTION,
+  SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_ORDER,
+  UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
@@ -30,19 +34,24 @@ export const [
   TOGGLE_HELP,
   SET_HELP_TOPIC,
   SET_FILTER_TOOL,
-  SET_IMPORT_IMAGE_FILE
+  SET_IMPORT_IMAGE_FILE,
+  SET_EXPORT_OPTIONS
 ] = [
   "UNDO",
   "REDO",
   "PUT_HISTORY_DATA",
+  "PUT_HISTORY_DATA_MULTIPLE",
   "CREATE_LAYER",
   "CREATE_LAYER_FROM",
   "DELETE_LAYER",
   "HIDE_LAYER",
   "UPDATE_LAYER_DATA",
   "UPDATE_SELECTION_PATH",
+  "SET_TRANSFORM_SELECTION",
+  "SET_TRANSFORM_PARAMS",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_ORDER",
+  "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
   "ENABLE_LAYER_RENAME",
   "UPDATE_LAYER_NAME",
@@ -61,56 +70,80 @@ export const [
   "TOGGLE_HELP",
   "SET_HELP_TOPIC",
   "SET_FILTER_TOOL",
-  "SET_IMPORT_IMAGE_FILE"
+  "SET_IMPORT_IMAGE_FILE",
+  "SET_EXPORT_OPTIONS"
 ];
 
 export const undo = () => {
-  return (dispatch, getState) => {
-    const prevState = getState().main.past[getState().main.past.length - 1] 
+  return async (dispatch, getState) => {
+    const prevState = getState().main.past[getState().main.past.length - 1]
     if (prevState && prevState.onUndo) {
-      const ctx = prevState.layerData[prevState.onUndo.id].getContext("2d")
-      const changeData = prevState.onUndo.data
-      const viewWidth = Math.ceil(ctx.canvas.width);
-      const viewHeight = Math.ceil(ctx.canvas.height);
-      const imgData = ctx.getImageData(
-        0,
-        0,
-        viewWidth,
-        viewHeight
-      );
-      for (let index in changeData) {
-        imgData.data[index] = changeData[index];
+      if (prevState.onUndo.length) {
+        prevState.onUndo.forEach(el => executeUndo(el));
+      } else {
+        executeUndo(prevState.onUndo);
       }
-      ctx.putImageData(imgData, 0, 0);
+
+      function executeUndo(onUndo) {
+        const ctx = prevState.layerData[onUndo.id].getContext("2d")
+        const changeData = onUndo.data
+        const viewWidth = Math.ceil(ctx.canvas.width);
+        const viewHeight = Math.ceil(ctx.canvas.height);
+        const imgData = ctx.getImageData(
+          0,
+          0,
+          viewWidth,
+          viewHeight
+        );
+        for (let index in changeData) {
+          imgData.data[index] = changeData[index];
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
     }
-    dispatch({type: UNDO})
+    await dispatch({type: UNDO})
+    if (prevState && prevState.historyParams && prevState.historyParams.groupWithPrevious) {
+      dispatch(undo());
+    }
   };
 };
 
 export const redo = () => {
   return (dispatch, getState) => {
-    const currState = getState().main.present 
+    const currState = getState().main.present;
+    const nextState = getState().main.future[0];
     if (currState && currState.onRedo) {
-      const ctx = currState.layerData[currState.onRedo.id].getContext("2d")
-      const changeData = currState.onRedo.data
-      const viewWidth = Math.ceil(ctx.canvas.width);
-      const viewHeight = Math.ceil(ctx.canvas.height);
-      const imgData = ctx.getImageData(
-        0,
-        0,
-        viewWidth,
-        viewHeight
-      );
-      for (let index in changeData) {
-        imgData.data[index] = changeData[index];
+      if (currState.onRedo.length) {
+        currState.onRedo.forEach(el => executeRedo(el));
+      } else {
+        executeRedo(currState.onRedo);
       }
-      ctx.putImageData(imgData, 0, 0);
+
+      function executeRedo(onRedo) {
+        const ctx = currState.layerData[onRedo.id].getContext("2d")
+        const changeData = onRedo.data
+        const viewWidth = Math.ceil(ctx.canvas.width);
+        const viewHeight = Math.ceil(ctx.canvas.height);
+        const imgData = ctx.getImageData(
+          0,
+          0,
+          viewWidth,
+          viewHeight
+        );
+        for (let index in changeData) {
+          imgData.data[index] = changeData[index];
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
     }
     dispatch({type: REDO})
+    if (nextState && nextState.historyParams && nextState.historyParams.groupWithPrevious) {
+      dispatch(redo());
+    }
   };
 }
 
-export const putHistoryData = (id, ctx, callback, prevImgData) => {
+export const putHistoryData = (id, ctx, callback, prevImgData, params) => {
   const viewWidth = Math.ceil(ctx.canvas.width);
   const viewHeight = Math.ceil(ctx.canvas.height);
   if (!prevImgData) {
@@ -124,7 +157,34 @@ export const putHistoryData = (id, ctx, callback, prevImgData) => {
   }
   return {
     type: PUT_HISTORY_DATA,
-    payload: {id, ...getDiff(ctx, {prevImgData})}
+    payload: {id, ...getDiff(ctx, {prevImgData}), params}
+  }
+}
+
+export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[], params) => {
+  let differences = [];
+  for (let i = 0; i < ids.length; i++) {
+    const viewWidth = Math.ceil(ctxs[i].canvas.width);
+    const viewHeight = Math.ceil(ctxs[i].canvas.height);
+    if (!prevImgDatas[i]) {
+      prevImgDatas[i] = ctxs[i].getImageData(
+        0,
+        0,
+        viewWidth,
+        viewHeight
+      );
+      callbacks[i]();
+    }
+    differences[i] = {
+      id: ids[i],
+      ...getDiff(ctxs[i], {prevImgData: prevImgDatas[i]}),
+      params
+    }
+  }
+  
+  return {
+    type: PUT_HISTORY_DATA_MULTIPLE,
+    payload: differences
   }
 }
 
@@ -184,6 +244,33 @@ export const updateSelectionPath = path => {
   };
 };
 
+const defaultTransformParams = {
+  startEvent: null,
+  rotatable: null,
+  resizable: null
+}
+
+export const setTransformSelection = (target, params=defaultTransformParams, ignoreHistory=true) => {
+  return {
+    type: SET_TRANSFORM_SELECTION,
+    payload: {
+      params: params ? params : defaultTransformParams,
+      target,
+      ignoreHistory
+    }
+  };
+};
+
+export const setTransformParams = (params=defaultTransformParams, ignoreHistory=true) => {
+  return {
+    type: SET_TRANSFORM_PARAMS,
+    payload: {
+      params: params ? params : defaultTransformParams,
+      ignoreHistory
+    }
+  };
+};
+
 export const updateLayerOpacity = (id, opacity, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_OPACITY,
@@ -195,6 +282,13 @@ export const updateLayerOrder = (from, to, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_ORDER,
     payload: {from, to, ignoreHistory}
+  };
+};
+
+export const updateLayerPosition = (id, size, offset, ignoreHistory=false) => {
+  return {
+    type: UPDATE_LAYER_POSITION,
+    payload: {id, size, offset, ignoreHistory}
   };
 };
 
@@ -327,5 +421,12 @@ export const setImportImageFile = (file) => {
   return {
     type: SET_IMPORT_IMAGE_FILE,
     payload: file
+  }
+}
+
+export const setExportOptions = (type=null, compression=null) => {
+  return {
+    type: SET_EXPORT_OPTIONS,
+    payload: { type, compression }
   }
 }

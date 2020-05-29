@@ -3,6 +3,7 @@ import {
   paste,
   undelete,
   fill,
+  blend,
   getDiff,
   swapData
 } from '../../actions/custom/ctxActions.js'
@@ -22,7 +23,13 @@ export default function(ctx, { action, params }) {
     ctx.globalCompositeOperation = params.composite;
   }
   if (params.clip) {
+    if (params.clipOffset) {
+      ctx.translate(-params.clipOffset.x, -params.clipOffset.y)
+    }
     ctx.clip(params.clip);
+    if (params.clipOffset) {
+      ctx.translate(params.clipOffset.x, params.clipOffset.y)
+    }
   }
   switch (action) {
     case "move":
@@ -40,6 +47,9 @@ export default function(ctx, { action, params }) {
     case "clear":
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       break;
+    case "blend":
+      blend(ctx, params);
+      break;
     case "getDiff":
       getDiff(ctx, params);
       break;
@@ -49,7 +59,7 @@ export default function(ctx, { action, params }) {
     case "null":
       break;
     default:
-      console.log("error: invalid draw action");
+      console.log("error: invalid manipulate action");
       break;
   }
   ctx.restore()

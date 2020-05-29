@@ -3,8 +3,10 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, putHistoryData, setTransformParams } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
+import getImageRect from "../utils/getImageRect";
+import { calculateClipping } from "../utils/helpers";
 
 import styled from "styled-components";
 
@@ -27,7 +29,7 @@ const ContainerSC = styled.div.attrs((props) => ({
     width: props.size ? props.size.w * props.zoom + "px" : "auto",
     height: props.size ? props.size.h * props.zoom + "px" : "auto",
     cursor: props.overrideCursor || "move",
-    border: props.borderStyle || "1px solid #ffe312",
+    border: props.borderStyle || "2px solid #ffe312",
   },
 }))`
   flex-grow: 0;
@@ -59,6 +61,7 @@ const CanvasSC = styled.canvas.attrs((props) => ({
   left: 0;
   width: 100%;
   height: 100%;
+  border: 1px solid #888888;
 `;
 
 const ResizeSideSC = styled.div`
@@ -165,11 +168,10 @@ const AnchorPointCircleSC = styled.div`
 let currentTransformAction = null;
 
 export default function TransformObject({
+  target,
   targetCtx,
-  source,
-  clip,
-  resizable=true,
-  rotatable=true
+  targetOffset = {x: 0, y: 0},
+  source
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
@@ -180,6 +182,7 @@ export default function TransformObject({
     x: 0,
     y: 0,
   });
+  const { startEvent, rotatable, resizable } = useSelector(state => state.main.present.transformParams);
 
   const { workspaceOffset, zoom } = useSelector((state) => {
     let settings = state.ui.workspaceSettings;
@@ -220,22 +223,51 @@ export default function TransformObject({
         });
       };
     } else if (source instanceof HTMLCanvasElement) {
-      if (clip) {
-        const ctx = source.getContext("2d");
-        ctx.save();
-        ctx.clip(clip);
+      const imageRect = getImageRect(source);
+      if (!imageRect) {
+        dispatch(setImportImageFile(null));
+        dispatch(setTransformSelection(null, null, true));
+        return;
       }
+      setImage({ctx: source.getContext("2d"), rect: imageRect});
+      setOffset({
+        x: Math.floor(imageRect.x + (imageRect.w - documentWidth) / 2),
+        y: Math.floor(imageRect.y + (imageRect.h - documentHeight) / 2),
+      });
+      setSize({
+        w: imageRect.w,
+        h: imageRect.h,
+      });
+      setTransformCanvasSize({
+        w: imageRect.w,
+        h: imageRect.h,
+      });
     }
   }, [source]);
 
   useEffect(() => {
     if (!image) return;
-    canvasRef.current.getContext("2d").drawImage(image, 0, 0);
-  }, [transformCanvasSize]);
+    if (image.ctx) {
+      manipulate(canvasRef.current.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: image.ctx,
+          orig: {x: image.rect.x, y: image.rect.y},
+          dest: {x: 0, y: 0},
+        }
+      });
+      if (startEvent) {
+        handleMouseDown(startEvent, "move");
+      }
+    } else {
+      canvasRef.current.getContext("2d").drawImage(image, 0, 0);
+    }
+  }, [image, transformCanvasSize]);
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
-    ev.stopPropagation();
+    ev.stopPropagation && ev.stopPropagation();
+    if (!actionType) return;
     currentTransformAction = transformActionFactory(
       ev,
       size,
@@ -278,35 +310,36 @@ export default function TransformObject({
     };
   }
 
-  function calculateClipping() {
-    return {
-      up: (0.5 * size.h - offset.y - 0.5 * documentHeight) * zoom,
-      down: (0.5 * size.h + offset.y - 0.5 * documentHeight) * zoom,
-      left: (0.5 * size.w - offset.x - 0.5 * documentWidth) * zoom,
-      right: (0.5 * size.w + offset.x - 0.5 * documentWidth) * zoom,
-    };
-  }
-
   const handleKeyDown = useCallback(
     (ev) => {
+      ev.preventDefault();
+      let modifier = window.navigator.platform.includes("Mac")
+        ? ev.metaKey
+        : ev.ctrlKey;
       if (ev.key === "Escape") {
         dispatch(menuAction("undo"));
         dispatch(setImportImageFile(null));
+        dispatch(setTransformSelection(null, null, true));
       } else if (ev.key === "Enter") {
-        manipulate(targetCtx, {
-          action: "paste",
-          params: {
-            sourceCtx: canvasRef.current.getContext("2d"),
-            dest: {
-              x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth),
-              y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight),
+        dispatch(putHistoryData(target, targetCtx, () => {
+          manipulate(targetCtx, {
+            action: "paste",
+            params: {
+              sourceCtx: canvasRef.current.getContext("2d"),
+              dest: {
+                x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth - targetOffset.x),
+                y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight - targetOffset.y),
+              },
+              size,
+              anchorPoint,
+              rotation
             },
-            size,
-            anchorPoint,
-            rotation
-          },
-        });
+          });
+        }, null, {groupWithPrevious: true}));
         dispatch(setImportImageFile(null));
+        dispatch(setTransformSelection(null, null, true));
+      } else if (modifier && ev.key === "r") {
+        dispatch(setTransformParams({resizable: true, rotatable: true}))
       }
     },
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
@@ -316,7 +349,7 @@ export default function TransformObject({
 
   return (
     <BoundingBoxSC
-      onMouseDown={(ev) => handleMouseDown(ev, "rotate")}
+      onMouseDown={(ev) => handleMouseDown(ev, rotatable ? "rotate" : null)}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onKeyDown={handleKeyDown}
@@ -341,7 +374,7 @@ export default function TransformObject({
         <ClipCheckSC
           rotation={rotation}
           anchorPoint={anchorPoint}
-          clip={calculateClipping()}
+          clip={calculateClipping(size, offset, {w: documentWidth, h: documentHeight}, zoom)}
         >
           <CanvasSC
             width={transformCanvasSize.w}

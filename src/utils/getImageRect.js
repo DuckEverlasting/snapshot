@@ -1,16 +1,20 @@
-export default function getImageRect(canvas) {
+export default function getImageRect(canvas, selectionPath) {
   const ctx = canvas.getContext("2d");
   const w = canvas.width;
   const h = canvas.height;
   const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
   let x, y, i;
-  let left = 0, right = w - 1, top = 0, bottom = h - 1;
+  let left, right, top, bottom;
+
+  function inPath(x, y) {
+    return selectionPath ? ctx.isPointInPath(selectionPath, x, y) : true;
+  }
 
   for (y = 0; y < h; y++) {
     let isBlank = true;
     for (x = 0; x < w; x++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0) {
+      if (imageData.data[i+3] > 0 && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -21,7 +25,7 @@ export default function getImageRect(canvas) {
     }
   }
 
-  if (top === h-1) {
+  if (top === undefined) {
     return null
   }
 
@@ -29,7 +33,7 @@ export default function getImageRect(canvas) {
     let isBlank = true;
     for (y = 0; y < h; y++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0) {
+      if (imageData.data[i+3] > 0 && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -44,7 +48,7 @@ export default function getImageRect(canvas) {
     let isBlank = true;
     for (x = 0; x < w; x++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0) {
+      if (imageData.data[i+3] > 0 && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -59,7 +63,7 @@ export default function getImageRect(canvas) {
     let isBlank = true;
     for (y = 0; y < h; y++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0) {
+      if (imageData.data[i+3] > 0 && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -73,7 +77,7 @@ export default function getImageRect(canvas) {
   return {
     x: left,
     y: top,
-    w: right - left,
-    h: bottom - top
+    w: right - left + 1,
+    h: bottom - top + 1
   }
 }

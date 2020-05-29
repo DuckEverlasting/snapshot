@@ -10,6 +10,7 @@ import TransformObject from "../components/TransformObject";
 import { 
   PencilAction,
   BrushAction,
+  FilterBrushAction,
   EraserAction,
   ShapeAction,
   EyeDropperAction,
@@ -17,16 +18,20 @@ import {
   FillAction
 } from "../utils/ToolAction";
 
-import { getZoomAmount } from "../utils/helpers";
+import { getZoomAmount, calculateLayerClipping } from "../utils/helpers";
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import { updateWorkspaceSettings, setImportImageFile, createLayer } from "../actions/redux";
+import manipulate from "../reducers/custom/manipulateReducer";
+
+import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection, putHistoryDataMultiple, updateSelectionPath } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
 import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
+
+import { filter } from "../utils/filters";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -80,10 +85,11 @@ export default function Workspace() {
   const {
     activeLayer,
     selectionPath,
+    selectionActive,
+    transformSelectionTarget,
     layerData,
     layerSettings,
     layerOrder,
-    transformSettings,
     stagingPinnedTo
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
@@ -108,13 +114,17 @@ export default function Workspace() {
     animationFrame = reqFrame;
   }
 
-  function getTranslateData() {
+  function getTranslateData(noOffset) {
     const marginLeft = .5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100);
     const marginTop = .5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
-      zoom: zoomPct
+      zoom: zoomPct / 100,
+      offX: noOffset ? 0 : layerSettings[activeLayer].offset.x,
+      offY: noOffset ? 0 : layerSettings[activeLayer].offset.y,
+      documentWidth,
+      documentHeight
     }
   }
 
@@ -201,32 +211,59 @@ export default function Workspace() {
           layerOrder: layerOrder
         });
       case "selectRect":
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
           drawActionType: "drawRect",
           regularOnShift: true,
           isSelectionTool: true,
           clip: selectionPath
         });
       case "selectEllipse":
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
           drawActionType: "drawEllipse",
           regularOnShift: true,
           isSelectionTool: true,
           clip: selectionPath
         });
       case "lasso":
-        return new PencilAction(activeLayer, dispatch, getTranslateData(), {
+        return new PencilAction(activeLayer, dispatch, getTranslateData(true), {
           isSelectionTool: true,
           clip: selectionPath
         });
       case "move":
-        if (!activeLayer) {return}
+        if (!activeLayer || selectionActive) {return}
         return new MoveAction(activeLayer, dispatch, getTranslateData());
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
           colorArray: toArrayFromRgba(primary, toolSettings.bucketFill.opacity / 100),
           tolerance: toolSettings.bucketFill.tolerance,
+          clip: selectionPath
+        });
+      case "saturate":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.saturate.width,
+          hardness: toolSettings.saturate.hardness,
+          filter: filter.saturation.apply,
+          filterInput: {amount: toolSettings.saturate.amount},
+          clip: selectionPath
+        });
+      case "blur":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.blur.width,
+          hardness: toolSettings.blur.hardness,
+          filter: filter.blur.apply,
+          filterInput: {amount: toolSettings.blur.amount, width: layerData[activeLayer].width},
+          clip: selectionPath
+        });
+      case "sharpen":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.sharpen.width,
+          hardness: toolSettings.sharpen.hardness,
+          filter: filter.sharpen.apply,
+          filterInput: {amount: toolSettings.sharpen.amount, width: layerData[activeLayer].width},
           clip: selectionPath
         });
       default:
@@ -314,6 +351,41 @@ export default function Workspace() {
         y: (ev.screenY - translateY) * 100 / zoomPct
       });
     } else if (ev.buttons === 1) {
+      if (activeTool === "move" && selectionActive) {
+        const activeCtx = layerData[activeLayer].getContext("2d"),
+          selectionCtx = layerData.selection.getContext("2d"),
+          placeholderCtx = layerData.placeholder.getContext("2d");
+        manipulate(placeholderCtx, {
+          action: "paste",
+          params: {
+            sourceCtx: activeCtx,
+            dest: {x: 0, y: 0},
+            clip: selectionPath,
+            clearFirst: true
+          }
+        })
+        dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
+          () => {
+          manipulate(activeCtx, {
+            action: "clear",
+            params: {
+              clip: selectionPath,
+              clipOffset: layerSettings[activeLayer].offset
+            }
+          })
+        }, () => {
+          manipulate(selectionCtx, {
+            action: "clear",
+            params: { selectionPath: null }
+          })
+        }]));
+        dispatch(updateSelectionPath(null, true));
+        return dispatch(setTransformSelection(
+          activeLayer,
+          {startEvent: {button: 0, screenX: ev.screenX, screenY: ev.screenY}},
+          true
+        ));
+      }
       currentAction = buildAction();
       if (!currentAction) {return};
       currentAction.start(ev, layerData);
@@ -356,7 +428,7 @@ export default function Workspace() {
     } else if (ev.button === 0 && activeTool === "zoom") {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
-      if (isDrawing) {
+      if (isDrawing || currentAction.alwaysFire) {
         currentAction.end(layerData);
         isDrawing = false;
       };
@@ -404,16 +476,24 @@ export default function Workspace() {
           layerData={layerData}
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
-          activeLayer={activeLayer}
-          width={documentWidth}
-          height={documentHeight}
-          transformSettings={transformSettings}
+          docSize={{w: documentWidth, h: documentHeight}}
         />
       </CanvasPaneSC>
       {importImageFile && <TransformObject
         source={importImageFile}
+        target={layerOrder[layerOrder.length - 1]}
         targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
       />}
+      {
+        transformSelectionTarget && <TransformObject
+          source={layerData.placeholder}
+          target={transformSelectionTarget}
+          targetCtx={layerData[transformSelectionTarget].getContext("2d")}
+          targetOffset={layerSettings[transformSelectionTarget].offset}
+          docSize={{w: documentWidth, h: documentHeight}}
+          index={layerOrder.indexOf(stagingPinnedTo) + 1}
+        />
+      }
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
@@ -426,19 +506,22 @@ function LayerRenderer({
   layerData,
   layerSettings,
   stagingPinnedTo,
-  activeLayer,
-  width,
-  height,
-  transformSettings
+  docSize
 }) {
   return (
     <>
       <Layer
         id={"clipboard"}
-        width={width}
-        height={height}
+        docSize={docSize}
         index={1}
         data={layerData.clipboard}
+        hidden
+      />
+      <Layer
+        id={"placeholder"}
+        docSize={docSize}
+        index={1}
+        data={layerData.placeholder}
         hidden
       />
       {layerOrder.length !== 0 &&
@@ -448,39 +531,33 @@ function LayerRenderer({
           return <Layer
             key={layerId}
             id={layerId}
-            width={width}
-            height={height}
+            docSize={docSize}
+            size={layerSet.size}
+            offset={layerSet.offset}
             index={i + 1}
             data={layerDat}
             hidden={layerSet.hidden}
+            edgeClip={
+              calculateLayerClipping(layerSet.size, layerSet.offset, docSize)
+            }
           />
         })}
       <Layer
         id={"selection"}
-        width={width}
-        height={height}
+        docSize={docSize}
         index={layerOrder.length + 2}
         data={layerData.selection}
       />
-      <Layer
-        key={"staging"}
-        id={"staging"}
-        width={width}
-        height={height}
-        index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
-        data={layerData.staging}
-      />
       {
-        transformSettings.active &&
-        <Layer
-          key={"transform"}
-          id={"transform"}
-          width={transformSettings.width}
-          height={transformSettings.height}
-          translateX={transformSettings.translateX}
-          translateY={transformSettings.translateY}
-          index={layerOrder.indexOf(activeLayer) + 1}
-          data={layerData.transform}
+        stagingPinnedTo && <Layer
+          key={"staging"}
+          id={"staging"}
+          docSize={docSize}
+          size={layerSettings[stagingPinnedTo].size}
+          offset={layerSettings[stagingPinnedTo].offset}
+          index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
+          data={layerData.staging}
+          edgeClip={calculateLayerClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
         />
       }
     </>

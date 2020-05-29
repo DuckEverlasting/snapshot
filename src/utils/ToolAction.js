@@ -5,10 +5,13 @@ import {
   convertDestToRegularShape
 } from "../utils/helpers";
 
+import getImageRect from "../utils/getImageRect";
+
 import {
   updateColor,
   updateSelectionPath,
   updateStagingPosition,
+  updateLayerPosition,
   putHistoryData
 } from "../actions/redux/index";
 
@@ -45,8 +48,8 @@ class ToolActionBase {
 
   _getCoordinates(ev) {
     return {
-      x: (ev.nativeEvent.offsetX + this.translateData.x) * 100 / this.translateData.zoom,
-      y: (ev.nativeEvent.offsetY + this.translateData.y) * 100 / this.translateData.zoom
+      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY
     };
   }
 
@@ -143,6 +146,7 @@ export class PencilAction extends ToolActionBase {
           width: this.width,
           strokeColor: this.color,
           clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
           clearFirst: true
         }
       });
@@ -213,7 +217,8 @@ export class PencilAction extends ToolActionBase {
               destArray: this.destArray,
               width: this.width,
               strokeColor: this.color,
-              clip: this.clip
+              clip: this.clip,
+              clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
             }
           })
         ));
@@ -277,7 +282,8 @@ export class BrushAction extends ToolActionBase {
         width: this.width,
         hardness: this.hardness,
         density: 0.25,
-        clip: this.clip
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
     manipulate(this.layerData.staging.getContext("2d"), {
@@ -305,6 +311,116 @@ export class BrushAction extends ToolActionBase {
       })
     ))
     
+    this._clearStaging();
+    this.processing = null;
+  }
+}
+
+export class FilterBrushAction extends ToolActionBase {
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
+    this.width = params.width;
+    this.filter = params.filter;
+    this.filterInput = params.filterInput;
+    this.hardness = params.hardness;
+    this.clip = params.clip;
+    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.processing = document.createElement('canvas');
+    this.filtered = document.createElement('canvas');
+  }
+
+  // PLAN:
+  // 1: on start, filter entire layer (clipped) onto filtered
+  // 2: on move, create mask on processing layer
+  // 3: clear staging layer
+  // 4: draw processing layer onto staging
+  // 5: composite filtered onto staging
+  // 6: repeat until end, and then:
+  // 7: destination-out composite staging onto active layer
+  // 8: source-over composite staging onto active layer
+
+  start(ev, layerData) {
+    this.layerData = layerData;
+    const ctx = this.layerData[this.activeLayer].getContext("2d");
+    this.processing.width = ctx.canvas.width;
+    this.processing.height = ctx.canvas.height;
+    this.filtered.width = ctx.canvas.width;
+    this.filtered.height = ctx.canvas.height;
+    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    this.filter(imageData.data, this.filterInput);
+    this.filtered.getContext("2d").putImageData(imageData, 0, 0);
+    this._clearStaging();
+    this._moveStaging();
+    this.origin = this._getCoordinates(ev);
+    this.lastDest = this.origin;
+  }
+
+  move(ev, layerData) {
+    this.layerData = layerData;
+    this._setLockedAxis(ev);
+    let {x, y} = this._getCoordinates(ev);
+    if (this.lockedAxis === "x") {
+      x = this.origin.x;
+    } else if (this.lockedAxis === "y") {
+      y = this.origin.y;
+    }
+
+    const newMid = midpoint(this.lastDest, {x, y});
+
+    if (
+      getQuadLength(
+        this.lastMid || this.origin,
+        this.lastDest,
+        newMid
+      ) <
+      this.width * 0.25
+    ) {
+      return;
+    }
+
+    draw(this.processing.getContext("2d"), {
+      action: "drawQuadPoints",
+      params: {
+        orig: this.origin,
+        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
+        gradient: this.gradient,
+        width: this.width,
+        hardness: this.hardness,
+        density: 0.25,
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+      }
+    });
+    manipulate(this.layerData.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.processing.getContext("2d"),
+        clearFirst: true
+      }
+    });
+    manipulate(this.layerData.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.filtered.getContext("2d"),
+        composite: "source-in"
+      }
+    });
+    this.lastDest = {x, y};
+    this.lastMid = newMid;
+  }
+
+  async end(layerData) {
+    this.layerData = layerData;
+    await this.dispatch(putHistoryData(
+      this.activeLayer,
+      this.layerData[this.activeLayer].getContext("2d"),
+      () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
+        action: "blend",
+        params: {
+          source: this.layerData.staging.getContext("2d")
+        }
+      })
+    ))
     this._clearStaging();
     this.processing = null;
   }
@@ -362,7 +478,8 @@ export class EraserAction extends ToolActionBase {
         hardness: this.hardness,
         density: 0.25,
         composite: this.composite,
-        clip: this.clip
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
     this.lastDest = {x, y};
@@ -444,7 +561,8 @@ export class ShapeAction extends ToolActionBase {
           strokeColor: this.color,
           fillColor: this.color,
           clearFirst: true,
-          clip: this.clip
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       })
     };
@@ -514,7 +632,8 @@ export class ShapeAction extends ToolActionBase {
               width: this.width,
               strokeColor: this.color,
               fillColor: this.color,
-              clip: this.clip
+              clip: this.clip,
+              clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
             }
           })
         ));
@@ -564,21 +683,27 @@ export class EyeDropperAction extends ToolActionBase {
 }
 
 export class MoveAction extends ToolActionBase {
-  start(ev, layerData) {
-    this.layerData = layerData;
-    const ctx = this.layerData[this.activeLayer].getContext("2d");
-    const viewWidth = Math.ceil(ctx.canvas.width);
-    const viewHeight = Math.ceil(ctx.canvas.height);
-    this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
-    this.origin = this._getCoordinates(ev);
-    this.lastDest = this.origin;
+  constructor(activeLayer, dispatch, translateData) {
+    super(activeLayer, dispatch, translateData);
+    this.alwaysFire = true;
   }
 
-  move(ev, layerData) {
-    this.layerData = layerData;
+  start(ev) {
+    this.origin = {x: ev.screenX, y: ev.screenY}
+    this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
+    this.offset = this.offsetOrigin;
+    this.dispatch(updateLayerPosition(
+      this.activeLayer,
+      null,
+      null,
+      false
+    ))
+  }
+
+  move(ev) {
     if (this.throttle) {return};
     this._setLockedAxis(ev);
-    let {x, y} = this._getCoordinates(ev);
+    let [x, y] = [ev.screenX, ev.screenY]
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
@@ -586,25 +711,56 @@ export class MoveAction extends ToolActionBase {
     }
     this.throttle = true;
     setTimeout(() => this.throttle = false, 25);
-    manipulate(this.layerData[this.activeLayer].getContext("2d"), {
-      action: "move",
-      params: {
-        orig: this.lastDest,
-        dest: {x, y}
-      }
-    });
-    this.lastDest = {x, y}
+    const newOffset = {
+      x: this.offsetOrigin.x - (this.origin.x - x) / this.translateData.zoom,
+      y: this.offsetOrigin.y - (this.origin.y - y) / this.translateData.zoom
+    }
+    this.offset = newOffset;
+    this.dispatch(updateLayerPosition(
+      this.activeLayer,
+      null,
+      newOffset,
+      true
+    ))
   }
 
   end(layerData) {
     this.layerData = layerData;
-    this.dispatch(putHistoryData(
-      this.activeLayer,
-      this.layerData[this.activeLayer].getContext("2d"),
-      null,
-      this.prevImgData
-    ));
-    this.prevImgData = null;
+    const canvas = this.layerData[this.activeLayer];
+    const canvasRect = getImageRect(canvas);
+    let newOffset, newSize, redrawData;
+    if (canvasRect === null) {
+      newOffset = {
+        x: 0,
+        y: 0
+      }
+      newSize = {
+        w: this.translateData.documentWidth,
+        h: this.translateData.documentHeight
+      }
+    } else {
+      redrawData = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
+      newOffset = {
+        x: Math.min(0, this.offset.x + canvasRect.x),
+        y: Math.min(0, this.offset.y + canvasRect.y)
+      }
+      newSize = {
+        w: Math.max(this.translateData.documentWidth - newOffset.x, this.offset.x + canvasRect.x + canvasRect.w),
+        h: Math.max(this.translateData.documentHeight - newOffset.y, this.offset.y + canvasRect.y + canvasRect.h)
+      }
+    }
+    this.dispatch(async dispatch => {
+      await dispatch(updateLayerPosition(
+        this.activeLayer,
+        newSize,
+        newOffset,
+        true
+      ))
+      if (redrawData) {
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        canvas.getContext("2d").putImageData(redrawData, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
+      }
+    })
   }
 }
 
@@ -627,7 +783,8 @@ export class FillAction extends ToolActionBase {
           orig: this._getCoordinates(ev),
           colorArray: this.colorArray,
           tolerance: this.tolerance,
-          clip: this.clip
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       })
     ));

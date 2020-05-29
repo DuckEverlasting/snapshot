@@ -83,3 +83,21 @@ export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
   }
   return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
 }
+
+export function calculateClipping(size, offset, docSize, zoom) {
+  return {
+    up: (0.5 * size.h - offset.y - 0.5 * docSize.h) * zoom,
+    down: (0.5 * size.h + offset.y - 0.5 * docSize.h) * zoom,
+    left: (0.5 * size.w - offset.x - 0.5 * docSize.w) * zoom,
+    right: (0.5 * size.w + offset.x - 0.5 * docSize.w) * zoom,
+  };
+}
+
+export function calculateLayerClipping(size, offset, docSize, zoom=1) {
+  return {
+    up: (0.5 * size.h - offset.y - 0.5 * docSize.h - .5 * (size.h - docSize.h)) * zoom,
+    down: (0.5 * size.h + offset.y - 0.5 * docSize.h + .5 * (size.h - docSize.h)) * zoom,
+    left: (0.5 * size.w - offset.x - 0.5 * docSize.w - .5 * (size.w - docSize.w)) * zoom,
+    right: (0.5 * size.w + offset.x - 0.5 * docSize.w + .5 * (size.w - docSize.w)) * zoom,
+  };
+}

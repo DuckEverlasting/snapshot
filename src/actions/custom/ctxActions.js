@@ -103,7 +103,7 @@ export function move(ctx, { orig, dest }) {
   ctx.putImageData(data, x, y);
 }
 
-export function paste(ctx, { sourceCtx, dest={x: 0, y: 0}, size={w: sourceCtx.canvas.width, h: sourceCtx.canvas.height}, anchorPoint={x:0,y:0}, rotation=0 }) {
+export function paste(ctx, { sourceCtx, orig={x:0,y:0}, dest={x:0,y:0}, size={w: sourceCtx.canvas.width, h: sourceCtx.canvas.height}, anchorPoint={x:0,y:0}, rotation=0 }) {
   ctx.save();
   
   const zoom = {x: size.w / sourceCtx.canvas.width, y: size.h / sourceCtx.canvas.height}
@@ -111,7 +111,7 @@ export function paste(ctx, { sourceCtx, dest={x: 0, y: 0}, size={w: sourceCtx.ca
   ctx.rotate(rotation);
   ctx.translate(-(zoom.x * sourceCtx.canvas.width * anchorPoint.x + dest.x), -(zoom.y * sourceCtx.canvas.height * anchorPoint.y + dest.y));
 
-  ctx.drawImage(sourceCtx.canvas, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
+  ctx.drawImage(sourceCtx.canvas, orig.x, orig.y, sourceCtx.canvas.width, sourceCtx.canvas.height, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
   ctx.restore();
 }
 
@@ -119,7 +119,7 @@ export function undelete(ctx, { source }) {
   ctx.putImageData(source, 0, 0);
 }
 
-export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
+export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
   const viewWidth = Math.ceil(ctx.canvas.width);
   const viewHeight = Math.ceil(ctx.canvas.height);
   orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
@@ -144,7 +144,8 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
 
   while (stack.length) {
     current = stack.pop();
-    if (colorMatch(current)) {
+    const { x, y } = getCoordsOf(current);
+    if (colorMatch(current) && (ctx.isPointInPath(clip, x, y))) {
       for (let i = 0; i < 4; i++) {
         data[current + i] = colorArray[i];
       }
@@ -173,6 +174,14 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
     return (origin.x + origin.y * viewWidth) * 4;
   }
 
+  function getCoordsOf(num) {
+    num /= 4;
+    return {
+      x: num % viewWidth,
+      y: Math.floor(num / viewWidth)
+    }
+  }
+
   function colorMatch(pixel) {
     if (pixel < 0 || pixel + 4 - 1 > data.length) {
       return false;
@@ -183,6 +192,20 @@ export function fill(ctx, { orig, colorArray, tolerance = 100 }) {
     }
     return diff <= tolerance;
   }
+}
+
+export function blend(ctx, { source }) {
+  const destData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const sourceData = source.getImageData(0, 0, source.canvas.width, source.canvas.height);
+  for (let i=0; i<destData.data.length; i+=4) {
+    if (sourceData.data[i+3]) {
+      const opacity = sourceData.data[i+3] / 255;
+      destData.data[i] = sourceData.data[i] * opacity + destData.data[i] * (1 - opacity);
+      destData.data[i + 1] = sourceData.data[i + 1] * opacity + destData.data[i + 1] * (1 - opacity);
+      destData.data[i + 2] = sourceData.data[i + 2] * opacity + destData.data[i + 2] * (1 - opacity);
+    }
+  }
+  ctx.putImageData(destData, 0, 0);
 }
 
 export function getDiff(ctx, { prevImgData }) {

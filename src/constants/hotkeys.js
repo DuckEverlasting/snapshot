@@ -21,7 +21,8 @@ export const hotkeyCtrl = {
   "z": {type: "special", payload: "undo"},
   "Z": {type: "special", payload: "redo"},
   "d": {type: "special", payload: "deselect"},
-  "N": {type: "special", payload: "newLayer"},
-  "n": {type: "special", payload: "newLayer"},
-  "M": {type: "activeTool", payload: "selectEllipse"}
+  "L": {type: "special", payload: "newLayer"},
+  "l": {type: "special", payload: "newLayer"},
+  "M": {type: "activeTool", payload: "selectEllipse"},
+  "r": {type: "special", payload: "transform"}
 }

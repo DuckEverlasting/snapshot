@@ -1,5 +1,7 @@
 const initWidth = (window.innerWidth - 300) * .8;
 const initHeight = (window.innerHeight - 30) * .8;
+const initSelectionPath = new Path2D();
+initSelectionPath.rect(0, 0, initWidth, initHeight);
 
 export const initMainState = {
   onUndo: null,
@@ -8,11 +10,13 @@ export const initMainState = {
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
+    documentName: "Untitled_1"
   },
   layerData: {
     1: null,
     selection: null,
     clipboard: null,
+    placeholder: null,
     staging: null
   },
   layerSettings: {
@@ -21,21 +25,43 @@ export const initMainState = {
       nameEditable: false,
       size: {
         w: initWidth,
-        h: initWidth
+        h: initHeight
       },
       offset: {
         x: 0,
         y: 0
       },
       hidden: false,
+    },
+    "selection": {
+      size: {
+        w: initWidth,
+        h: initHeight
+      },
+      offset: {
+        x: 0,
+        y: 0
+      },
+    },
+    "clipboard": {
+      size: {
+        w: initWidth,
+        h: initHeight
+      },
+      offset: {
+        x: 0,
+        y: 0
+      },
     }
   },
-  transformSettings: {
-    active: false,
-    width: 0,
-    height: 0,
+  selectionPath: initSelectionPath,
+  selectionActive: false,
+  transformSelectionTarget: null,
+  transformParams: {
+    startEvent: null,
+    resizable: false,
+    rotatable: false
   },
-  selectionPath: null,
   stagingPinnedTo: 1,
   layerOrder: [1],
   layerCounter: 2,
@@ -53,7 +79,7 @@ export const initUiState = {
   },
   // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. 
   // This is so the number input component won't get confused.
-  // Opacity is converted to 0 - 1 format in DrawSpace.
+  // Opacity is converted to 0 - 1 format when drawn.
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },
@@ -71,7 +97,10 @@ export const initUiState = {
     hand: { name: "Hand" },
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
-    TEST: { name: "TEST" }
+    saturate: { name: "Saturate", width: 20, hardness: 0, amount: 50 },
+    blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
+    sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 }
+    // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",
