@@ -211,6 +211,18 @@ export const sharpen = new Filter("Sharpen", {amount: {...amount, min:0}}, (data
   convolve(data, width, matrix);
 });
 
+export const findEdges = new Filter("Find Edges", {amount: {...amount, min:0}}, (data, {amount, width}) => {
+  const strength = amount / 100;
+  const a = -1 * strength, b = -8 * a;
+  const matrix = [[a, a, a], [a, b, a], [a, a, a]];
+  convolve(data, width, matrix, 0, 1);
+});
+
+export const emboss = new Filter("Emboss", {}, (data, {width}) => {
+  const matrix = [[-1, -1, 0], [-1, 0, 1], [0, 1, 1]];
+  convolve(data, width, matrix, 128, 1);
+});
+
 export const filter = {
   invert,
   brightness,
@@ -218,5 +230,7 @@ export const filter = {
   saturation,
   blur,
   boxBlur,
-  sharpen
+  sharpen,
+  findEdges,
+  emboss
 }
