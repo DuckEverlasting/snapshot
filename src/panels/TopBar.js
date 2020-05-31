@@ -146,6 +146,14 @@ export default function TopBar() {
               label="Emboss"
               onClick={() => dispatch(setFilterTool("on", filter.emboss))}
             />
+            <MenuItem 
+              label="Dodge"
+              onClick={() => dispatch(setFilterTool("on", filter.dodge))}
+            />
+            <MenuItem 
+              label="Burn"
+              onClick={() => dispatch(setFilterTool("on", filter.burn))}
+            />
           </MenuBranch>
         </Menu>
         <Menu id="Layer" label="Layer">

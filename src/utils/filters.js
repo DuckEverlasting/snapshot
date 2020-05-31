@@ -22,6 +22,13 @@ const size = {
   max: 10
 }
 
+const range = {
+  name: "Range",
+  type: "Radio",
+  init: "Midtones",
+  options: ["Shadows, Midtones, Highlights"]
+}
+
 function convolve(data, width, matrix, offset=0, divisor) {
   if (!divisor) {
     divisor = 0;
@@ -223,6 +230,42 @@ export const emboss = new Filter("Emboss", {}, (data, {width}) => {
   convolve(data, width, matrix, 128, 1);
 });
 
+export const dodge = new Filter("Dodge", {amount: {...amount, min:0}, range}, (data, {amount, range}) => {
+  let equation;
+  if (range === "Highlights") {
+    equation = num => num + Math.pow(Math.E, num - 1);
+  } else if (range === "Midtones") {
+    equation = num => num + 0.25 * Math.sin(num * Math.PI);
+  } else if (range === "Shadows") {
+    equation = num => num * .5 + .5;
+  }
+  if (!equation) return;
+
+  for (let i=0; i<data.length; i+=4) {
+    data[i] = equation(data[i]);
+    data[i + 1] = equation(data[i + 1]);
+    data[i + 2] = equation(data[i + 2]);
+  }
+});
+
+export const burn = new Filter("Burn", {amount: {...amount, min:0}, range}, (data, {amount, range}) => {
+  let equation;
+  if (range === "Highlights") {
+    equation = num => num * .25;
+  } else if (range === "Midtones") {
+    equation = num => num - .25 * Math.sin(num * Math.PI);
+  } else if (range === "Shadows") {
+    equation = num => num + 1 - Math.pow(Math.E, num - 1)
+  }
+  if (!equation) return;
+
+  for (let i=0; i<data.length; i+=4) {
+    data[i] = equation(data[i]);
+    data[i + 1] = equation(data[i + 1]);
+    data[i + 2] = equation(data[i + 2]);
+  }
+});
+
 export const filter = {
   invert,
   brightness,
@@ -232,5 +275,7 @@ export const filter = {
   boxBlur,
   sharpen,
   findEdges,
-  emboss
+  emboss,
+  dodge,
+  burn
 }

@@ -89,15 +89,28 @@ export default function FilterTool() {
       <FilterToolSC>
         {
           Object.keys(filter.inputInfo).map(key => {
-            const {name, min, max, step, init} = filter.inputInfo[key];
-            return <SliderInput
-              name={name}
-              value={input[key]}
-              onChange={value => handleChange(key, value)}
-              max={max}
-              min={min}
-              step={step}
-            />
+            const info = filter.inputInfo[key];
+            if (info.type === "Number") {
+              return <SliderInput
+                name={info.name}
+                value={input[key]}
+                onChange={value => handleChange(key, value)}
+                max={info.max}
+                min={info.min}
+                step={info.step}
+              />
+            } else if (info.type === "Radio") {
+              return <div>
+                {
+                  info.options.map(option => <input
+                    type="radio"
+                    name="type"
+                    value={option}
+                    onChange={() => handleChange(key, option)}
+                  />)
+                }
+              </div>
+            }
           })
         }
         <CheckboxSC>
