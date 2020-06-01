@@ -1,10 +1,11 @@
-import { putHistoryData } from "../actions/redux/index"; 
+import { putHistoryData, updateStagingPosition } from "../actions/redux/index"; 
 
 export default function filterAction(filter, input, preview) {
   return (dispatch, getState) => {
-    const { activeLayer, selectionPath } = getState().main.present;
+    const { activeLayer, selectionPath, stagingPinnedTo } = getState().main.present;
     const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
     const stagingCtx = getState().main.present.layerData.staging.getContext("2d");
+    if (stagingPinnedTo !== activeLayer) dispatch(updateStagingPosition(activeLayer));
     if (preview) {
       previewFilter(ctx, {
         filter,

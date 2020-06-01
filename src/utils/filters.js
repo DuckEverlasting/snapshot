@@ -23,10 +23,10 @@ const size = {
 }
 
 const range = {
-  name: "Range",
+  name: "",
   type: "Radio",
   init: "Midtones",
-  options: ["Shadows, Midtones, Highlights"]
+  options: ["Shadows", "Midtones", "Highlights"]
 }
 
 function convolve(data, width, matrix, offset=0, divisor) {

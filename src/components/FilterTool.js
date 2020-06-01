@@ -7,6 +7,7 @@ import filterAction from "../utils/filterAction";
 
 import DraggableWindow from "./DraggableWindow";
 import SliderInput from "./SliderInput";
+import RadioInput from "./RadioInput";
 import Button from "./Button";
 
 const FilterToolSC = styled.div`
@@ -15,7 +16,7 @@ const FilterToolSC = styled.div`
   justify-content: flex-start;
   margin-top: -5px;
   align-items: center;
-  width: 180px;
+  min-width: 180px;
 `
 
 const CheckboxSC = styled.label`
@@ -46,7 +47,7 @@ export default function FilterTool() {
     })
     setInput(initInput)
   }, [])
-
+  
   useEffect(() => {
     if (showPreview) {
       dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
@@ -100,16 +101,14 @@ export default function FilterTool() {
                 step={info.step}
               />
             } else if (info.type === "Radio") {
-              return <div>
-                {
-                  info.options.map(option => <input
-                    type="radio"
-                    name="type"
-                    value={option}
-                    onChange={() => handleChange(key, option)}
-                  />)
-                }
-              </div>
+              return <RadioInput
+                name={info.name}
+                selected={input[key]}
+                onChange={value => handleChange(key, value)}
+                options={info.options}
+              />
+            } else {
+              return null;
             }
           })
         }
