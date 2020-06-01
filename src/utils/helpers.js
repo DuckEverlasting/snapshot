@@ -32,6 +32,26 @@ export function getQuadLength(p1, p2, p3) {
   return distA + distB;
 }
 
+export function getQuadEquation(p1, p2, p3) {
+  const a = p1.y/((p1.x-p2.x)*(p1.x-p3.x))
+    + p2.y/((p2.x-p1.x)*(p2.x-p3.x))
+    + p3.y/((p3.x-p1.x)*(p3.x-p2.x));
+
+  const b = -p1.y*(p2.x+p3.x)/((p1.x-p2.x)*(p1.x-p3.x))
+    -p2.y*(p1.x+p3.x)/((p2.x-p1.x)*(p2.x-p3.x))
+    -p3.y*(p1.x+p2.x)/((p3.x-p1.x)*(p3.x-p2.x));
+
+  const c = p1.y*p2.x*p3.x/((p1.x-p2.x)*(p1.x-p3.x))
+  + p2.y*p1.x*p3.x/((p2.x-p1.x)*(p2.x-p3.x))
+  + p3.y*p1.x*p2.x/((p3.x-p1.x)*(p3.x-p2.x));
+
+  console.log(a, b, c)
+
+  return function(x) {
+    return a * x * x + b * x + c;
+  }
+}
+
 export function getGradient(color, hardness) {         
   const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
   const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
