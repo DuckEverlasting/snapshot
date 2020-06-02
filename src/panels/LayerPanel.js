@@ -13,7 +13,8 @@ const LayerPanelSC = styled.div`
   align-items: center;
   position: relative;
   width: 200px;
-  height: 100%;
+  height: calc(100% - 35px);
+  overflow: hidden;
   border-top: 1px solid black;
   background: #666666;
   z-index: 1;

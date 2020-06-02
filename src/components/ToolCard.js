@@ -5,9 +5,26 @@ import styled from "styled-components";
 import { updateToolSettings } from "../actions/redux";
 
 import SliderInput from "./SliderInput";
+import RadioInput from "./RadioInput";
 
 const ToolCardSC = styled.div`
   margin-bottom: 10px;
+  overflow: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #777777 #303030;
+  
+  &::-webkit-scrollbar {
+    width: 11px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #303030;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #777777;
+    border-radius: 6px;
+    border: 2px solid #303030;
+  }
 `;
 
 const TitleSC = styled.p`
@@ -20,7 +37,7 @@ const TitleSC = styled.p`
 export default function ToolCard() {
   const activeTool = useSelector(state => state.ui.activeTool);
   const toolSettings = useSelector(state => state.ui.toolSettings);
-  const { width, amount, opacity, hardness, tolerance } = toolSettings[activeTool];
+  const { width, amount, opacity, hardness, tolerance, range } = toolSettings[activeTool];
   const dispatch = useDispatch();
 
   const toolName = toolSettings[activeTool].name;
@@ -67,6 +84,13 @@ export default function ToolCard() {
         name={"Tolerance"}
         min={0}
         max={255}
+      />}
+      {range !== undefined && <RadioInput
+        name={""}
+        selected={range}
+        onChange={value => inputHandler(value, "range")}
+        options={["Shadows", "Midtones", "Highlights"]}
+        vertical
       />}
     </ToolCardSC>
   );

@@ -233,52 +233,40 @@ export const emboss = new Filter("Emboss", {}, (data, {width}) => {
 });
 
 export const dodge = new Filter("Dodge", {amount: {...amount, min:0}, range}, (data, {amount, range}) => {
-  let equation;
-  if (range === "Highlights") {
-    equation = num => num + Math.pow(Math.E, num) - 1;
-  } else if (range === "Midtones") {
-    equation = num => num + 0.25 * Math.sin(num * Math.PI);
-  } else if (range === "Shadows") {
-    equation = num => num * .5 + .5;
-  }
-  if (!equation) return;
-
-  for (let i=0; i<data.length; i+=4) {
-    data[i] = equation(data[i]);
-    data[i + 1] = equation(data[i + 1]);
-    data[i + 2] = equation(data[i + 2]);
-  }
-});
-
-export const burn = new Filter("Burn", {amount: {...amount, min:0}, range}, (data, {amount, range}) => {
-  // let equation,
-  //   p1 = {x: 0, y: 0},
-  //   p2 = {x: 128, y: 128},
-  //   p3 = {x: 255, y: 255};
-  let min = 0, max = 255, equation;
+  let equation = x => x;
 
   if (range === "Highlights") {
-    min = 128;
-    equation = x => x+2
+    equation = x => (1 + amount / 200) * x;
   } else if (range === "Midtones") {
-    const mid = {x: 128 + (amount * 1.28), y: 128 - (amount * 1.28)}
+    const mid = {x: 128 - (amount * .32), y: 128 + (amount * .32)}
     equation = getQuadEquation({x: 0, y: 0}, mid, {x: 255, y: 255});
   } else if (range === "Shadows") {
-    max = 128
-    equation = x => (amount / 10 + 1) * x - (amount / 10) / 5;
+    equation = x => (1 - amount / 300) * x + (amount * .85);
   }
 
-  console.log(equation)
-
   for (let i=0; i<data.length; i+=4) {
-    const cmin = Math.min(data[i],data[i+1],data[i+2]),
-      cmax = Math.max(data[i],data[i+1],data[i+2]),
-      luma = (cmin + cmax) / 2;
-    if (luma <= max && luma >= min) {
       data[i] = equation(data[i]);
       data[i + 1] = equation(data[i + 1]);
       data[i + 2] = equation(data[i + 2]);
-    }
+  }
+});
+
+export const burn = new Filter("Burn", {amount: {...amount, min:1}, range}, (data, {amount, range}) => {
+  let equation;
+
+  if (range === "Highlights") {
+    equation = x => (1 - amount / 300) * x;
+  } else if (range === "Midtones") {
+    const mid = {x: 128 + (amount * .32), y: 128 - (amount * .32)}
+    equation = getQuadEquation({x: 0, y: 0}, mid, {x: 255, y: 255});
+  } else if (range === "Shadows") {
+    equation = x => (1 + amount / 200) * x - (amount * 1.28);
+  }
+
+  for (let i=0; i<data.length; i+=4) {
+      data[i] = equation(data[i]);
+      data[i + 1] = equation(data[i + 1]);
+      data[i + 2] = equation(data[i + 2]);
   }
 });
 

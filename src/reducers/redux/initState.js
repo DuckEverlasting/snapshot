@@ -71,8 +71,6 @@ export const initMainState = {
 
 export const initUiState = {
   workspaceSettings: {
-    height: window.innerHeight,
-    width: window.innerWidth,
     translateX: 0,
     translateY: 0,
     zoomPct: 100
@@ -98,6 +96,8 @@ export const initUiState = {
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
     saturate: { name: "Saturate", width: 20, hardness: 0, amount: 50 },
+    dodge: { name: "Dodge", width: 20, hardness: 0, amount: 50, range: "Midtones" },
+    burn: { name: "Burn", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
     sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 }
     // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }

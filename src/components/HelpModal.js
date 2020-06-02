@@ -159,8 +159,8 @@ const CloseButtonSC = styled(Button)`
 `;
 
 function HelpModal() {
-  const height = useSelector(state => state.ui.workspaceSettings.height);
-  const width = useSelector(state => state.ui.workspaceSettings.width);
+  const height = window.innerHeight;
+  const width = window.innerWidth;
   const currentTopic = useSelector(state => state.ui.currentHelpTopic);
   const dispatch = useDispatch();
 

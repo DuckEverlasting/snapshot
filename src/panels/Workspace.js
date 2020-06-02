@@ -248,6 +248,24 @@ export default function Workspace() {
           filterInput: {amount: toolSettings.saturate.amount},
           clip: selectionPath
         });
+      case "dodge":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.dodge.width,
+          hardness: toolSettings.dodge.hardness,
+          filter: filter.dodge.apply,
+          filterInput: {amount: toolSettings.dodge.amount, range: toolSettings.dodge.range},
+          clip: selectionPath
+        });
+      case "burn":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.burn.width,
+          hardness: toolSettings.burn.hardness,
+          filter: filter.burn.apply,
+          filterInput: {amount: toolSettings.burn.amount, range: toolSettings.burn.range},
+          clip: selectionPath
+        });
       case "blur":
         if (!activeLayer) {return}
         return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {

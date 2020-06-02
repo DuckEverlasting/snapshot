@@ -7,17 +7,18 @@ const RadioInputSC = styled.div`
 `
 const RadioButtonsSC = styled.div`
   display: flex;
+  flex-direction: ${props => props.vertical ? "column" : "row"};
 
   & label {
-    padding: 10px;
+    padding: 2px 10px;
   }
 `
 
-export default function RadioInput({name, selected, options, onChange}) {
+export default function RadioInput({name, selected, options, onChange, vertical}) {
   return (
     <RadioInputSC>
       {name ? name : null}
-      <RadioButtonsSC>
+      <RadioButtonsSC vertical={vertical}>
         {
           options && options.map(option => <label>
             {option}
