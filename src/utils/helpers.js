@@ -106,10 +106,10 @@ export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
 
 export function calculateClipping(size, offset, docSize, zoom) {
   return {
-    up: Math.floor((0.5 * size.h - offset.y - 0.5 * docSize.h) * zoom - .5),
-    down: Math.floor((0.5 * size.h + offset.y - 0.5 * docSize.h) * zoom + .5),
-    left: Math.floor((0.5 * size.w - offset.x - 0.5 * docSize.w) * zoom - .5),
-    right: Math.floor((0.5 * size.w + offset.x - 0.5 * docSize.w) * zoom + .5),
+    up: Math.floor((0.5 * size.h - offset.y - 0.5 * docSize.h) * zoom - 1),
+    down: Math.floor((0.5 * size.h + offset.y - 0.5 * docSize.h) * zoom),
+    left: Math.floor((0.5 * size.w - offset.x - 0.5 * docSize.w) * zoom - 1),
+    right: Math.floor((0.5 * size.w + offset.x - 0.5 * docSize.w) * zoom),
   };
 }
 

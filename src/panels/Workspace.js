@@ -365,8 +365,8 @@ export default function Workspace() {
     if (ev.buttons === 4 || activeTool === "hand") {
       setIsDragging(true);
       setDragOrigin({
-        x: (ev.screenX - translateX) * 100 / zoomPct,
-        y: (ev.screenY - translateY) * 100 / zoomPct
+        x: (Math.floor(ev.screenX) - translateX) * 100 / zoomPct,
+        y: (Math.floor(ev.screenY) - translateY) * 100 / zoomPct
       });
     } else if (ev.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
@@ -400,7 +400,7 @@ export default function Workspace() {
         dispatch(updateSelectionPath(null, true));
         return dispatch(setTransformSelection(
           activeLayer,
-          {startEvent: {button: 0, screenX: ev.screenX, screenY: ev.screenY}},
+          {startEvent: {button: 0, screenX: Math.floor(ev.screenX), screenY: Math.floor(ev.screenY)}},
           true
         ));
       }
@@ -425,8 +425,8 @@ export default function Workspace() {
     if (isDragging) {
       if (animationFrame === lastFrame) return;
       lastFrame = animationFrame;
-      const newTranslateX = ev.screenX - dragOrigin.x * (zoomPct / 100);
-      const newTranslateY = ev.screenY - dragOrigin.y * (zoomPct / 100);
+      const newTranslateX = Math.floor(ev.screenX) - dragOrigin.x * (zoomPct / 100);
+      const newTranslateY = Math.floor(ev.screenY) - dragOrigin.y * (zoomPct / 100);
       dispatch(
         updateWorkspaceSettings({
           translateX: newTranslateX,

@@ -26,8 +26,8 @@ const ContainerSC = styled.div.attrs((props) => ({
                 translateY(${props.offset.y}px)
                 rotate(${props.rotation}rad)`,
     transformOrigin: `${props.anchorPoint.x * 100}% ${props.anchorPoint.y * 100}%`,
-    width: props.size ? props.size.w * props.zoom + "px" : "auto",
-    height: props.size ? props.size.h * props.zoom + "px" : "auto",
+    width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
+    height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
     cursor: props.overrideCursor || "move",
     border: props.borderStyle || "2px solid #ffe312",
   },
@@ -202,6 +202,9 @@ export default function TransformObject({
   const anchorRef = useRef();
 
   useEffect(() => {
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
     if (source instanceof File) {
       const image = new Image();
       image.src = URL.createObjectURL(source);
@@ -301,12 +304,12 @@ export default function TransformObject({
       return { x: 0, y: 0 };
     }
     const xFromCenter =
-      (Math.floor(boundingBoxRef.current.clientWidth) - size.w * zoom) / 2 - 1;
+      (boundingBoxRef.current.clientWidth - size.w * zoom) / 2;
     const yFromCenter =
-      (Math.floor(boundingBoxRef.current.clientHeight) - size.h * zoom) / 2 - 1;
+      (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
     return {
-      x: xFromCenter + workspaceOffset.x + offset.x * zoom,
-      y: yFromCenter + workspaceOffset.y + offset.y * zoom,
+      x: Math.floor(xFromCenter + workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(yFromCenter + workspaceOffset.y + offset.y * zoom),
     };
   }
 

@@ -48,8 +48,8 @@ class ToolActionBase {
 
   _getCoordinates(ev) {
     return {
-      x: (Math.floor(ev.nativeEvent.offsetX) + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
-      y: (Math.floor(ev.nativeEvent.offsetY) + this.translateData.y) / this.translateData.zoom - this.translateData.offY
+      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY
     };
   }
 
@@ -702,8 +702,8 @@ export class MoveAction extends ToolActionBase {
     this.throttle = true;
     setTimeout(() => this.throttle = false, 25);
     const newOffset = {
-      x: this.offsetOrigin.x - (this.origin.x - x) / this.translateData.zoom,
-      y: this.offsetOrigin.y - (this.origin.y - y) / this.translateData.zoom
+      x: Math.floor(this.offsetOrigin.x - (this.origin.x - x) / this.translateData.zoom),
+      y: Math.floor(this.offsetOrigin.y - (this.origin.y - y) / this.translateData.zoom)
     }
     this.offset = newOffset;
     this.dispatch(updateLayerPosition(
