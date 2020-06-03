@@ -120,8 +120,8 @@ export function undelete(ctx, { source }) {
 }
 
 export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
   const imgData = ctx.getImageData(
     0,
@@ -209,8 +209,8 @@ export function blend(ctx, { source }) {
 }
 
 export function getDiff(ctx, { prevImgData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   const imgData = ctx.getImageData(
     0,
     0,
@@ -231,8 +231,8 @@ export function getDiff(ctx, { prevImgData }) {
 }
 
 export function swapData(ctx, { changeData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   const imgData = ctx.getImageData(
     0,
     0,

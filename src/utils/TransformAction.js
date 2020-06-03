@@ -14,8 +14,8 @@ class TransformActionBase {
     this.anchorRef = anchorRef;
     this.params = params;
     this.origin = {
-      x: ev.screenX,
-      y: ev.screenY,
+      x: Math.floor(ev.screenX),
+      y: Math.floor(ev.screenY),
       w: size.w,
       h: size.h,
       offX: offset.x,
@@ -37,8 +37,8 @@ class ResizeTransformAction extends TransformActionBase {
     calculatedHeight = this.size.h;
     calculatedOffsetX = this.offset.x;
     calculatedOffsetY = this.offset.y;
-    x = ev.screenX;
-    y = ev.screenY;
+    x = Math.floor(ev.screenX);
+    y = Math.floor(ev.screenY);
 
     if (!ev.shiftKey || this.params.direction.length > 2) {
       const distX = x - this.origin.x;
@@ -101,11 +101,11 @@ class ResizeTransformAction extends TransformActionBase {
 
 class MoveTransformAction extends TransformActionBase {
   move(ev) {
-    let x = (ev.screenX - (this.origin.x - this.origin.offX * this.zoom)) / this.zoom;
-    let y = (ev.screenY - (this.origin.y - this.origin.offY * this.zoom)) / this.zoom;
+    let x = (Math.floor(ev.screenX) - (this.origin.x - this.origin.offX * this.zoom)) / this.zoom;
+    let y = (Math.floor(ev.screenY) - (this.origin.y - this.origin.offY * this.zoom)) / this.zoom;
 
     if (ev.shiftKey) {
-      if (Math.abs(ev.screenX - this.origin.x) > Math.abs(ev.screenY - this.origin.y)) {
+      if (Math.abs(Math.floor(ev.screenX) - this.origin.x) > Math.abs(Math.floor(ev.screenY) - this.origin.y)) {
         y = this.origin.offY;
       } else {
         x = this.origin.offX;
@@ -142,8 +142,8 @@ class RotateTransformAction extends TransformActionBase {
 
 class MoveAnchorPointTransformAction extends TransformActionBase {
   move(ev) {
-    const posX = (ev.screenX - this.origin.x + this.anchorPoint.x * this.size.w * this.zoom) / this.zoom;
-    const posY = (ev.screenY - this.origin.y + this.anchorPoint.y * this.size.h * this.zoom) / this.zoom;
+    const posX = (Math.floor(ev.screenX) - this.origin.x + this.anchorPoint.x * this.size.w * this.zoom) / this.zoom;
+    const posY = (Math.floor(ev.screenY) - this.origin.y + this.anchorPoint.y * this.size.h * this.zoom) / this.zoom;
     let pctX = posX / this.size.w;
     let pctY = posY / this.size.h;
 

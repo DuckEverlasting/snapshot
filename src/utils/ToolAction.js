@@ -48,8 +48,8 @@ class ToolActionBase {
 
   _getCoordinates(ev) {
     return {
-      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
-      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY
+      x: (Math.floor(ev.nativeEvent.offsetX) + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y: (Math.floor(ev.nativeEvent.offsetY) + this.translateData.y) / this.translateData.zoom - this.translateData.offY
     };
   }
 
@@ -171,8 +171,8 @@ export class PencilAction extends ToolActionBase {
           params: { orig: this.origin, destArray: this.destArray }
         });
         const selectCtx = this.layerData.selection.getContext("2d");
-        const viewWidth = Math.ceil(selectCtx.canvas.width);
-        const viewHeight = Math.ceil(selectCtx.canvas.height);
+        const viewWidth = Math.floor(selectCtx.canvas.width);
+        const viewHeight = Math.floor(selectCtx.canvas.height);
         this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
         draw(selectCtx, {
           action: "drawQuadPath",
@@ -428,8 +428,8 @@ export class EraserAction extends ToolActionBase {
   start(ev, layerData) {
     this.layerData = layerData;
     const ctx = this.layerData[this.activeLayer].getContext("2d");
-    const viewWidth = Math.ceil(ctx.canvas.width);
-    const viewHeight = Math.ceil(ctx.canvas.height);
+    const viewWidth = Math.floor(ctx.canvas.width);
+    const viewHeight = Math.floor(ctx.canvas.height);
     this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
     this.origin = this._getCoordinates(ev);
     this.lastDest = this.origin;
@@ -575,8 +575,8 @@ export class ShapeAction extends ToolActionBase {
           params: { orig: this.origin, dest: this.dest }
         });
         const selectCtx = this.layerData.selection.getContext("2d");
-        const viewWidth = Math.ceil(selectCtx.canvas.width);
-        const viewHeight = Math.ceil(selectCtx.canvas.height);
+        const viewWidth = Math.floor(selectCtx.canvas.width);
+        const viewHeight = Math.floor(selectCtx.canvas.height);
         this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
         draw(selectCtx, {
           action: this.drawActionType,

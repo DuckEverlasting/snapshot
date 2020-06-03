@@ -56,9 +56,9 @@ function ToolBox() {
       <ToolButton title="Paint Bucket (G)" name="bucketFill" faIcon={faFillDrip}/>
       <ToolButton title="Blur" name="blur" faIcon={faTint}/>
       <ToolButton title="Sharpen" name="sharpen" icon={<img alt="Sharpen" src={sharpenIcon} />}/>
-      <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
       <ToolButton title="Dodge" name="dodge" icon={<img alt="Dodge" src={dodgeIcon} />}/>
       <ToolButton title="Burn" name="burn" icon={<img alt="Burn" src={burnIcon} />}/>
+      <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
       <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img alt="Select Rectangle" src={dashedSquareIcon} />}/>
       <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img alt="Select Ellipse" src={dashedCircleIcon} />}/>

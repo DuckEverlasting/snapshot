@@ -101,12 +101,12 @@ export default function DraggableWindow({
       initWidth = initSize.x;
       initHeight = initSize.y;
     } else {
-      initWidth = modalRef.current.clientWidth;
-      initHeight = modalRef.current.clientHeight;
+      initWidth = Math.floor(modalRef.current.clientWidth);
+      initHeight = Math.floor(modalRef.current.clientHeight);
     }
     setBoundingDimensions({
-      x: boundingBoxRef.current.clientWidth,
-      y: boundingBoxRef.current.clientHeight,
+      x: Math.floor(boundingBoxRef.current.clientWidth),
+      y: Math.floor(boundingBoxRef.current.clientHeight),
     });
     setModalDimensions({
       x: initWidth,
@@ -117,8 +117,8 @@ export default function DraggableWindow({
       y: initHeight
     });
     setOffset(initPosition || {
-      x: boundingBoxRef.current.clientWidth / 2 - initWidth / 2,
-      y: boundingBoxRef.current.clientHeight / 3 - initHeight / 3
+      x: Math.floor(boundingBoxRef.current.clientWidth) / 2 - initWidth / 2,
+      y: Math.floor(boundingBoxRef.current.clientHeight) / 3 - initHeight / 3
     });
   }, []);
 

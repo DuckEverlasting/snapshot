@@ -87,8 +87,8 @@ export const undo = () => {
       function executeUndo(onUndo) {
         const ctx = prevState.layerData[onUndo.id].getContext("2d")
         const changeData = onUndo.data
-        const viewWidth = Math.ceil(ctx.canvas.width);
-        const viewHeight = Math.ceil(ctx.canvas.height);
+        const viewWidth = Math.floor(ctx.canvas.width);
+        const viewHeight = Math.floor(ctx.canvas.height);
         const imgData = ctx.getImageData(
           0,
           0,
@@ -122,8 +122,8 @@ export const redo = () => {
       function executeRedo(onRedo) {
         const ctx = currState.layerData[onRedo.id].getContext("2d")
         const changeData = onRedo.data
-        const viewWidth = Math.ceil(ctx.canvas.width);
-        const viewHeight = Math.ceil(ctx.canvas.height);
+        const viewWidth = Math.floor(ctx.canvas.width);
+        const viewHeight = Math.floor(ctx.canvas.height);
         const imgData = ctx.getImageData(
           0,
           0,
@@ -144,8 +144,8 @@ export const redo = () => {
 }
 
 export const putHistoryData = (id, ctx, callback, prevImgData, params) => {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   if (!prevImgData) {
     prevImgData = ctx.getImageData(
       0,
@@ -164,8 +164,8 @@ export const putHistoryData = (id, ctx, callback, prevImgData, params) => {
 export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[], params) => {
   let differences = [];
   for (let i = 0; i < ids.length; i++) {
-    const viewWidth = Math.ceil(ctxs[i].canvas.width);
-    const viewHeight = Math.ceil(ctxs[i].canvas.height);
+    const viewWidth = Math.floor(ctxs[i].canvas.width);
+    const viewHeight = Math.floor(ctxs[i].canvas.height);
     if (!prevImgDatas[i]) {
       prevImgDatas[i] = ctxs[i].getImageData(
         0,
@@ -207,8 +207,8 @@ export const deleteLayer = (id, ignoreHistory=false) => {
     let data = null;
     if (!ignoreHistory) {
       const ctx = getState().main.present.layerData[id].getContext("2d");
-      const viewWidth = Math.ceil(ctx.canvas.width);
-      const viewHeight = Math.ceil(ctx.canvas.height);
+      const viewWidth = Math.floor(ctx.canvas.width);
+      const viewHeight = Math.floor(ctx.canvas.height);
       data = ctx.getImageData(
         0,
         0,

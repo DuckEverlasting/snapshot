@@ -115,8 +115,8 @@ export default function Workspace() {
   }
 
   function getTranslateData(noOffset) {
-    const marginLeft = .5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100);
-    const marginTop = .5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100);
+    const marginLeft = .5 * (Math.floor(workspaceRef.current.clientWidth) - documentWidth * zoomPct / 100);
+    const marginTop = .5 * (Math.floor(workspaceRef.current.clientHeight) - documentHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
@@ -130,8 +130,8 @@ export default function Workspace() {
 
   function eventIsWithinCanvas(ev) {
     const translateData = getTranslateData(),
-      x = ev.nativeEvent.offsetX + translateData.x,
-      y = ev.nativeEvent.offsetY + translateData.y;
+      x = Math.floor(ev.nativeEvent.offsetX) + translateData.x,
+      y = Math.floor(ev.nativeEvent.offsetY) + translateData.y;
 
     return x > 0 && y > 0 && x < documentWidth * zoomPct / 100 && y < documentHeight * zoomPct / 100; 
   }

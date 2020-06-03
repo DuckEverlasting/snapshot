@@ -301,9 +301,9 @@ export default function TransformObject({
       return { x: 0, y: 0 };
     }
     const xFromCenter =
-      (boundingBoxRef.current.clientWidth - size.w * zoom) / 2;
+      (Math.floor(boundingBoxRef.current.clientWidth) - size.w * zoom) / 2 - 1;
     const yFromCenter =
-      (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
+      (Math.floor(boundingBoxRef.current.clientHeight) - size.h * zoom) / 2 - 1;
     return {
       x: xFromCenter + workspaceOffset.x + offset.x * zoom,
       y: yFromCenter + workspaceOffset.y + offset.y * zoom,
