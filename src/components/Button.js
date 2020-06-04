@@ -2,17 +2,17 @@ import styled from "styled-components";
 
 const Button = styled.button`
   width: 52px;
-  height: 25px;
+  height: 23px;
   margin: 3px;
   outline: none;
   cursor: pointer;
-  padding: 3px 0;
+  padding: 2px 0;
   background: ${props => props.active ? "#ffe312" : "#e3e3e3"};
   border: 1px solid #333333;
   border-radius: 2px;
   
   & img {
-    margin-top: 2%;
+    margin-top: 1%;
     height: 90%;
     width: 90%;
   }

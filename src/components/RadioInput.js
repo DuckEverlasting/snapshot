@@ -4,6 +4,7 @@ import styled from "styled-components";
 const RadioInputSC = styled.div`
   display: flex;
   flex-direction: column;
+  margin: 10px 0;
 `
 const RadioButtonsSC = styled.div`
   display: flex;

@@ -11,11 +11,11 @@ const ColorBoxSC = styled.div`
   position: relative;
   height: 96px;
   margin-bottom: 5px;
+  flex-shrink: 0;
 `
 
 const TitleSC = styled.p`
-  margin: 0 0 5px;
-  padding: 3px;
+  padding: 5px;
   border-top: 1px solid black;
   border-bottom: 1px dotted black;
 `
