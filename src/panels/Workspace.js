@@ -497,11 +497,13 @@ export default function Workspace() {
           docSize={{w: documentWidth, h: documentHeight}}
         />
       </CanvasPaneSC>
-      {importImageFile && <TransformObject
-        source={importImageFile}
-        target={layerOrder[layerOrder.length - 1]}
-        targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
-      />}
+      {
+        importImageFile && <TransformObject
+          source={importImageFile}
+          target={layerOrder[layerOrder.length - 1]}
+          targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
+        />
+      }
       {
         transformSelectionTarget && <TransformObject
           source={layerData.placeholder}
