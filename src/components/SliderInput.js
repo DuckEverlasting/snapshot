@@ -79,7 +79,7 @@ const LabelSC = styled.label`
     width: 70%;
     justify-content: space-between;
     align-items: center;
-    margin: 15px 0;
+    margin: 10px 0;
   }
 `;
 

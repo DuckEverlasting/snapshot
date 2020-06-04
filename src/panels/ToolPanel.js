@@ -12,7 +12,8 @@ const ToolPanelSC = styled.div`
   width: 150px;
   height: 100%;
   flex-shrink: 0;
-  border-top: 1px solid black;
+  border-top: 1px solid #222222;
+  border-bottom: 2px solid #222222;
   background: #666666;
   z-index: 1;
 `;
@@ -31,10 +32,11 @@ const ToolPanelDividerSC = styled.div`
   position: relative;
   flex-direction: column;
   justify-content: flex-end;
+  overflow: hidden;
 `
 
 const SpacerSC = styled.div`
-  flex-grow: 1;
+  flex: 1 1 auto;
 `
 
 export default function ToolPanel() {  

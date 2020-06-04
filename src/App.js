@@ -30,10 +30,12 @@ const AppSC = styled.div`
 const AppContainerSC = styled.div`
   text-align: center;
   width: 100%;
+  height: calc(100% - 35px);
   flex-shrink: 1;
   flex-grow: 1;
   display: flex;
   justify-content: center;
+  align-items: stretch;
   user-select: none;
 `;
 

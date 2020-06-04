@@ -129,8 +129,8 @@ export default function DraggableWindow({
       setIsResizing(resizeType)
     };
     setDragOrigin({
-      x: ev.screenX,
-      y: ev.screenY,
+      x: Math.floor(ev.screenX),
+      y: Math.floor(ev.screenY),
       w: modalDimensions.x,
       h: modalDimensions.y,
       offX: offset.x,
@@ -147,8 +147,8 @@ export default function DraggableWindow({
       if (isResizing) setIsResizing("");
       return setIsDragging(false);
     }
-    const x = ev.screenX - (dragOrigin.x - dragOrigin.offX);
-    const y = ev.screenY - (dragOrigin.y - dragOrigin.offY);
+    const x = Math.floor(ev.screenX) - (dragOrigin.x - dragOrigin.offX);
+    const y = Math.floor(ev.screenY) - (dragOrigin.y - dragOrigin.offY);
 
     if (!isResizing) {
       setOffset({
@@ -163,8 +163,8 @@ export default function DraggableWindow({
       });
     } else if (isResizing === "se") {
       setModalDimensions({
-        x: Math.max(minSize.x, dragOrigin.w + (ev.screenX - dragOrigin.x)),
-        y: Math.max(minSize.y, dragOrigin.h + (ev.screenY - dragOrigin.y))
+        x: Math.max(minSize.x, dragOrigin.w + (Math.floor(ev.screenX) - dragOrigin.x)),
+        y: Math.max(minSize.y, dragOrigin.h + (Math.floor(ev.screenY) - dragOrigin.y))
       });
     } else if (isResizing === "sw") {
       setOffset( prevOffset => ({
