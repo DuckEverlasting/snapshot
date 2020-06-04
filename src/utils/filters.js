@@ -31,6 +31,12 @@ const range = {
   options: ["Shadows", "Midtones", "Highlights"]
 }
 
+const mono = {
+  name: "Monochrome",
+  type: "Checkbox",
+  init: false
+}
+
 function convolve(data, width, matrix, offset=0, divisor) {
   if (!divisor) {
     divisor = 0;
@@ -227,8 +233,10 @@ export const findEdges = new Filter("Find Edges", {amount: {...amount, min:0}}, 
   convolve(data, width, matrix, 0, 1);
 });
 
-export const emboss = new Filter("Emboss", {}, (data, {width}) => {
-  const matrix = [[-1, -1, 0], [-1, 0, 1], [0, 1, 1]];
+export const emboss = new Filter("Emboss", {amount: {...amount, min:0, init: 10}, mono}, (data, {amount, mono, width}) => {
+  if (mono) saturation.apply(data, {amount: -100});
+  const a = amount / 10;
+  const matrix = [[-a, -a, 0], [-a, 0, a], [0, a, a]];
   convolve(data, width, matrix, 128, 1);
 });
 

@@ -8,6 +8,7 @@ import filterAction from "../utils/filterAction";
 import DraggableWindow from "./DraggableWindow";
 import SliderInput from "./SliderInput";
 import RadioInput from "./RadioInput";
+import CheckboxInput from "./CheckboxInput";
 import Button from "./Button";
 
 const FilterToolSC = styled.div`
@@ -106,6 +107,12 @@ export default function FilterTool() {
                 selected={input[key]}
                 onChange={value => handleChange(key, value)}
                 options={info.options}
+              />
+            } else if (info.type === "Checkbox") {
+              return <CheckboxInput
+                name={info.name}
+                selected={input[key]}
+                onChange={value => handleChange(key, value)}
               />
             } else {
               return null;

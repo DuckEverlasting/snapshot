@@ -15,6 +15,8 @@ import {
   updateLayerPosition
 } from "./index";
 
+import { filter } from "../../utils/filters";
+
 import { saveAs } from 'file-saver';
 
 import manipulate from "../../reducers/custom/manipulateReducer";
@@ -254,6 +256,18 @@ export default function menuAction(action) {
           {startEvent: null, resizable: true, rotatable: true},
           true
         ));
+      }
+    case "desaturate":
+      return (dispatch, getState) => {
+        const { activeLayer, layerData } = getState().main.present;
+        if (!activeLayer) return
+        const ctx = layerData[activeLayer].getContext("2d");
+        const activeData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            filter.saturation.apply(activeData.data, {amount: -100})
+          )
+        );
       }
     default:
       break;

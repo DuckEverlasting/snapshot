@@ -7,6 +7,7 @@ import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
 import { toggleAboutModal, setFilterTool, toggleHelp, setExportOptions } from "../actions/redux/index";
 
+import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";
 
 const TopBarSC = styled.div`
@@ -49,7 +50,7 @@ export default function TopBar() {
   );
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const dispatch = useDispatch();
-  let mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
+  const mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
 
   function exportAs(type, compression) {
     return async dispatch => {
@@ -123,7 +124,7 @@ export default function TopBar() {
           />
           <MenuItem 
             label="Desaturate"
-            disabled
+            onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
           />
           <MenuBranch label="Filter">
             <MenuItem 
