@@ -23,13 +23,13 @@ import manipulate from "../../reducers/custom/manipulateReducer";
 
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
-    const { layerData, layerSettings, layerOrder } = getState().main.present,
-      placeholderCtx = layerData.placeholder.getContext("2d"),
+    const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
+      placeholderCtx = layerCanvas.placeholder.getContext("2d"),
       fileName = getState().main.present.documentSettings.documentName
   
     layerOrder.forEach(id => {
       if (!layerSettings[id].hidden) {
-        const sourceCtx = layerData[id].getContext("2d"); 
+        const sourceCtx = layerCanvas[id].getContext("2d"); 
         manipulate(placeholderCtx, {
           action: "paste",
           params: {
@@ -54,7 +54,7 @@ export default function menuAction(action) {
       return switchColors();
     case "deselect":
       return (dispatch, getState) => {
-        const ctx = getState().main.present.layerData.selection.getContext("2d");
+        const ctx = getState().main.present.layerCanvas.selection.getContext("2d");
         dispatch(
           putHistoryData("selection", ctx, () =>
             manipulate(ctx, {
@@ -68,15 +68,15 @@ export default function menuAction(action) {
     case "duplicate":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
-        const source = getState().main.present.layerData[activeLayer];
+        const source = getState().main.present.layerCanvas[activeLayer];
         dispatch(createLayerFrom(activeLayer, source));
       };
     case "copy":
       // PROBABLY SHOULD MOVE CLIPBOARD TO ITS OWN REDUCER???
       return (dispatch, getState) => {
         const { activeLayer, selectionPath } = getState().main.present;
-        const ctx = getState().main.present.layerData.clipboard.getContext("2d");
-        const sourceCtx = getState().main.present.layerData[
+        const ctx = getState().main.present.layerCanvas.clipboard.getContext("2d");
+        const sourceCtx = getState().main.present.layerCanvas[
           activeLayer
         ].getContext("2d");
         const offset = getState().main.present.layerSettings[activeLayer].offset;
@@ -97,8 +97,8 @@ export default function menuAction(action) {
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
         if (!activeLayer) return;
-        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
-        const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
+        const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
+        const sourceCtx = getState().main.present.layerCanvas.clipboard.getContext("2d");
         const offset = getState().main.present.layerSettings.clipboard.offset;
         putHistoryData(activeLayer, ctx, () =>
           manipulate(ctx, {
@@ -116,9 +116,9 @@ export default function menuAction(action) {
     //       layerCounter: newLayerId,
     //       activeLayer
     //     } = getState().main.present;
-    //     const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
+    //     const sourceCtx = getState().main.present.layerCanvas.clipboard.getContext("2d");
     //     dispatch(createLayer(activeLayer));
-    //     const ctx = getState().main.present.layerData[newLayerId].getContext("2d");
+    //     const ctx = getState().main.present.layerCanvas[newLayerId].getContext("2d");
     //     manipulate(ctx, {
     //       action: "paste",
     //       params: {
@@ -158,7 +158,7 @@ export default function menuAction(action) {
     case "clear":
       return (dispatch, getState) => {
         const { activeLayer, selectionPath } = getState().main.present;
-        const ctx = getState().main.present.layerData[activeLayer].getContext("2d");
+        const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
         const offset = getState().main.present.layerSettings[activeLayer].offset;
         if (!selectionPath) {
           return;
@@ -193,16 +193,19 @@ export default function menuAction(action) {
       }
     case "export":
       return (dispatch, getState) => {
-        const { layerData, layerSettings, layerOrder } = getState().main.present,
-          placeholderCtx = layerData.placeholder.getContext("2d"),
+        const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
+          placeholderCtx = layerCanvas.placeholder.getContext("2d"),
           { type, compression } = getState().ui.exportOptions,
           fileName = getState().main.present.documentSettings.documentName;
 
         if (!type) return;
+
+        layerCanvas[layerOrder.length - 1].toBlob(blob => console.log("BLOB SIZE: ", blob.size))
+
       
         layerOrder.forEach(id => {
           if (!layerSettings[id].hidden) {
-            const sourceCtx = layerData[id].getContext("2d"); 
+            const sourceCtx = layerCanvas[id].getContext("2d"); 
             manipulate(placeholderCtx, {
               action: "paste",
               params: {
@@ -221,11 +224,11 @@ export default function menuAction(action) {
       }
     case "transform":
       return (dispatch, getState) => {
-        const { activeLayer, layerData, layerSettings, selectionPath } = getState().main.present;
+        const { activeLayer, layerCanvas, layerSettings, selectionPath } = getState().main.present;
         if (!activeLayer) return
-        const activeCtx = layerData[activeLayer].getContext("2d"),
-          selectionCtx = layerData.selection.getContext("2d"),
-          placeholderCtx = layerData.placeholder.getContext("2d");
+        const activeCtx = layerCanvas[activeLayer].getContext("2d"),
+          selectionCtx = layerCanvas.selection.getContext("2d"),
+          placeholderCtx = layerCanvas.placeholder.getContext("2d");
         manipulate(placeholderCtx, {
           action: "paste",
           params: {
@@ -259,9 +262,9 @@ export default function menuAction(action) {
       }
     case "desaturate":
       return (dispatch, getState) => {
-        const { activeLayer, layerData } = getState().main.present;
+        const { activeLayer, layerCanvas } = getState().main.present;
         if (!activeLayer) return
-        const ctx = layerData[activeLayer].getContext("2d");
+        const ctx = layerCanvas[activeLayer].getContext("2d");
         const activeData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
         dispatch(
           putHistoryData(activeLayer, ctx, () =>

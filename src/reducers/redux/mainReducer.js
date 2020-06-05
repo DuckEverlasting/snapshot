@@ -2,7 +2,7 @@ import {
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_LAYER_DATA,
+  UPDATE_LAYER_CANVAS,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
   SET_TRANSFORM_PARAMS,
@@ -48,7 +48,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
 
       return {
         ...state,
-        layerData: {...state.layerData, [layerId]: source ? source : null},
+        layerCanvas: {...state.layerCanvas, [layerId]: source ? source : null},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: state.layerCounter,
@@ -56,7 +56,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       };
     
     case DELETE_LAYER:
-      let afterDeleteData = {...state.layerData, [payload.id]: undefined}
+      let afterDeleteData = {...state.layerCanvas, [payload.id]: undefined}
       let afterDeleteSettings = {...state.layerSettings, [payload.id]: undefined}
       let afterDeleteOrder = state.layerOrder.filter(id => {
         return id !== payload.id;
@@ -64,7 +64,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       let afterDeleteActive = state.activeLayer === payload.id ? null : state.activeLayer
       return {
         ...state,
-        layerData: afterDeleteData,
+        layerCanvas: afterDeleteData,
         layerSettings: afterDeleteSettings,
         layerOrder: afterDeleteOrder,
         activeLayer: afterDeleteActive
@@ -87,11 +87,11 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         activeLayer
       }
 
-    case UPDATE_LAYER_DATA:
+    case UPDATE_LAYER_CANVAS:
       return {
         ...state,
-        layerData: {
-          ...state.layerData,
+        layerCanvas: {
+          ...state.layerCanvas,
           [payload.id]: payload.changes
         }
       };

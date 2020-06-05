@@ -87,7 +87,7 @@ export default function Workspace() {
     selectionPath,
     selectionActive,
     transformSelectionTarget,
-    layerData,
+    layerCanvas,
     layerSettings,
     layerOrder,
     stagingPinnedTo
@@ -272,7 +272,7 @@ export default function Workspace() {
           width: toolSettings.blur.width,
           hardness: toolSettings.blur.hardness,
           filter: filter.blur.apply,
-          filterInput: {amount: toolSettings.blur.amount, width: layerData[activeLayer].width},
+          filterInput: {amount: toolSettings.blur.amount, width: layerCanvas[activeLayer].width},
           clip: selectionPath
         });
       case "sharpen":
@@ -281,7 +281,7 @@ export default function Workspace() {
           width: toolSettings.sharpen.width,
           hardness: toolSettings.sharpen.hardness,
           filter: filter.sharpen.apply,
-          filterInput: {amount: toolSettings.sharpen.amount, width: layerData[activeLayer].width},
+          filterInput: {amount: toolSettings.sharpen.amount, width: layerCanvas[activeLayer].width},
           clip: selectionPath
         });
       default:
@@ -370,9 +370,9 @@ export default function Workspace() {
       });
     } else if (ev.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
-        const activeCtx = layerData[activeLayer].getContext("2d"),
-          selectionCtx = layerData.selection.getContext("2d"),
-          placeholderCtx = layerData.placeholder.getContext("2d");
+        const activeCtx = layerCanvas[activeLayer].getContext("2d"),
+          selectionCtx = layerCanvas.selection.getContext("2d"),
+          placeholderCtx = layerCanvas.placeholder.getContext("2d");
         manipulate(placeholderCtx, {
           action: "paste",
           params: {
@@ -406,7 +406,7 @@ export default function Workspace() {
       }
       currentAction = buildAction();
       if (!currentAction) {return};
-      currentAction.start(ev, layerData);
+      currentAction.start(ev, layerCanvas);
       if (eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
@@ -414,7 +414,7 @@ export default function Workspace() {
   const handleMouseLeave = (ev) => {
     if (currentAction && ev.buttons === 1) {
       if (isDrawing) {
-        currentAction.end(layerData);
+        currentAction.end(layerCanvas);
         isDrawing = false;
       };
       currentAction = null;
@@ -434,7 +434,7 @@ export default function Workspace() {
         })
       );
     } else if (currentAction && ev.buttons === 1) {
-      currentAction.move(ev, layerData);
+      currentAction.move(ev, layerCanvas);
       if (!isDrawing && eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
@@ -447,7 +447,7 @@ export default function Workspace() {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
       if (isDrawing || currentAction.alwaysFire) {
-        currentAction.end(layerData);
+        currentAction.end(layerCanvas);
         isDrawing = false;
       };
       currentAction = null;
@@ -491,7 +491,7 @@ export default function Workspace() {
       >
         <LayerRenderer
           layerOrder={layerOrder}
-          layerData={layerData}
+          layerCanvas={layerCanvas}
           layerSettings={layerSettings}
           stagingPinnedTo={stagingPinnedTo}
           docSize={{w: documentWidth, h: documentHeight}}
@@ -500,13 +500,13 @@ export default function Workspace() {
       {importImageFile && <TransformObject
         source={importImageFile}
         target={layerOrder[layerOrder.length - 1]}
-        targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
+        targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
       />}
       {
         transformSelectionTarget && <TransformObject
-          source={layerData.placeholder}
+          source={layerCanvas.placeholder}
           target={transformSelectionTarget}
-          targetCtx={layerData[transformSelectionTarget].getContext("2d")}
+          targetCtx={layerCanvas[transformSelectionTarget].getContext("2d")}
           targetOffset={layerSettings[transformSelectionTarget].offset}
           docSize={{w: documentWidth, h: documentHeight}}
           index={layerOrder.indexOf(stagingPinnedTo) + 1}
@@ -521,7 +521,7 @@ export default function Workspace() {
 
 function LayerRenderer({
   layerOrder,
-  layerData,
+  layerCanvas,
   layerSettings,
   stagingPinnedTo,
   docSize
@@ -532,19 +532,19 @@ function LayerRenderer({
         id={"clipboard"}
         docSize={docSize}
         index={1}
-        data={layerData.clipboard}
+        data={layerCanvas.clipboard}
         hidden
       />
       <Layer
         id={"placeholder"}
         docSize={docSize}
         index={1}
-        data={layerData.placeholder}
+        data={layerCanvas.placeholder}
         hidden
       />
       {layerOrder.length !== 0 &&
         layerOrder.map((layerId, i) => {
-          let layerDat = layerData[layerId];
+          let layerDat = layerCanvas[layerId];
           let layerSet = layerSettings[layerId];
           return <Layer
             key={layerId}
@@ -564,7 +564,7 @@ function LayerRenderer({
         id={"selection"}
         docSize={docSize}
         index={layerOrder.length + 2}
-        data={layerData.selection}
+        data={layerCanvas.selection}
       />
       {
         stagingPinnedTo && <Layer
@@ -574,7 +574,7 @@ function LayerRenderer({
           size={layerSettings[stagingPinnedTo].size}
           offset={layerSettings[stagingPinnedTo].offset}
           index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
-          data={layerData.staging}
+          data={layerCanvas.staging}
           edgeClip={calculateLayerClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
         />
       }

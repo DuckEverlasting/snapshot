@@ -9,7 +9,7 @@ export const [
   CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_LAYER_DATA,
+  UPDATE_LAYER_CANVAS,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
   SET_TRANSFORM_PARAMS,
@@ -45,7 +45,7 @@ export const [
   "CREATE_LAYER_FROM",
   "DELETE_LAYER",
   "HIDE_LAYER",
-  "UPDATE_LAYER_DATA",
+  "UPDATE_LAYER_CANVAS",
   "UPDATE_SELECTION_PATH",
   "SET_TRANSFORM_SELECTION",
   "SET_TRANSFORM_PARAMS",
@@ -85,7 +85,7 @@ export const undo = () => {
       }
 
       function executeUndo(onUndo) {
-        const ctx = prevState.layerData[onUndo.id].getContext("2d")
+        const ctx = prevState.layerCanvas[onUndo.id].getContext("2d")
         const changeData = onUndo.data
         const viewWidth = Math.floor(ctx.canvas.width);
         const viewHeight = Math.floor(ctx.canvas.height);
@@ -120,7 +120,7 @@ export const redo = () => {
       }
 
       function executeRedo(onRedo) {
-        const ctx = currState.layerData[onRedo.id].getContext("2d")
+        const ctx = currState.layerCanvas[onRedo.id].getContext("2d")
         const changeData = onRedo.data
         const viewWidth = Math.floor(ctx.canvas.width);
         const viewHeight = Math.floor(ctx.canvas.height);
@@ -206,7 +206,7 @@ export const deleteLayer = (id, ignoreHistory=false) => {
   return (dispatch, getState) => {
     let data = null;
     if (!ignoreHistory) {
-      const ctx = getState().main.present.layerData[id].getContext("2d");
+      const ctx = getState().main.present.layerCanvas[id].getContext("2d");
       const viewWidth = Math.floor(ctx.canvas.width);
       const viewHeight = Math.floor(ctx.canvas.height);
       data = ctx.getImageData(
@@ -230,9 +230,9 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerData = (id, changes, ignoreHistory=true) => {
+export const updateLayerCanvas = (id, changes, ignoreHistory=true) => {
   return {
-    type: UPDATE_LAYER_DATA,
+    type: UPDATE_LAYER_CANVAS,
     payload: {id, changes, ignoreHistory}
   };
 };

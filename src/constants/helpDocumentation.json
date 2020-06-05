@@ -213,7 +213,7 @@
     },
     "toolsPanel": {
       "title": "Tools Panel",
-      "text": "The tools panel is located on the left side of the screen. It contains buttons that allow you to switch between the various <button name='tools'>tools</button> PhotoSmith has to offer. Below these buttons, the tools panel contains the <button name='colorSelector'>color selector</button> and input ranges to customize the currently selected tool. (See <button name='toolSettings'>tool settings</button> for more info.)"
+      "text": "The tools panel is located on the left side of the screen. It contains buttons that allow you to switch between the various <button name='tools'>tools</button> SnapShot Image Editor has to offer. Below these buttons, the tools panel contains the <button name='colorSelector'>color selector</button> and input ranges to customize the currently selected tool. (See <button name='toolSettings'>tool settings</button> for more info.)"
     },
     "layersPanel": {
       "title": "Layers Panel",
@@ -237,7 +237,7 @@
     },
     "line": {
       "title": "Line Tool",
-      "text": "The line tool is very straightforward. Click the mouse and drag to make a straight line to a second point of your choosing.<ul><li>The line tool uses the <button name='colorSelector'>foreground color</button> and has two <button name='toolSettings'>adjustable properties</button>: width and opacity.</li><li>Hold the <b>SHIFT</b> key down to lock the line tool onto a vertical or horizontal path.</li><li>In case you were wondering, that was indeed a pun at the beginning of this article. We at PhotoSmith believe that allowing a bit of levity to enter our documentation helps to keep our priorities... aligned.</li></ul>"
+      "text": "The line tool is very straightforward. Click the mouse and drag to make a straight line to a second point of your choosing.<ul><li>The line tool uses the <button name='colorSelector'>foreground color</button> and has two <button name='toolSettings'>adjustable properties</button>: width and opacity.</li><li>Hold the <b>SHIFT</b> key down to lock the line tool onto a vertical or horizontal path.</li><li>In case you were wondering, that was indeed a pun at the beginning of this article. We at SnapShot believe that allowing a bit of levity to enter our documentation helps to keep our priorities... aligned.</li></ul>"
     },
     "eraser": {
       "title": "",

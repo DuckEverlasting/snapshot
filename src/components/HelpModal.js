@@ -176,7 +176,7 @@ function HelpModal() {
   }
 
   return (
-    <DraggableWindow name="PhotoSmith Help" onKeyDown={handleKeyDown} initSize={{y: height * 0.6, x: width * 0.4}} minimumSize={{y: height * 0.4, x: width * 0.3}}>
+    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{y: height * 0.6, x: width * 0.4}} minimumSize={{y: height * 0.4, x: width * 0.3}}>
       <HelpModalSC>
         <MainContentSC>
           <TopicMenu

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateLayerData } from '../actions/redux'
+import { updateLayerCanvas } from '../actions/redux'
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
@@ -42,7 +42,7 @@ function Layer({id, docSize, size=docSize, offset={x: 0, y: 0}, index, data, hid
     if (data) {
       ctx.drawImage(data, 0, 0);
     }
-    dispatch(updateLayerData(id, canvasRef.current));
+    dispatch(updateLayerCanvas(id, canvasRef.current));
     if (onUndelete && onUndelete.id === id) {
       ctx.putImageData(onUndelete.data, 0, 0);
     }
