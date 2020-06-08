@@ -11,6 +11,7 @@ import {
   PencilAction,
   BrushAction,
   FilterBrushAction,
+  StampAction,
   EraserAction,
   ShapeAction,
   EyeDropperAction,
@@ -90,7 +91,8 @@ export default function Workspace() {
     layerData,
     layerSettings,
     layerOrder,
-    stagingPinnedTo
+    stagingPinnedTo,
+    stampOrigin
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const importImageFile = useSelector(state => state.ui.importImageFile);
@@ -232,6 +234,15 @@ export default function Workspace() {
       case "move":
         if (!activeLayer || selectionActive) {return}
         return new MoveAction(activeLayer, dispatch, getTranslateData());
+      case "stamp":
+        if (!activeLayer) {return}
+        return new StampAction(activeLayer, dispatch, getTranslateData(), {
+          stampOrigin,
+          width: toolSettings.stamp.width,
+          hardness: toolSettings.stamp.hardness,
+          opacity: toolSettings.stamp.opacity,
+          clip: selectionPath
+        });
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -569,7 +580,7 @@ function LayerRenderer({
         data={layerData.selection}
       />
       {
-        stagingPinnedTo && <Layer
+        stagingPinnedTo && layerData[stagingPinnedTo] && <Layer
           key={"staging"}
           id={"staging"}
           docSize={docSize}

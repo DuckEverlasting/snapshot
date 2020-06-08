@@ -111,24 +111,6 @@ export default function menuAction(action) {
           })
         );
       };
-    // case "pasteToNew":
-    //   return (dispatch, getState) => {
-    //     const {
-    //       layerCounter: newLayerId,
-    //       activeLayer
-    //     } = getState().main.present;
-    //     const sourceCtx = getState().main.present.layerData.clipboard.getContext("2d");
-    //     dispatch(createLayer(activeLayer));
-    //     const ctx = getState().main.present.layerData[newLayerId].getContext("2d");
-    //     manipulate(ctx, {
-    //       action: "paste",
-    //       params: {
-    //         sourceCtx,
-    //         dest: {x: 0, y: 0},
-    //         clearFirst: true
-    //       }
-    //     });
-    //   };
     case "undo":
       return undo();
     case "redo":

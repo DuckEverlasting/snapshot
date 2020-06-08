@@ -13,6 +13,7 @@ import {
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   MAKE_ACTIVE_LAYER,
+  SET_STAMP_ORIGIN,
 } from "../../actions/redux";
 
 import { initMainState } from "./initState";
@@ -203,6 +204,12 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         activeLayer: payload.layerId,
+      };
+    
+    case SET_STAMP_ORIGIN:
+      return {
+        ...state,
+        stampOrigin: payload.origin
       };
 
     default:

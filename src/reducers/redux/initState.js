@@ -17,7 +17,8 @@ export const initMainState = {
     selection: null,
     clipboard: null,
     placeholder: null,
-    staging: null
+    staging: null,
+    stamp: null
   },
   layerSettings: {
     1: {
@@ -51,7 +52,7 @@ export const initMainState = {
       offset: {
         x: 0,
         y: 0
-      },
+      }
     }
   },
   selectionPath: initSelectionPath,
@@ -66,7 +67,8 @@ export const initMainState = {
   layerOrder: [1],
   layerCounter: 2,
   activeLayer: 1,
-  clipboardUsed: false
+  clipboardUsed: false,
+  stampOrigin: null
 };
 
 export const initUiState = {
@@ -96,6 +98,7 @@ export const initUiState = {
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
     saturate: { name: "Saturate", width: 20, hardness: 0, amount: 50 },
+    stamp: { name: "Stamp", width: 20, opacity: 100, hardness: 0 },
     dodge: { name: "Dodge", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     burn: { name: "Burn", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
