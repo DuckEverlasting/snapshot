@@ -199,18 +199,18 @@ export default function TopBar() {
         </Menu>
         <Menu id="help" label="Help">
           <MenuItem
-            label="About Photosmith"
+            label="About SnapShot"
             onClick={() => dispatch(toggleAboutModal())}
           />
           <MenuItem
-            label="Photosmith Help"
+            label="SnapShot Help"
             onClick={() => dispatch(toggleHelp())}
             disabled
           />
         </Menu>
       </MenuBar>
       <RightBoxSC>
-        <TitleSC>PhotoSmith Image Editor</TitleSC>
+        <TitleSC>SnapShot Image Editor</TitleSC>
       </RightBoxSC>
     </TopBarSC>
   );

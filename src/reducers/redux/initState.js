@@ -12,7 +12,7 @@ export const initMainState = {
     documentHeight: initHeight,
     documentName: "Untitled_1"
   },
-  layerData: {
+  layerCanvas: {
     1: null,
     selection: null,
     clipboard: null,
