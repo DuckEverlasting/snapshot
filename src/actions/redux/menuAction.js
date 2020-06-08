@@ -140,7 +140,7 @@ export default function menuAction(action) {
       };
     case "clear":
       return (dispatch, getState) => {
-        const { activeLayer, selectionPath } = getState().main.present;
+        const { activeLayer, selectionPath, selectionActive } = getState().main.present;
         if (!selectionActive || !activeLayer || !selectionPath) return; 
         const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
         const offset = getState().main.present.layerSettings[activeLayer].offset;

@@ -99,6 +99,11 @@ export default function Workspace() {
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
+  const [keys, setKeys] = useState({
+    shift: false,
+    ctrl: false,
+    alt: false
+  });
 
   const workspaceRef = useRef(null);
   let workspaceElement = workspaceRef.current;
@@ -371,6 +376,20 @@ export default function Workspace() {
   }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);
+  
+  const handleKeys = useCallback(ev => {
+    let modifier = window.navigator.platform.includes("Mac")
+        ? ev.metaKey
+        : ev.ctrlKey;
+    setKeys({
+      shift: ev.shiftKey,
+      ctrl: modifier,
+      alt: ev.altKey
+    })
+  }, [])
+
+  useEventListener("keydown", handleKeys);
+  useEventListener("keyup", handleKeys);
 
   const handleMouseDown = ev => {
     if (ev.buttons === 4 || activeTool === "hand") {
@@ -490,7 +509,7 @@ export default function Workspace() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
-      cursor={getCursor(isDragging ? "activeHand" : activeTool)}
+      cursor={getCursor(isDragging ? "activeHand" : activeTool, keys)}
     >
       <DropZone onDrop={handleDrop} />
       <CanvasPaneSC
@@ -580,7 +599,7 @@ function LayerRenderer({
         data={layerCanvas.selection}
       />
       {
-        stagingPinnedTo && layerData[stagingPinnedTo] && <Layer
+        stagingPinnedTo && layerCanvas[stagingPinnedTo] && <Layer
           key={"staging"}
           id={"staging"}
           docSize={docSize}

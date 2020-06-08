@@ -430,15 +430,15 @@ export class StampAction extends ToolActionBase {
     this.stampOrigin = params.stampOrigin;
   }
 
-  start(ev, layerData) {
-    this.layerData = layerData;
+  start(ev, layerCanvas) {
+    this.layerCanvas = layerCanvas;
     if (ev.altKey) {
-      this.layerData.placeholder.width = this.layerData[this.activeLayer].width
-      this.layerData.placeholder.height = this.layerData[this.activeLayer].height
-      manipulate(this.layerData.placeholder.getContext("2d"), {
+      this.layerCanvas.placeholder.width = this.layerCanvas[this.activeLayer].width
+      this.layerCanvas.placeholder.height = this.layerCanvas[this.activeLayer].height
+      manipulate(this.layerCanvas.placeholder.getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.layerData[this.activeLayer].getContext("2d"),
+          sourceCtx: this.layerCanvas[this.activeLayer].getContext("2d"),
           clearFirst: true
         }
       });
@@ -446,8 +446,8 @@ export class StampAction extends ToolActionBase {
       this.stampOrigin = null;
       return;
     } else if (!this.stampOrigin) return;
-    this.layerData = layerData;
-    const ctx = this.layerData[this.activeLayer].getContext("2d");
+    this.layerCanvas = layerCanvas;
+    const ctx = this.layerCanvas[this.activeLayer].getContext("2d");
     this.processing.width = ctx.canvas.width;
     this.processing.height = ctx.canvas.height;
     this._clearStaging();
@@ -457,9 +457,9 @@ export class StampAction extends ToolActionBase {
     this.lastDest = this.origin;
   }
 
-  move(ev, layerData) {
+  move(ev, layerCanvas) {
     if (!this.stampOrigin) return;
-    this.layerData = layerData;
+    this.layerCanvas = layerCanvas;
     this._setLockedAxis(ev);
     let {x, y} = this._getCoordinates(ev);
     if (this.lockedAxis === "x") {
@@ -494,7 +494,7 @@ export class StampAction extends ToolActionBase {
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
-    manipulate(this.layerData.staging.getContext("2d"), {
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.processing.getContext("2d"),
@@ -502,10 +502,10 @@ export class StampAction extends ToolActionBase {
         clearFirst: true
       }
     });
-    manipulate(this.layerData.staging.getContext("2d"), {
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
-        sourceCtx: this.layerData.placeholder.getContext("2d"),
+        sourceCtx: this.layerCanvas.placeholder.getContext("2d"),
         composite: "source-in",
         orig: this.stampOffset
       }
@@ -514,16 +514,16 @@ export class StampAction extends ToolActionBase {
     this.lastMid = newMid;
   }
 
-  async end(layerData) {
+  async end(layerCanvas) {
     if (!this.stampOrigin) return;
-    this.layerData = layerData;
+    this.layerCanvas = layerCanvas;
     await this.dispatch(putHistoryData(
       this.activeLayer,
-      this.layerData[this.activeLayer].getContext("2d"),
-      () => manipulate(this.layerData[this.activeLayer].getContext("2d"), {
+      this.layerCanvas[this.activeLayer].getContext("2d"),
+      () => manipulate(this.layerCanvas[this.activeLayer].getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.layerData.staging.getContext("2d")
+          sourceCtx: this.layerCanvas.staging.getContext("2d")
         }
       })
     ))
