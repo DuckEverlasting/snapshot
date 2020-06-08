@@ -104,15 +104,15 @@ export default function Workspace() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    function updateAnimatedLayers() {
+      const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+      animationFrame = reqFrame;
+    }
+    
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
-
-  function updateAnimatedLayers() {
-    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-    animationFrame = reqFrame;
-  }
 
   function getTranslateData(noOffset) {
     const marginLeft = .5 * (Math.floor(workspaceRef.current.clientWidth) - documentWidth * zoomPct / 100);
@@ -357,6 +357,7 @@ export default function Workspace() {
     } else {
       translateTool(ev);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);

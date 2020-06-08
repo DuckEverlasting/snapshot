@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 /**
  * Created by @sakri on 25-3-14.
  * Edited and optimized by @mamrehn on 08-09-16

@@ -246,7 +246,8 @@ export default function TransformObject({
         h: imageRect.h,
       });
     }
-  }, [source]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!image) return;
@@ -265,6 +266,7 @@ export default function TransformObject({
     } else {
       canvasRef.current.getContext("2d").drawImage(image, 0, 0);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, transformCanvasSize]);
 
   function handleMouseDown(ev, actionType) {
@@ -345,6 +347,7 @@ export default function TransformObject({
         dispatch(setTransformParams({resizable: true, rotatable: true}))
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
   );
 

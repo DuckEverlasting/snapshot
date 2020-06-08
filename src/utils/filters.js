@@ -145,6 +145,30 @@ export const saturation = new Filter("Saturation", {amount}, (data, {amount}) =>
   }
 });
 
+export const posturize = new Filter("Posturization", {amount, min: 2, max: 255}, (data, {amount}) => {
+  const redCount = new Array(255).fill(0);
+  const reds = [];
+  const redThreshold = 0;
+  const redThreshold = 0;
+
+  const greenCount = new Array(255).fill(0);
+  const greens = [];
+
+  const blueCount = new Array(255).fill(0);
+  const blues = [];
+
+  for (let i=0; i<data.length; i+=4) {
+    if (data[i] in redGraph) {
+
+    } else {
+      redGraph
+    }
+    data[i] += max !== data[i] ? (max - data[i]) * amount : 0;
+    data[i + 1] += max !== data[i + 1] ? (max - data[i + 1]) * amount : 0;
+    data[i + 2] += max !== data[i + 2] ? (max - data[i + 2]) * amount : 0;
+  }
+});
+
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
   const matrix = getGaussianKernel(amount / 10);
   convolve(data, width, matrix);
