@@ -12,6 +12,7 @@ import {
   putHistoryDataMultiple,
   setImportImageFile,
   setTransformSelection,
+  setTransformParams,
   updateLayerPosition
 } from "./index";
 
@@ -110,24 +111,6 @@ export default function menuAction(action) {
           })
         );
       };
-    // case "pasteToNew":
-    //   return (dispatch, getState) => {
-    //     const {
-    //       layerCounter: newLayerId,
-    //       activeLayer
-    //     } = getState().main.present;
-    //     const sourceCtx = getState().main.present.layerCanvas.clipboard.getContext("2d");
-    //     dispatch(createLayer(activeLayer));
-    //     const ctx = getState().main.present.layerCanvas[newLayerId].getContext("2d");
-    //     manipulate(ctx, {
-    //       action: "paste",
-    //       params: {
-    //         sourceCtx,
-    //         dest: {x: 0, y: 0},
-    //         clearFirst: true
-    //       }
-    //     });
-    //   };
     case "undo":
       return undo();
     case "redo":
@@ -157,24 +140,21 @@ export default function menuAction(action) {
       };
     case "clear":
       return (dispatch, getState) => {
-        const { activeLayer, selectionPath } = getState().main.present;
+        const { activeLayer, selectionPath, selectionActive } = getState().main.present;
+        if (!selectionActive || !activeLayer || !selectionPath) return; 
         const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
         const offset = getState().main.present.layerSettings[activeLayer].offset;
-        if (!selectionPath) {
-          return;
-        } else {
-          dispatch(
-            putHistoryData(activeLayer, ctx, () =>
-              manipulate(ctx, {
-                action: "clear",
-                params: {
-                  clip: selectionPath,
-                  clipOffset: offset
-                }
-              })
-            )
-          );
-        }
+        dispatch(
+          putHistoryData(activeLayer, ctx, () =>
+            manipulate(ctx, {
+              action: "clear",
+              params: {
+                clip: selectionPath,
+                clipOffset: offset
+              }
+            })
+          )
+        );
       };
     case "import":
       return async (dispatch, getState) => {
@@ -186,6 +166,7 @@ export default function menuAction(action) {
         
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
+          dispatch(setTransformParams({resizable: true, rotatable: true}))
           dispatch(createLayer(getState().main.present.layerOrder.length, false, {name}));
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);

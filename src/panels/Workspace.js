@@ -11,6 +11,7 @@ import {
   PencilAction,
   BrushAction,
   FilterBrushAction,
+  StampAction,
   EraserAction,
   ShapeAction,
   EyeDropperAction,
@@ -90,13 +91,19 @@ export default function Workspace() {
     layerCanvas,
     layerSettings,
     layerOrder,
-    stagingPinnedTo
+    stagingPinnedTo,
+    stampOrigin
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const importImageFile = useSelector(state => state.ui.importImageFile);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
+  const [keys, setKeys] = useState({
+    shift: false,
+    ctrl: false,
+    alt: false
+  });
 
   const workspaceRef = useRef(null);
   let workspaceElement = workspaceRef.current;
@@ -232,6 +239,15 @@ export default function Workspace() {
       case "move":
         if (!activeLayer || selectionActive) {return}
         return new MoveAction(activeLayer, dispatch, getTranslateData());
+      case "stamp":
+        if (!activeLayer) {return}
+        return new StampAction(activeLayer, dispatch, getTranslateData(), {
+          stampOrigin,
+          width: toolSettings.stamp.width,
+          hardness: toolSettings.stamp.hardness,
+          opacity: toolSettings.stamp.opacity,
+          clip: selectionPath
+        });
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -361,6 +377,20 @@ export default function Workspace() {
   }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);
+  
+  const handleKeys = useCallback(ev => {
+    let modifier = window.navigator.platform.includes("Mac")
+        ? ev.metaKey
+        : ev.ctrlKey;
+    setKeys({
+      shift: ev.shiftKey,
+      ctrl: modifier,
+      alt: ev.altKey
+    })
+  }, [])
+
+  useEventListener("keydown", handleKeys);
+  useEventListener("keyup", handleKeys);
 
   const handleMouseDown = ev => {
     if (ev.buttons === 4 || activeTool === "hand") {
@@ -480,7 +510,7 @@ export default function Workspace() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
-      cursor={getCursor(isDragging ? "activeHand" : activeTool)}
+      cursor={getCursor(isDragging ? "activeHand" : activeTool, keys)}
     >
       <DropZone onDrop={handleDrop} />
       <CanvasPaneSC
@@ -498,11 +528,13 @@ export default function Workspace() {
           docSize={{w: documentWidth, h: documentHeight}}
         />
       </CanvasPaneSC>
-      {importImageFile && <TransformObject
-        source={importImageFile}
-        target={layerOrder[layerOrder.length - 1]}
-        targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
-      />}
+      {
+        importImageFile && <TransformObject
+          source={importImageFile}
+          target={layerOrder[layerOrder.length - 1]}
+          targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
+        />
+      }
       {
         transformSelectionTarget && <TransformObject
           source={layerCanvas.placeholder}
@@ -568,7 +600,7 @@ function LayerRenderer({
         data={layerCanvas.selection}
       />
       {
-        stagingPinnedTo && <Layer
+        stagingPinnedTo && layerCanvas[stagingPinnedTo] && <Layer
           key={"staging"}
           id={"staging"}
           docSize={docSize}

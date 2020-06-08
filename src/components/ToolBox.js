@@ -59,6 +59,7 @@ function ToolBox() {
       <ToolButton title="Dodge" name="dodge" icon={<img alt="Dodge" src={dodgeIcon} />}/>
       <ToolButton title="Burn" name="burn" icon={<img alt="Burn" src={burnIcon} />}/>
       <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
+      <ToolButton title="Stamp" name="stamp" icon="C"/>
       <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img alt="Select Rectangle" src={dashedSquareIcon} />}/>
       <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img alt="Select Ellipse" src={dashedCircleIcon} />}/>

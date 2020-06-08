@@ -126,6 +126,10 @@ export default function TopBar() {
             label="Desaturate"
             onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
           />
+          <MenuItem 
+            label="Invert"
+            onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
+          />
           <MenuBranch label="Filter">
             <MenuItem 
               label="Blur"

@@ -12,6 +12,7 @@ import {
   updateSelectionPath,
   updateStagingPosition,
   updateLayerPosition,
+  setStampOrigin,
   putHistoryData
 } from "../actions/redux/index";
 
@@ -408,6 +409,121 @@ export class FilterBrushAction extends ToolActionBase {
         action: "blend",
         params: {
           source: this.layerCanvas.staging.getContext("2d")
+        }
+      })
+    ))
+    this._clearStaging();
+    this.processing = null;
+    this.filtered = null;
+  }
+}
+
+export class StampAction extends ToolActionBase {
+  constructor(activeLayer, dispatch, translateData, params) {
+    super(activeLayer, dispatch, translateData);
+    this.width = params.width;
+    this.hardness = params.hardness;
+    this.clip = params.clip;
+    this.opacity = params.opacity;
+    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.processing = document.createElement('canvas');
+    this.stampOrigin = params.stampOrigin;
+  }
+
+  start(ev, layerCanvas) {
+    this.layerCanvas = layerCanvas;
+    if (ev.altKey) {
+      this.layerCanvas.placeholder.width = this.layerCanvas[this.activeLayer].width
+      this.layerCanvas.placeholder.height = this.layerCanvas[this.activeLayer].height
+      manipulate(this.layerCanvas.placeholder.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.layerCanvas[this.activeLayer].getContext("2d"),
+          clearFirst: true
+        }
+      });
+      this.dispatch(setStampOrigin(this._getCoordinates(ev)));
+      this.stampOrigin = null;
+      return;
+    } else if (!this.stampOrigin) return;
+    this.layerCanvas = layerCanvas;
+    const ctx = this.layerCanvas[this.activeLayer].getContext("2d");
+    this.processing.width = ctx.canvas.width;
+    this.processing.height = ctx.canvas.height;
+    this._clearStaging();
+    this._moveStaging();
+    this.origin = this._getCoordinates(ev);
+    this.stampOffset = {x: this.stampOrigin.x - this.origin.x, y: this.stampOrigin.y - this.origin.y}
+    this.lastDest = this.origin;
+  }
+
+  move(ev, layerCanvas) {
+    if (!this.stampOrigin) return;
+    this.layerCanvas = layerCanvas;
+    this._setLockedAxis(ev);
+    let {x, y} = this._getCoordinates(ev);
+    if (this.lockedAxis === "x") {
+      x = this.origin.x;
+    } else if (this.lockedAxis === "y") {
+      y = this.origin.y;
+    }
+
+    const newMid = midpoint(this.lastDest, {x, y});
+
+    if (
+      getQuadLength(
+        this.lastMid || this.origin,
+        this.lastDest,
+        newMid
+      ) <
+      this.width * 0.25
+    ) {
+      return;
+    }
+
+    draw(this.processing.getContext("2d"), {
+      action: "drawQuadPoints",
+      params: {
+        orig: this.origin,
+        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
+        gradient: this.gradient,
+        width: this.width,
+        hardness: this.hardness,
+        density: 0.25,
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+      }
+    });
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.processing.getContext("2d"),
+        globalAlpha: this.opacity / 100,
+        clearFirst: true
+      }
+    });
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.layerCanvas.placeholder.getContext("2d"),
+        composite: "source-in",
+        orig: this.stampOffset
+      }
+    });
+    this.lastDest = {x, y};
+    this.lastMid = newMid;
+  }
+
+  async end(layerCanvas) {
+    if (!this.stampOrigin) return;
+    this.layerCanvas = layerCanvas;
+    await this.dispatch(putHistoryData(
+      this.activeLayer,
+      this.layerCanvas[this.activeLayer].getContext("2d"),
+      () => manipulate(this.layerCanvas[this.activeLayer].getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.layerCanvas.staging.getContext("2d")
         }
       })
     ))
