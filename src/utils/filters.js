@@ -1,4 +1,5 @@
-import {getQuadEquation} from "../utils/helpers";
+import { getQuadEquation } from "../utils/helpers";
+import { toHslFromRgb, toRgbFromHsl } from "../utils/colorConversion";
 
 class Filter {
   constructor(name, inputInfo, applyFunct) {
@@ -147,6 +148,16 @@ export const contrast = new Filter("Contrast", {amount}, (data, {amount}) => {
     data[i + 2] = factor * (data[i + 2] - 128.0) + 128.0;
   }
 });
+
+export const hue = new Filter("Hue", {amount: {...amount, min: -180, max: 180}}, (data, {amount}) => {
+  for (let i=0; i<data.length; i+=4) {
+    const {h, s, l} = toHslFromRgb(data[i], data[i + 1], data[i + 2]);
+    const {r, g, b} = toRgbFromHsl(h + amount, s, l);
+    data[i] = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
+})
 
 export const saturation = new Filter("Saturation", {amount}, (data, {amount}) => {
   amount /= -100;
@@ -302,6 +313,40 @@ export const burn = new Filter("Burn", {amount: {...amount, min:1}, range}, (dat
   }
 });
 
+export const brightnessContrast = new Filter(
+  "Brightness / Contrast",
+  {brightness: {...amount, name: "Brightness"}, contrast: {...amount, name: "Contrast"}},
+  (data, {brightness: brightnessAmount , contrast: contrastAmount}) => {
+    brightness.apply(data, {amount: brightnessAmount});
+    contrast.apply(data, {amount: contrastAmount});
+  }
+)
+
+export const hueSaturation = new Filter(
+  "Hue / Saturation",
+  {hue: {...amount, name: "Hue", min: -180, max: 180}, saturation: {...amount, name: "Saturation"}, brightness: {...amount, name: "Brightness"}},
+  (data, {hue: hueAmount , saturation: saturationAmount, brightness: brightnessAmount}) => {
+    for (let i=0; i<data.length; i+=4) {
+      let {h, s, l} = toHslFromRgb(data[i], data[i + 1], data[i + 2]);
+      h = (h + hueAmount + 360) % 360;
+      if (saturationAmount > 0) {
+        s += (100 - s) * saturationAmount / 100;
+      } else {
+        s += s * saturationAmount / 100;
+      }
+      if (brightnessAmount > 0) {
+        l += (100 - l) * brightnessAmount / 100;
+      } else {
+        l += l * brightnessAmount / 100;
+      }
+      const {r, g, b} = toRgbFromHsl(h, s, l);
+      data[i] = r;
+      data[i + 1] = g;
+      data[i + 2] = b;
+    }
+  }
+)
+
 export const filter = {
   invert,
   brightness,
@@ -314,5 +359,7 @@ export const filter = {
   emboss,
   dodge,
   burn,
-  posterize
+  posterize,
+  brightnessContrast,
+  hueSaturation
 }

@@ -49,8 +49,6 @@ const SliderSC = styled.input`
 `;
 
 const NumberInputSC = styled.input`
-  -moz-appearance: textfield;
-  appearance: textfield;
   margin: 1px 0 0;
   border-radius: 3px;
   border: 1px solid #222222;
@@ -64,6 +62,7 @@ const NumberInputSC = styled.input`
 `;
 
 const PickerSC = styled(NumberInputSC)`
+  margin-left: 5px;
   width: 25px;
 `;
 
@@ -76,10 +75,14 @@ const LabelSC = styled.label`
 
   & div {
     display: flex;
-    width: 70%;
-    justify-content: space-between;
+    min-width: 70%;
+    justify-content: center;
     align-items: center;
     margin: 10px 0;
+
+    & span {
+      margin-right: 5px;
+    }
   }
 `;
 
@@ -90,8 +93,10 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
 
   const inputHandler = ev => {
     let newValue = Number(ev.target.value);
-    if (newValue === 0) {
-      newValue = ""
+    if (ev.target.value === "-" || ev.target.value === "") {
+      newValue = ev.target.value;
+    } else if (Number.isNaN(newValue)) {
+      newValue = value;
     } else if (newValue < min) {
       newValue = min;
     } else if (newValue > max) {
@@ -114,14 +119,13 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
           onKeyDown={keydownHandler}
           onChange={inputHandler}
           onBlur={blurHandler}
-          type="number"
+          type="text"
           min={min}
           max={min}
-          step={step}
         />
       </div>
       <SliderSC
-        value={value || min}
+        value={!value && value !== 0 ? min : value}
         onChange={inputHandler}
         type="range"
         min={min}

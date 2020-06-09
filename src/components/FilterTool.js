@@ -68,7 +68,7 @@ export default function FilterTool() {
         if (showPreview) {
           dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
         }
-      }, 20)
+      }, 50)
     }
   }, [input])
 

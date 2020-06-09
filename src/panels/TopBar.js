@@ -116,11 +116,11 @@ export default function TopBar() {
         <Menu id="image" label="Image">
           <MenuItem 
             label="Brightness / Contrast"
-            onClick={() => dispatch(setFilterTool("on", filter.brightness))}
+            onClick={() => dispatch(setFilterTool("on", filter.brightnessContrast))}
           />
           <MenuItem
             label="Hue / Saturation"
-            onClick={() => dispatch(setFilterTool("on", filter.saturation))}
+            onClick={() => dispatch(setFilterTool("on", filter.hueSaturation))}
           />
           <MenuItem 
             label="Desaturate"
