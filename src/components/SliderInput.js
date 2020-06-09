@@ -90,14 +90,20 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
 
   const inputHandler = ev => {
     let newValue = Number(ev.target.value);
-    if (value < min) {
+    if (newValue === 0) {
+      newValue = ""
+    } else if (newValue < min) {
       newValue = min;
-    }
-    if (value > max) {
+    } else if (newValue > max) {
       newValue = max;
     }
     onChange(newValue)
   };
+
+  const blurHandler = () => {
+    if (value === "")
+    onChange(min)
+  }
 
   return (
     <LabelSC>
@@ -107,6 +113,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
           value={value}
           onKeyDown={keydownHandler}
           onChange={inputHandler}
+          onBlur={blurHandler}
           type="number"
           min={min}
           max={min}
@@ -114,7 +121,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
         />
       </div>
       <SliderSC
-        value={value}
+        value={value || min}
         onChange={inputHandler}
         type="range"
         min={min}

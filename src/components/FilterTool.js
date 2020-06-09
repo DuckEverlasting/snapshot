@@ -57,8 +57,11 @@ export default function FilterTool() {
     }
   }, [showPreview])
 
-  const handleChange = (key, value) => {
+  const handleChange = async (key, value) => {
     setInput({...input, [key]: value})
+  }
+
+  useEffect(() => {
     clearTimeout(previewDelay);
     if (showPreview) {
       previewDelay = setTimeout(() => {
@@ -67,7 +70,7 @@ export default function FilterTool() {
         }
       }, 20)
     }
-  }
+  }, [input])
 
   const handleKeyDown = ev => {
     if (ev.key === "Escape") {
@@ -84,6 +87,17 @@ export default function FilterTool() {
   const handleCancel = () => {
     stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
     dispatch(setFilterTool("off"));
+  }
+
+  const checkRequirementsMet = () => {
+    let result = true;
+    Object.keys(filter.inputInfo).forEach(key => {
+      const info = filter.inputInfo[key];
+      if (info.required && !input[key] && input[key] !== 0) {
+        result = false;
+      }
+    })
+    return result;
   }
 
   return (
@@ -125,7 +139,7 @@ export default function FilterTool() {
         </CheckboxSC>
         <div>
           <FilterButtonSC onClick={handleCancel}>CANCEL</FilterButtonSC>
-          <FilterButtonSC onClick={handleApply}>APPLY</FilterButtonSC>
+          <FilterButtonSC disabled={!checkRequirementsMet()} onClick={handleApply}>APPLY</FilterButtonSC>
         </div>
       </FilterToolSC>
     </DraggableWindow>

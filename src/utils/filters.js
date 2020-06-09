@@ -13,7 +13,8 @@ const amount = {
   type: "Number",
   init: 0,
   min: -100,
-  max: 100
+  max: 100,
+  required: true
 }
 
 const size = {
@@ -21,20 +22,32 @@ const size = {
   type: "Number",
   init: 1,
   min: 0,
-  max: 10
+  max: 10,
+  required: true
 }
 
 const range = {
   name: "",
   type: "Radio",
   init: "Midtones",
-  options: ["Shadows", "Midtones", "Highlights"]
+  options: ["Shadows", "Midtones", "Highlights"],
+  required: true
 }
 
 const mono = {
   name: "Monochrome",
   type: "Checkbox",
-  init: false
+  init: false,
+  required: false
+}
+
+const levels = {
+  name: "Levels",
+  type: "Number",
+  init: 6,
+  min: 2,
+  max: 255,
+  required: true
 }
 
 function convolve(data, width, matrix, offset=0, divisor) {
@@ -145,13 +158,15 @@ export const saturation = new Filter("Saturation", {amount}, (data, {amount}) =>
   }
 });
 
-export const posterize = new Filter("Posturization", {amount: {...amount, min: 2, max: 255}}, (data, {amount}) => {
-  
-  // for (let i=0; i<data.length; i+=4) {
-  //   for (let j=0; j<3; j++) {
-  //     data[i + j] = ;
-  //   }
-  // }
+export const posterize = new Filter("Posturize", {levels}, (data, {levels}) => {
+  const interval = 255 / (levels - 1);
+  for (let i=0; i<data.length; i+=4) {
+    if (data[i + 3] === 0) continue;
+    for (let j=0; j<3; j++) {
+      const remainder = data[i + j] % interval;
+      data[i + j] = remainder < interval - remainder ? Math.floor(data[i + j] - remainder) : Math.floor(data[i + j] + interval - remainder);
+    }
+  }
 });
 
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
