@@ -12,7 +12,7 @@ import {
   updateSelectionPath,
   updateStagingPosition,
   updateLayerPosition,
-  setStampOrigin,
+  setStampData,
   putHistoryData
 } from "../actions/redux/index";
 
@@ -427,25 +427,25 @@ export class StampAction extends ToolActionBase {
     this.opacity = params.opacity;
     this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
     this.processing = document.createElement('canvas');
-    this.stampOrigin = params.stampOrigin;
+    this.stampCanvas = params.stampData.canvas;
+    this.stampOrigin = params.stampData.origin;
+    this.stampDestination = params.stampData.destination;
   }
 
   start(ev, layerCanvas) {
     this.layerCanvas = layerCanvas;
     if (ev.altKey) {
-      this.layerCanvas.placeholder.width = this.layerCanvas[this.activeLayer].width
-      this.layerCanvas.placeholder.height = this.layerCanvas[this.activeLayer].height
-      manipulate(this.layerCanvas.placeholder.getContext("2d"), {
-        action: "paste",
-        params: {
-          sourceCtx: this.layerCanvas[this.activeLayer].getContext("2d"),
-          clearFirst: true
-        }
-      });
-      this.dispatch(setStampOrigin(this._getCoordinates(ev)));
-      this.stampOrigin = null;
+      this.dispatch(setStampData({
+        canvas: this.layerCanvas[this.activeLayer],
+        origin: this._getCoordinates(ev),
+        destination: null
+      }, false));
+      this.stampCanvas = null;
       return;
-    } else if (!this.stampOrigin) return;
+    } else if (!this.stampCanvas) {
+      return;
+    }
+
     this.layerCanvas = layerCanvas;
     const ctx = this.layerCanvas[this.activeLayer].getContext("2d");
     this.processing.width = ctx.canvas.width;
@@ -453,12 +453,18 @@ export class StampAction extends ToolActionBase {
     this._clearStaging();
     this._moveStaging();
     this.origin = this._getCoordinates(ev);
-    this.stampOffset = {x: this.stampOrigin.x - this.origin.x, y: this.stampOrigin.y - this.origin.y}
     this.lastDest = this.origin;
+    if (!this.stampDestination) {
+      this.stampDestination = this.origin;
+      this.dispatch(setStampData({
+        origin: this.origin
+      }));
+    }
+    this.stampOffset = {x: this.stampOrigin.x - this.stampDestination.x, y: this.stampOrigin.y - this.stampDestination.y}
   }
 
   move(ev, layerCanvas) {
-    if (!this.stampOrigin) return;
+    if (!this.stampCanvas) return;
     this.layerCanvas = layerCanvas;
     this._setLockedAxis(ev);
     let {x, y} = this._getCoordinates(ev);
@@ -505,7 +511,7 @@ export class StampAction extends ToolActionBase {
     manipulate(this.layerCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
-        sourceCtx: this.layerCanvas.placeholder.getContext("2d"),
+        sourceCtx: this.stampCanvas.getContext("2d"),
         composite: "source-in",
         orig: this.stampOffset
       }
@@ -515,7 +521,7 @@ export class StampAction extends ToolActionBase {
   }
 
   async end(layerCanvas) {
-    if (!this.stampOrigin) return;
+    if (!this.stampCanvas) return;
     this.layerCanvas = layerCanvas;
     await this.dispatch(putHistoryData(
       this.activeLayer,

@@ -36,7 +36,7 @@ export const [
   SET_FILTER_TOOL,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
-  SET_STAMP_ORIGIN
+  SET_STAMP_DATA
 ] = [
   "UNDO",
   "REDO",
@@ -73,7 +73,7 @@ export const [
   "SET_FILTER_TOOL",
   "SET_IMPORT_IMAGE_FILE",
   "SET_EXPORT_OPTIONS",
-  "SET_STAMP_ORIGIN"
+  "SET_STAMP_DATA",
 ];
 
 export const undo = () => {
@@ -433,9 +433,9 @@ export const setExportOptions = (type=null, compression=null) => {
   }
 }
 
-export const setStampOrigin = (origin, ignoreHistory=false) => {
+export const setStampData = (changes, ignoreHistory=true) => {
   return {
-    type: SET_STAMP_ORIGIN,
-    payload: { origin, ignoreHistory }
+    type: SET_STAMP_DATA,
+    payload: { changes, ignoreHistory }
   }
 }

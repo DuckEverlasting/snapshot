@@ -17,8 +17,7 @@ export const initMainState = {
     selection: null,
     clipboard: null,
     placeholder: null,
-    staging: null,
-    stamp: null
+    staging: null
   },
   layerSettings: {
     1: {
@@ -68,7 +67,11 @@ export const initMainState = {
   layerCounter: 2,
   activeLayer: 1,
   clipboardUsed: false,
-  stampOrigin: null
+  stampData: {
+    canvas: null,
+    origin: null,
+    destination: null
+  }
 };
 
 export const initUiState = {

@@ -92,7 +92,7 @@ export default function Workspace() {
     layerSettings,
     layerOrder,
     stagingPinnedTo,
-    stampOrigin
+    stampData
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const importImageFile = useSelector(state => state.ui.importImageFile);
@@ -242,7 +242,7 @@ export default function Workspace() {
       case "stamp":
         if (!activeLayer) {return}
         return new StampAction(activeLayer, dispatch, getTranslateData(), {
-          stampOrigin,
+          stampData,
           width: toolSettings.stamp.width,
           hardness: toolSettings.stamp.hardness,
           opacity: toolSettings.stamp.opacity,
