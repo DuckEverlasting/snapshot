@@ -2,11 +2,12 @@ import {
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_LAYER_CANVAS,
+  UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
   SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
+  UPDATE_LAYER_BLEND_MODE,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
@@ -43,6 +44,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         },
         hidden: false,
         opacity: 1,
+        blend: "source-over"
       };
       const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
       let orderAfterCreate = state.layerOrder.slice(0);
@@ -89,7 +91,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         activeLayer
       }
 
-    case UPDATE_LAYER_CANVAS:
+    case UPDATE_CANVAS:
       return {
         ...state,
         layerCanvas: {
@@ -140,6 +142,18 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           [payload.id]: {
             ...state.layerSettings[payload.id],
             opacity: payload.opacity,
+          }
+        }
+      };
+    
+    case UPDATE_LAYER_BLEND_MODE:
+      return {
+        ...state,
+        layerSettings: {
+          ...state.layerSettings, 
+          [payload.id]: {
+            ...state.layerSettings[payload.id],
+            blend: payload.blend,
           }
         }
       };

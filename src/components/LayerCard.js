@@ -5,6 +5,8 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
+import render from "../actions/redux/renderCanvas";
+
 import {
   makeActiveLayer,
   deleteLayer,
@@ -81,11 +83,13 @@ export default function LayerCard(props) {
   const deleteHandler = ev => {
     ev.stopPropagation();
     dispatch(deleteLayer(props.id));
+    dispatch(render())
   };
 
   const hideHandler = ev => {
     ev.stopPropagation();
     dispatch(hideLayer(props.id));
+    dispatch(render())
   };
 
   const enableRenameHandler = () => {

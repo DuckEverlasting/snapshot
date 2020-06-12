@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateLayerCanvas } from '../actions/redux'
+import { updateCanvas } from '../actions/redux'
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
@@ -34,9 +34,9 @@ function MainCanvas() {
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    dispatch(updateLayerCanvas("main", canvasRef.current));
+    dispatch(updateCanvas("main", canvasRef.current));
 
-    return () => dispatch(updateLayerCanvas("main", null));
+    return () => dispatch(updateCanvas("main", null));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

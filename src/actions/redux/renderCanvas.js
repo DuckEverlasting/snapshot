@@ -1,6 +1,6 @@
 import manipulate from "../../reducers/custom/manipulateReducer";
 
-export default function renderCanvas() {
+export default function renderCanvas(start, end, params={}) {
   return (dispatch, getState) => {
     const {
       layerCanvas,
@@ -9,33 +9,42 @@ export default function renderCanvas() {
       stagingPinnedTo
     } = getState().main.present;
 
-    const mainCtx = layerCanvas.main.getContext("2d");
-    mainCtx.clearRect(0, 0, mainCtx.canvas.width, mainCtx.canvas.height);
+    const ctx = params.ctx ? params.ctx : layerCanvas.main.getContext("2d");
+    
+    if (!params.noClear) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
 
-    for (let i = 0; i < layerOrder.length; i++) {
+    if (start === undefined) start = 0;
+    if (end === undefined) end = layerOrder.length;
+
+    for (let i = start; i < end; i++) {
       const current = layerOrder[i]
-      const offset = layerSettings[current].offset;
+      const { offset, blend, size, opacity } = layerSettings[current];
       
       if (layerSettings[current].hidden) continue;
-      manipulate(mainCtx, {
+      manipulate(ctx, {
         action: "paste",
         params: {
           sourceCtx: layerCanvas[current].getContext("2d"),
-          dest: {x: 0, y: 0},
-          orig: {x: -offset.x, y: -offset.y}
+          dest: offset,
+          globalAlpha: opacity,
+          composite: blend
         }
       })
       if (stagingPinnedTo === current) {
-        manipulate(mainCtx, {
+        manipulate(ctx, {
           action: "paste",
           params: {
             sourceCtx: layerCanvas.staging.getContext("2d"),
-            dest: {x: 0, y: 0}
+            dest: offset,
+            globalAlpha: opacity,
+            composite: blend
           }
         })
       }
     }
-    manipulate(mainCtx, {
+    manipulate(ctx, {
       action: "paste",
       params: {
         sourceCtx: layerCanvas.selection.getContext("2d"),
@@ -43,7 +52,7 @@ export default function renderCanvas() {
       }
     })
     if (stagingPinnedTo === "selection") {
-      manipulate(mainCtx, {
+      manipulate(ctx, {
         action: "paste",
         params: {
           sourceCtx: layerCanvas.staging.getContext("2d"),

@@ -9,11 +9,12 @@ export const [
   CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_LAYER_CANVAS,
+  UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
   SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
+  UPDATE_LAYER_BLEND_MODE,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
@@ -46,11 +47,12 @@ export const [
   "CREATE_LAYER_FROM",
   "DELETE_LAYER",
   "HIDE_LAYER",
-  "UPDATE_LAYER_CANVAS",
+  "UPDATE_CANVAS",
   "UPDATE_SELECTION_PATH",
   "SET_TRANSFORM_SELECTION",
   "SET_TRANSFORM_PARAMS",
   "UPDATE_LAYER_OPACITY",
+  "UPDATE_LAYER_BLEND_MODE",
   "UPDATE_LAYER_ORDER",
   "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
@@ -232,9 +234,9 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerCanvas = (id, changes, ignoreHistory=true) => {
+export const updateCanvas = (id, changes, ignoreHistory=true) => {
   return {
-    type: UPDATE_LAYER_CANVAS,
+    type: UPDATE_CANVAS,
     payload: {id, changes, ignoreHistory}
   };
 };
@@ -277,6 +279,13 @@ export const updateLayerOpacity = (id, opacity, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_OPACITY,
     payload: {id, opacity, ignoreHistory}
+  };
+};
+
+export const updateLayerBlendMode = (id, blend, ignoreHistory=false) => {
+  return {
+    type: UPDATE_LAYER_BLEND_MODE,
+    payload: {id, blend, ignoreHistory}
   };
 };
 

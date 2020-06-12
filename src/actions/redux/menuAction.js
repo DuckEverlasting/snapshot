@@ -118,12 +118,12 @@ export default function menuAction(action) {
       };
     case "undo":
       return dispatch => {
-        undo();
+        dispatch(undo());
         return dispatch(render());
       }
     case "redo":
       return dispatch => {
-        redo();
+        dispatch(redo());
         return dispatch(render());
       }
     case "newLayer":

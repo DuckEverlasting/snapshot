@@ -1,12 +1,11 @@
-const initWidth = (window.innerWidth - 300) * .8;
-const initHeight = (window.innerHeight - 30) * .8;
+const initWidth = Math.floor((window.innerWidth - 300) * .8);
+const initHeight = Math.floor((window.innerHeight - 30) * .8);
 const initSelectionPath = new Path2D();
 initSelectionPath.rect(0, 0, initWidth, initHeight);
 
 export const initMainState = {
   onUndo: null,
   onRedo: null,
-  onUndelete: null,
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
@@ -33,6 +32,8 @@ export const initMainState = {
         y: 0
       },
       hidden: false,
+      opacity: 1,
+      blend: "source-over"
     },
     "selection": {
       size: {

@@ -5,6 +5,7 @@ import styled from "styled-components";
 
 import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
+import SelectBlendMode from "../components/SelectBlendMode";
 import { createLayer, updateLayerOrder } from "../actions/redux";
 
 const LayerPanelSC = styled.div`
@@ -123,6 +124,7 @@ export default function LayerPanel() {
         <LayerPanelButtonSC title="New Layer" onClick={() => dispatch(createLayer("top"))}>
           NEW LAYER
         </LayerPanelButtonSC>
+        <SelectBlendMode />
       </BottomBoxSC>
     </LayerPanelSC>
   );

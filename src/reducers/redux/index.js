@@ -87,22 +87,6 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           present: next,
           future: newFuture
         };
-      case DELETE_LAYER:
-        if (!filter({ type, payload })) {
-          return {
-            ...state,
-            present: reducer(present, { type, payload })
-          };
-        } else {
-          return {
-            past: [
-              ...past,
-              { ...present, onUndelete: { id: payload.id, data: payload.data } }
-            ],
-            present: reducer(present, { type, payload }),
-            future: []
-          };
-        }
       default:
         newPresent = reducer(present, { type, payload });
         if (present === newPresent) {

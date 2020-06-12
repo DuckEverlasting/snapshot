@@ -226,7 +226,7 @@ export default function TransformObject({
           h: initHeight,
         });
       };
-    } else if (source instanceof HTMLCanvasElement) {
+    } else if (source instanceof OffscreenCanvas) {
       const imageRect = getImageRect(source);
       if (!imageRect) {
         dispatch(setImportImageFile(null));

@@ -94,7 +94,6 @@ export default function Workspace() {
     layerCanvas,
     layerSettings,
     layerOrder,
-    stagingPinnedTo,
     stampData
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
@@ -437,7 +436,6 @@ export default function Workspace() {
           {startEvent: {button: 0, screenX: Math.floor(ev.screenX), screenY: Math.floor(ev.screenY)}},
           true
         ));
-        return dispatch(render());
       }
       currentAction = buildAction();
       if (!currentAction) {return};
@@ -540,7 +538,6 @@ export default function Workspace() {
           targetCtx={layerCanvas[transformSelectionTarget].getContext("2d")}
           targetOffset={layerSettings[transformSelectionTarget].offset}
           docSize={{w: documentWidth, h: documentHeight}}
-          index={layerOrder.indexOf(stagingPinnedTo) + 1}
         />
       }
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
