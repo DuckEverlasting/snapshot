@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 
 import { setFilterTool } from "../actions/redux";
+import render from "../actions/redux/renderCanvas";
 import filterAction from "../utils/filterAction";
 
 import DraggableWindow from "./DraggableWindow";
@@ -54,6 +55,7 @@ export default function FilterTool() {
       dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
     } else if (stagingCanvas) {
       stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
+      dispatch(render());
     }
   }, [showPreview])
 

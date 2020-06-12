@@ -1,4 +1,6 @@
-import { putHistoryData, updateStagingPosition } from "../actions/redux/index"; 
+import { putHistoryData, updateStagingPosition } from "../actions/redux/index";
+
+import render from "../actions/redux/renderCanvas";
 
 export default function filterAction(apply, input, preview) {
   return (dispatch, getState) => {
@@ -26,6 +28,7 @@ export default function filterAction(apply, input, preview) {
         )
       );
     }
+    return dispatch(render());
   };
 }
 
