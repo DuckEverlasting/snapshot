@@ -32,11 +32,11 @@ export default function(ctx, { action, params }) {
     }
   }
   switch (action) {
-    case "move":
-      move(ctx, params);
-      break;
     case "paste":
       paste(ctx, params);
+      break;
+    case "move":
+      move(ctx, params);
       break;
     case "undelete":
       undelete(ctx, params);

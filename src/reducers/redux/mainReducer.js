@@ -44,12 +44,14 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         hidden: false,
         opacity: 1,
       };
+      const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
       let orderAfterCreate = state.layerOrder.slice(0);
       orderAfterCreate.splice(position + 1, 0, layerId);
+      console.log("NEW LAYER: ", layerId)
 
       return {
         ...state,
-        layerCanvas: {...state.layerCanvas, [layerId]: source ? source : null},
+        layerCanvas: {...state.layerCanvas, [layerId]: source ? source : newLayerCanvas},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: state.layerCounter,

@@ -13,11 +13,12 @@ export const initMainState = {
     documentName: "Untitled_1"
   },
   layerCanvas: {
-    1: null,
-    selection: null,
-    clipboard: null,
-    placeholder: null,
-    staging: null
+    main: null,
+    1: new OffscreenCanvas(initWidth, initHeight),
+    selection: new OffscreenCanvas(initWidth, initHeight),
+    clipboard: new OffscreenCanvas(initWidth, initHeight),
+    placeholder: new OffscreenCanvas(initWidth, initHeight),
+    staging: new OffscreenCanvas(initWidth, initHeight)
   },
   layerSettings: {
     1: {

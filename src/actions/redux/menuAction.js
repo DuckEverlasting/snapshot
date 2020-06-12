@@ -22,6 +22,8 @@ import { saveAs } from 'file-saver';
 
 import manipulate from "../../reducers/custom/manipulateReducer";
 
+import render from "./renderCanvas";
+
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
     const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
@@ -65,12 +67,14 @@ export default function menuAction(action) {
           )
         );
         dispatch(updateSelectionPath(null));
+        dispatch(render());
       };
     case "duplicate":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
         const source = getState().main.present.layerCanvas[activeLayer];
         dispatch(createLayerFrom(activeLayer, source));
+        dispatch(render());
       };
     case "copy":
       // PROBABLY SHOULD MOVE CLIPBOARD TO ITS OWN REDUCER???
@@ -110,11 +114,18 @@ export default function menuAction(action) {
             }
           })
         );
+        dispatch(render());
       };
     case "undo":
-      return undo();
+      return dispatch => {
+        undo();
+        return dispatch(render());
+      }
     case "redo":
-      return redo();
+      return dispatch => {
+        redo();
+        return dispatch(render());
+      }
     case "newLayer":
       return (dispatch, getState) => {
         const { activeLayer, layerOrder } = getState().main.present;
@@ -129,6 +140,7 @@ export default function menuAction(action) {
         const { activeLayer } = getState().main.present;
         if (activeLayer) {
           dispatch(deleteLayer(activeLayer));
+          dispatch(render());
         }
       };
     case "hideLayer":
@@ -136,15 +148,16 @@ export default function menuAction(action) {
         const { activeLayer } = getState().main.present;
         if (activeLayer) {
           dispatch(hideLayer(activeLayer));
+          dispatch(render());
         }
       };
     case "clear":
-      return (dispatch, getState) => {
+      return async (dispatch, getState) => {
         const { activeLayer, selectionPath, selectionActive } = getState().main.present;
         if (!selectionActive || !activeLayer || !selectionPath) return; 
         const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
         const offset = getState().main.present.layerSettings[activeLayer].offset;
-        dispatch(
+        await dispatch(
           putHistoryData(activeLayer, ctx, () =>
             manipulate(ctx, {
               action: "clear",
@@ -155,6 +168,7 @@ export default function menuAction(action) {
             })
           )
         );
+        dispatch(render());
       };
     case "import":
       return async (dispatch, getState) => {
@@ -204,7 +218,7 @@ export default function menuAction(action) {
         window.URL.revokeObjectURL(href);
       }
     case "transform":
-      return (dispatch, getState) => {
+      return async (dispatch, getState) => {
         const { activeLayer, layerCanvas, layerSettings, selectionPath } = getState().main.present;
         if (!activeLayer) return
         const activeCtx = layerCanvas[activeLayer].getContext("2d"),
@@ -219,7 +233,7 @@ export default function menuAction(action) {
             clearFirst: true
           }
         })
-        dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
+        await dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
           () => {
           manipulate(activeCtx, {
             action: "clear",
@@ -234,6 +248,7 @@ export default function menuAction(action) {
             params: { selectionPath: null }
           })
         }]));
+        dispatch(render());
         dispatch(updateSelectionPath(null, true));
         return dispatch(setTransformSelection(
           activeLayer,
@@ -242,16 +257,17 @@ export default function menuAction(action) {
         ));
       }
     case "desaturate":
-      return (dispatch, getState) => {
+      return async (dispatch, getState) => {
         const { activeLayer, layerCanvas } = getState().main.present;
         if (!activeLayer) return
         const ctx = layerCanvas[activeLayer].getContext("2d");
         const activeData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-        dispatch(
+        await dispatch(
           putHistoryData(activeLayer, ctx, () =>
             filter.saturation.apply(activeData.data, {amount: -100})
           )
         );
+        dispatch(render());
       }
     default:
       break;

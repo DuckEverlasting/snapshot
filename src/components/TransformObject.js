@@ -7,6 +7,7 @@ import { setImportImageFile, setTransformSelection, putHistoryData, setTransform
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
+import render from "../actions/redux/renderCanvas";
 
 import styled from "styled-components";
 
@@ -266,6 +267,7 @@ export default function TransformObject({
     } else {
       canvasRef.current.getContext("2d").drawImage(image, 0, 0);
     }
+    dispatch(render());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, transformCanvasSize]);
 
@@ -340,6 +342,7 @@ export default function TransformObject({
               rotation
             },
           });
+          dispatch(render());
         }, null, {groupWithPrevious: true}));
         dispatch(setImportImageFile(null));
         dispatch(setTransformSelection(null, null, true));
