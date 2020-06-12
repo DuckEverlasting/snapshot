@@ -14,13 +14,15 @@ export default function renderCanvas() {
 
     for (let i = 0; i < layerOrder.length; i++) {
       const current = layerOrder[i]
+      const offset = layerSettings[current].offset;
       
       if (layerSettings[current].hidden) continue;
       manipulate(mainCtx, {
         action: "paste",
         params: {
           sourceCtx: layerCanvas[current].getContext("2d"),
-          dest: {x: 0, y: 0}
+          dest: {x: 0, y: 0},
+          orig: {x: -offset.x, y: -offset.y}
         }
       })
       if (stagingPinnedTo === current) {

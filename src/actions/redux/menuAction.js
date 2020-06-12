@@ -194,9 +194,6 @@ export default function menuAction(action) {
           fileName = getState().main.present.documentSettings.documentName;
 
         if (!type) return;
-
-        layerCanvas[layerOrder.length - 1].toBlob(blob => console.log("BLOB SIZE: ", blob.size))
-
       
         layerOrder.forEach(id => {
           if (!layerSettings[id].hidden) {

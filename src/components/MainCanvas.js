@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
 import { updateLayerCanvas } from '../actions/redux'
@@ -35,7 +35,6 @@ function MainCanvas() {
     const ctx = canvasRef.current.getContext("2d");
     ctx.imageSmoothingEnabled = false;
     dispatch(updateLayerCanvas("main", canvasRef.current));
-    console.log("SENT MAIN")
 
     return () => dispatch(updateLayerCanvas("main", null));
   // eslint-disable-next-line react-hooks/exhaustive-deps

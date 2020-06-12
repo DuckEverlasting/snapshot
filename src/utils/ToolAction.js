@@ -886,8 +886,8 @@ export class MoveAction extends ToolActionBase {
         canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
         canvas.getContext("2d").putImageData(redrawData, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
       }
+      this.dispatch(render());
     })
-    this.dispatch(render());
   }
 }
 
