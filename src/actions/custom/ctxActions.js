@@ -216,6 +216,12 @@ export function blend(ctx, { source }) {
 }
 
 export function getDiff(ctx, { prevImgData }) {
+  if (!prevImgData) {
+    return {
+      old: null,
+      new: null
+    }
+  }
   const viewWidth = Math.floor(ctx.canvas.width);
   const viewHeight = Math.floor(ctx.canvas.height);
   const imgData = ctx.getImageData(

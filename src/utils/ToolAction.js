@@ -813,16 +813,12 @@ export class MoveAction extends ToolActionBase {
     this.alwaysFire = true;
   }
 
-  start(ev) {
+  start(ev, layerCanvas) {
     this.origin = {x: ev.screenX, y: ev.screenY}
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
-    this.dispatch(updateLayerPosition(
-      this.activeLayer,
-      null,
-      null,
-      false
-    ))
+    this.sizeOrigin = {w: layerCanvas[this.activeLayer].width, h: layerCanvas[this.activeLayer].height}
+    this.rectOrigin = getImageRect(layerCanvas[this.activeLayer]);
   }
 
   move(ev) {
@@ -846,7 +842,7 @@ export class MoveAction extends ToolActionBase {
       null,
       newOffset,
       true
-    ))
+    ));
     this.dispatch(render());
   }
 
@@ -881,13 +877,25 @@ export class MoveAction extends ToolActionBase {
         newSize,
         newOffset,
         true
-      ))
+      ));
       if (redrawData) {
         canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
         canvas.getContext("2d").putImageData(redrawData, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
       }
+      this.dispatch(putHistoryData(this.activeLayer, this.layerCanvas[this.activeLayer].getContext("2d"), null, null, {
+        oldMove: {
+          offset: this.offsetOrigin,
+          size: this.sizeOrigin,
+          rect: this.rectOrigin
+        },
+        newMove: {
+          offset: newOffset,
+          size: newSize,
+          rect: canvasRect
+        }
+      }));
       this.dispatch(render());
-    })
+    });
   }
 }
 
