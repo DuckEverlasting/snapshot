@@ -7,7 +7,7 @@ import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
 import SliderInput from "../components/SliderInput";
 import SelectBlendMode from "../components/SelectBlendMode";
-import { createLayer, updateLayerOrder, updateLayerOpacity } from "../actions/redux";
+import { createLayer, updateLayerOrder, updateLayerOpacity, undo } from "../actions/redux";
 
 import render from "../actions/redux/renderCanvas";
 
@@ -74,6 +74,7 @@ export default function LayerPanel() {
   const layerSettings = useSelector(state => state.main.present.layerSettings);
   const layerOrder = useSelector(state => state.main.present.layerOrder);
   const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const lastAction = useSelector(state => state.lastAction);
   const opacity = layerSettings[activeLayer].opacity;
   const dispatch = useDispatch();
 
@@ -94,6 +95,12 @@ export default function LayerPanel() {
   }
 
   const inputHandler = value => {
+    if (
+      lastAction.type === "UPDATE_LAYER_OPACITY" &&
+      Date.now() - lastAction.time < 1000
+    ) {
+      dispatch(undo());
+    }
     dispatch(updateLayerOpacity(activeLayer, value));
     dispatch(render());
   };

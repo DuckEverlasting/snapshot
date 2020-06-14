@@ -245,13 +245,14 @@ export default function menuAction(action) {
             params: { selectionPath: null }
           })
         }]));
-        dispatch(render());
-        dispatch(updateSelectionPath(null, true));
-        return dispatch(setTransformSelection(
+        dispatch(setTransformSelection(
           activeLayer,
           {startEvent: null, resizable: true, rotatable: true},
           true
         ));
+        dispatch(render());
+        dispatch(updateSelectionPath(null, true));
+        return;
       }
     case "desaturate":
       return async (dispatch, getState) => {

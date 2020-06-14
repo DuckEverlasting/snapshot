@@ -9,6 +9,7 @@ import {
 } from "../../actions/redux/index";
 
 const rootReducer = combineReducers({
+  lastAction,
   ui: uiReducer,
   main: undoable(mainReducer, {
     filter: action => !action.payload.ignoreHistory,
@@ -17,6 +18,10 @@ const rootReducer = combineReducers({
 });
 
 export default rootReducer;
+
+function lastAction(state, {type}) {
+  return {type, time: Date.now()}
+}
 
 function undoable(reducer, { filter = () => true, limit = undefined }) {
   const initialState = {
