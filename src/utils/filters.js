@@ -51,25 +51,32 @@ const levels = {
   required: true
 }
 
-function convolve(data, width, matrix, offset=0, divisor) {
+function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
   if (!divisor) {
     divisor = 0;
     matrix.forEach(a => a.forEach(b => divisor+=b));
   }
   const dataCopy = new Uint8ClampedArray(data);
+  console.log(opacity);
   for (let i=0; i<data.length; i+=4) {
-    if (dataCopy[i+3] === 0) continue;
-    for (let j=i; j<=i+2; j++) {
-      const dataMatrix = getMatrixAt(dataCopy, width, j, matrix.length);
+    if (dataCopy[i+3] === 0) {
+      if (opacity) {
+        data[i+3] = getConvolutionValue(i+3);
+      }
+      continue;
+    }
+    for (let j=i; j<=i+(opacity?3:2); j++) {
+      data[j] = getConvolutionValue(j);
+    }
+    function getConvolutionValue(index) {
+      const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length);
       let result = 0;
       dataMatrix.forEach((row, rowIndex) => {
         row.forEach((num, colIndex) => {
           result += num * matrix[rowIndex][colIndex]
         });
       });
-      result /= divisor;
-      result += offset;
-      data[j] = result;
+      return result / divisor + offset;
     }
   }
 }
@@ -182,7 +189,7 @@ export const posterize = new Filter("Posturize", {levels}, (data, {levels}) => {
 
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
   const matrix = getGaussianKernel(amount / 10);
-  convolve(data, width, matrix);
+  convolve(data, width, matrix, 0, true);
 });
 
 export const boxBlur = new Filter("Box Blur", {size}, (data, {size, width}) => {
@@ -265,14 +272,14 @@ export const findEdges = new Filter("Find Edges", {amount: {...amount, min:0}}, 
   const strength = amount / 100;
   const a = -1 * strength, b = -8 * a;
   const matrix = [[a, a, a], [a, b, a], [a, a, a]];
-  convolve(data, width, matrix, 0, 1);
+  convolve(data, width, matrix, 0, false, 1);
 });
 
 export const emboss = new Filter("Emboss", {amount: {...amount, min:0, init: 10}, mono}, (data, {amount, mono, width}) => {
   if (mono) saturation.apply(data, {amount: -100});
   const a = amount / 10;
   const matrix = [[-a, -a, 0], [-a, 0, a], [0, a, a]];
-  convolve(data, width, matrix, 128, 1);
+  convolve(data, width, matrix, 128, false, 1);
 });
 
 export const dodge = new Filter("Dodge", {amount: {...amount, min:0}, range}, (data, {amount, range}) => {
