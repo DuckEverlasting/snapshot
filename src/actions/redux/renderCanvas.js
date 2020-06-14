@@ -22,13 +22,13 @@ export default function renderCanvas(start, end, params={}) {
       const current = layerOrder[i]
       const { offset, blend, size, opacity } = layerSettings[current];
       
-      if (layerSettings[current].hidden) continue;
+      if (layerSettings[current].hidden || opacity === 0) continue;
       manipulate(ctx, {
         action: "paste",
         params: {
           sourceCtx: layerCanvas[current].getContext("2d"),
           dest: offset,
-          globalAlpha: opacity,
+          globalAlpha: opacity / 100,
           composite: blend
         }
       })
@@ -38,7 +38,7 @@ export default function renderCanvas(start, end, params={}) {
           params: {
             sourceCtx: layerCanvas.staging.getContext("2d"),
             dest: offset,
-            globalAlpha: opacity,
+            globalAlpha: opacity / 100,
             composite: blend
           }
         })

@@ -3,6 +3,10 @@ const initHeight = Math.floor((window.innerHeight - 30) * .8);
 const initSelectionPath = new Path2D();
 initSelectionPath.rect(0, 0, initWidth, initHeight);
 
+// NOTE: Opacity uses 0 - 100 instead of 0 - 1. 
+// This is so the number input component won't get confused.
+// Opacity is converted to 0 - 1 format when drawn.
+
 export const initMainState = {
   onUndo: null,
   onRedo: null,
@@ -32,7 +36,7 @@ export const initMainState = {
         y: 0
       },
       hidden: false,
-      opacity: 1,
+      opacity: 100,
       blend: "source-over"
     },
     "selection": {
@@ -43,7 +47,7 @@ export const initMainState = {
       offset: {
         x: 0,
         y: 0
-      },
+      }
     },
     "clipboard": {
       size: {
@@ -82,9 +86,6 @@ export const initUiState = {
     translateY: 0,
     zoomPct: 100
   },
-  // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. 
-  // This is so the number input component won't get confused.
-  // Opacity is converted to 0 - 1 format when drawn.
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },

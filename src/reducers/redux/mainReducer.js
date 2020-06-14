@@ -43,7 +43,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           y: 0
         },
         hidden: false,
-        opacity: 1,
+        opacity: 100,
         blend: "source-over"
       };
       const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);

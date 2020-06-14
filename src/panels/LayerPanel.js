@@ -5,8 +5,11 @@ import styled from "styled-components";
 
 import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
+import SliderInput from "../components/SliderInput";
 import SelectBlendMode from "../components/SelectBlendMode";
-import { createLayer, updateLayerOrder } from "../actions/redux";
+import { createLayer, updateLayerOrder, updateLayerOpacity } from "../actions/redux";
+
+import render from "../actions/redux/renderCanvas";
 
 const LayerPanelSC = styled.div`
   display: flex;
@@ -68,8 +71,10 @@ const LayerPanelButtonSC = styled(Button)`
 `
 
 export default function LayerPanel() {
-  const layerSettings = useSelector(state => state.main.present.layerSettings)
-  const layerOrder = useSelector(state => state.main.present.layerOrder)
+  const layerSettings = useSelector(state => state.main.present.layerSettings);
+  const layerOrder = useSelector(state => state.main.present.layerOrder);
+  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const opacity = layerSettings[activeLayer].opacity;
   const dispatch = useDispatch();
 
   const onDragEnd = result => {
@@ -87,6 +92,11 @@ export default function LayerPanel() {
 
     dispatch(updateLayerOrder(src, dest))
   }
+
+  const inputHandler = value => {
+    dispatch(updateLayerOpacity(activeLayer, value));
+    dispatch(render());
+  };
 
   return (
     <LayerPanelSC>
@@ -125,6 +135,12 @@ export default function LayerPanel() {
           NEW LAYER
         </LayerPanelButtonSC>
         <SelectBlendMode />
+        <SliderInput 
+          onChange={inputHandler}
+          value={opacity}
+          name={"Opacity"}
+          min={0}
+        />
       </BottomBoxSC>
     </LayerPanelSC>
   );
