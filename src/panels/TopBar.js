@@ -136,10 +136,6 @@ export default function TopBar() {
               onClick={() => dispatch(setFilterTool("on", filter.blur))}
             />
             <MenuItem 
-              label="Box Blur"
-              onClick={() => dispatch(setFilterTool("on", filter.boxBlur))}
-            />
-            <MenuItem 
               label="Sharpen"
               onClick={() => dispatch(setFilterTool("on", filter.sharpen))}
             />

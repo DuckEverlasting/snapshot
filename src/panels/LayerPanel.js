@@ -75,7 +75,7 @@ export default function LayerPanel() {
   const layerOrder = useSelector(state => state.main.present.layerOrder);
   const activeLayer = useSelector(state => state.main.present.activeLayer);
   const lastAction = useSelector(state => state.lastAction);
-  const opacity = layerSettings[activeLayer].opacity;
+  const opacity = activeLayer ? layerSettings[activeLayer].opacity : null;
   const dispatch = useDispatch();
 
   const onDragEnd = result => {
@@ -147,6 +147,7 @@ export default function LayerPanel() {
           value={opacity}
           name={"Opacity"}
           min={0}
+          disabled={opacity === null}
         />
       </BottomBoxSC>
     </LayerPanelSC>
