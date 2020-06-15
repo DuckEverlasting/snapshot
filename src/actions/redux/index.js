@@ -1,4 +1,5 @@
 import { getDiff } from "../custom/ctxActions";
+import moveLayer from "../redux/moveLayer";
 
 export const [
   UNDO,
@@ -9,11 +10,12 @@ export const [
   CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_LAYER_CANVAS,
+  UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
   SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
+  UPDATE_LAYER_BLEND_MODE,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
@@ -46,11 +48,12 @@ export const [
   "CREATE_LAYER_FROM",
   "DELETE_LAYER",
   "HIDE_LAYER",
-  "UPDATE_LAYER_CANVAS",
+  "UPDATE_CANVAS",
   "UPDATE_SELECTION_PATH",
   "SET_TRANSFORM_SELECTION",
   "SET_TRANSFORM_PARAMS",
   "UPDATE_LAYER_OPACITY",
+  "UPDATE_LAYER_BLEND_MODE",
   "UPDATE_LAYER_ORDER",
   "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
@@ -87,20 +90,24 @@ export const undo = () => {
       }
 
       function executeUndo(onUndo) {
-        const ctx = prevState.layerCanvas[onUndo.id].getContext("2d")
-        const changeData = onUndo.data
-        const viewWidth = Math.floor(ctx.canvas.width);
-        const viewHeight = Math.floor(ctx.canvas.height);
-        const imgData = ctx.getImageData(
-          0,
-          0,
-          viewWidth,
-          viewHeight
-        );
-        for (let index in changeData) {
-          imgData.data[index] = changeData[index];
+        if (onUndo.move) {
+          dispatch(moveLayer(onUndo.id, onUndo.move));
+        } else {
+          const ctx = prevState.layerCanvas[onUndo.id].getContext("2d")
+          const changeData = onUndo.data
+          const viewWidth = Math.floor(ctx.canvas.width);
+          const viewHeight = Math.floor(ctx.canvas.height);
+          const imgData = ctx.getImageData(
+            0,
+            0,
+            viewWidth,
+            viewHeight
+          );
+          for (let index in changeData) {
+            imgData.data[index] = changeData[index];
+          }
+          ctx.putImageData(imgData, 0, 0);
         }
-        ctx.putImageData(imgData, 0, 0);
       }
     }
     await dispatch({type: UNDO})
@@ -122,20 +129,24 @@ export const redo = () => {
       }
 
       function executeRedo(onRedo) {
-        const ctx = currState.layerCanvas[onRedo.id].getContext("2d")
-        const changeData = onRedo.data
-        const viewWidth = Math.floor(ctx.canvas.width);
-        const viewHeight = Math.floor(ctx.canvas.height);
-        const imgData = ctx.getImageData(
-          0,
-          0,
-          viewWidth,
-          viewHeight
-        );
-        for (let index in changeData) {
-          imgData.data[index] = changeData[index];
+        if (onRedo.move) {
+          dispatch(moveLayer(onRedo.id, onRedo.move));
+        } else {
+          const ctx = currState.layerCanvas[onRedo.id].getContext("2d")
+          const changeData = onRedo.data
+          const viewWidth = Math.floor(ctx.canvas.width);
+          const viewHeight = Math.floor(ctx.canvas.height);
+          const imgData = ctx.getImageData(
+            0,
+            0,
+            viewWidth,
+            viewHeight
+          );
+          for (let index in changeData) {
+            imgData.data[index] = changeData[index];
+          }
+          ctx.putImageData(imgData, 0, 0);
         }
-        ctx.putImageData(imgData, 0, 0);
       }
     }
     dispatch({type: REDO})
@@ -145,10 +156,10 @@ export const redo = () => {
   };
 }
 
-export const putHistoryData = (id, ctx, callback, prevImgData, params) => {
+export const putHistoryData = (id, ctx, callback, prevImgData, params={}) => {
   const viewWidth = Math.floor(ctx.canvas.width);
   const viewHeight = Math.floor(ctx.canvas.height);
-  if (!prevImgData) {
+  if (!prevImgData && !!callback) {
     prevImgData = ctx.getImageData(
       0,
       0,
@@ -163,7 +174,7 @@ export const putHistoryData = (id, ctx, callback, prevImgData, params) => {
   }
 }
 
-export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[], params) => {
+export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[], params={}) => {
   let differences = [];
   for (let i = 0; i < ids.length; i++) {
     const viewWidth = Math.floor(ctxs[i].canvas.width);
@@ -232,9 +243,9 @@ export const hideLayer = id => {
   };
 };
 
-export const updateLayerCanvas = (id, changes, ignoreHistory=true) => {
+export const updateCanvas = (id, changes, ignoreHistory=true) => {
   return {
-    type: UPDATE_LAYER_CANVAS,
+    type: UPDATE_CANVAS,
     payload: {id, changes, ignoreHistory}
   };
 };
@@ -277,6 +288,13 @@ export const updateLayerOpacity = (id, opacity, ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_OPACITY,
     payload: {id, opacity, ignoreHistory}
+  };
+};
+
+export const updateLayerBlendMode = (id, blend, ignoreHistory=false) => {
+  return {
+    type: UPDATE_LAYER_BLEND_MODE,
+    payload: {id, blend, ignoreHistory}
   };
 };
 

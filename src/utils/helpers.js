@@ -45,8 +45,6 @@ export function getQuadEquation(p1, p2, p3) {
   + p2.y*p1.x*p3.x/((p2.x-p1.x)*(p2.x-p3.x))
   + p3.y*p1.x*p2.x/((p3.x-p1.x)*(p3.x-p2.x));
 
-  console.log(a, b, c)
-
   return function(x) {
     return a * x * x + b * x + c;
   }
@@ -95,7 +93,6 @@ export function convertDestToRegularShape({x: origX, y: origY}, {x, y}) {
 
 export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
   if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
-    console.log(x1, y1, x2, y2);
     throw new Error('ERROR: getDistance requires 2 points with an "x" and "y" property.');
   }
   if (typeof x1 !== "number" || typeof y1 !== "number" || typeof x2 !== "number" || typeof y2 !== "number") {

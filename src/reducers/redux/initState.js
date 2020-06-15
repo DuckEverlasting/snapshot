@@ -1,23 +1,27 @@
-const initWidth = (window.innerWidth - 300) * .8;
-const initHeight = (window.innerHeight - 30) * .8;
+const initWidth = Math.floor((window.innerWidth - 300) * .8);
+const initHeight = Math.floor((window.innerHeight - 30) * .8);
 const initSelectionPath = new Path2D();
 initSelectionPath.rect(0, 0, initWidth, initHeight);
+
+// NOTE: Opacity uses 0 - 100 instead of 0 - 1. 
+// This is so the number input component won't get confused.
+// Opacity is converted to 0 - 1 format when drawn.
 
 export const initMainState = {
   onUndo: null,
   onRedo: null,
-  onUndelete: null,
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
     documentName: "Untitled_1"
   },
   layerCanvas: {
-    1: null,
-    selection: null,
-    clipboard: null,
-    placeholder: null,
-    staging: null
+    main: null,
+    1: new OffscreenCanvas(initWidth, initHeight),
+    selection: new OffscreenCanvas(initWidth, initHeight),
+    clipboard: new OffscreenCanvas(initWidth, initHeight),
+    placeholder: new OffscreenCanvas(initWidth, initHeight),
+    staging: new OffscreenCanvas(initWidth, initHeight)
   },
   layerSettings: {
     1: {
@@ -32,6 +36,8 @@ export const initMainState = {
         y: 0
       },
       hidden: false,
+      opacity: 100,
+      blend: "source-over"
     },
     "selection": {
       size: {
@@ -41,7 +47,7 @@ export const initMainState = {
       offset: {
         x: 0,
         y: 0
-      },
+      }
     },
     "clipboard": {
       size: {
@@ -80,9 +86,6 @@ export const initUiState = {
     translateY: 0,
     zoomPct: 100
   },
-  // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. 
-  // This is so the number input component won't get confused.
-  // Opacity is converted to 0 - 1 format when drawn.
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },

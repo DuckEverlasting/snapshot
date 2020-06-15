@@ -26,6 +26,8 @@ import getCursor from "../utils/cursors";
 
 import manipulate from "../reducers/custom/manipulateReducer";
 
+import render from "../actions/redux/renderCanvas";
+
 import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection, putHistoryDataMultiple, updateSelectionPath } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
@@ -33,6 +35,7 @@ import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
+import MainCanvas from "../components/MainCanvas";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -91,7 +94,6 @@ export default function Workspace() {
     layerCanvas,
     layerSettings,
     layerOrder,
-    stagingPinnedTo,
     stampData
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
@@ -429,7 +431,7 @@ export default function Workspace() {
           })
         }]));
         dispatch(updateSelectionPath(null, true));
-        return dispatch(setTransformSelection(
+        dispatch(setTransformSelection(
           activeLayer,
           {startEvent: {button: 0, screenX: Math.floor(ev.screenX), screenY: Math.floor(ev.screenY)}},
           true
@@ -520,13 +522,7 @@ export default function Workspace() {
         height={documentHeight}
         zoomPct={zoomPct}
       >
-        <LayerRenderer
-          layerOrder={layerOrder}
-          layerCanvas={layerCanvas}
-          layerSettings={layerSettings}
-          stagingPinnedTo={stagingPinnedTo}
-          docSize={{w: documentWidth, h: documentHeight}}
-        />
+        <MainCanvas />
       </CanvasPaneSC>
       {
         importImageFile && <TransformObject
@@ -542,75 +538,11 @@ export default function Workspace() {
           targetCtx={layerCanvas[transformSelectionTarget].getContext("2d")}
           targetOffset={layerSettings[transformSelectionTarget].offset}
           docSize={{w: documentWidth, h: documentHeight}}
-          index={layerOrder.indexOf(stagingPinnedTo) + 1}
         />
       }
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
     </WorkspaceSC>
-  );
-}
-
-function LayerRenderer({
-  layerOrder,
-  layerCanvas,
-  layerSettings,
-  stagingPinnedTo,
-  docSize
-}) {
-  return (
-    <>
-      <Layer
-        id={"clipboard"}
-        docSize={docSize}
-        index={1}
-        data={layerCanvas.clipboard}
-        hidden
-      />
-      <Layer
-        id={"placeholder"}
-        docSize={docSize}
-        index={1}
-        data={layerCanvas.placeholder}
-        hidden
-      />
-      {layerOrder.length !== 0 &&
-        layerOrder.map((layerId, i) => {
-          let layerDat = layerCanvas[layerId];
-          let layerSet = layerSettings[layerId];
-          return <Layer
-            key={layerId}
-            id={layerId}
-            docSize={docSize}
-            size={layerSet.size}
-            offset={layerSet.offset}
-            index={i + 1}
-            data={layerDat}
-            hidden={layerSet.hidden}
-            edgeClip={
-              calculateLayerClipping(layerSet.size, layerSet.offset, docSize)
-            }
-          />
-        })}
-      <Layer
-        id={"selection"}
-        docSize={docSize}
-        index={layerOrder.length + 2}
-        data={layerCanvas.selection}
-      />
-      {
-        stagingPinnedTo && layerCanvas[stagingPinnedTo] && <Layer
-          key={"staging"}
-          id={"staging"}
-          docSize={docSize}
-          size={layerSettings[stagingPinnedTo].size}
-          offset={layerSettings[stagingPinnedTo].offset}
-          index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
-          data={layerCanvas.staging}
-          edgeClip={calculateLayerClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
-        />
-      }
-    </>
   );
 }

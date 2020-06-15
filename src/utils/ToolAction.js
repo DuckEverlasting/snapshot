@@ -20,6 +20,8 @@ import draw from "../reducers/custom/drawingReducer";
 import manipulate from "../reducers/custom/manipulateReducer";
 import selection from "../reducers/custom/selectionReducer";
 
+import render from "../actions/redux/renderCanvas";
+
 class ToolActionBase {
   constructor(activeLayer, dispatch, translateData) {
     this.activeLayer = activeLayer;
@@ -152,7 +154,7 @@ export class PencilAction extends ToolActionBase {
         }
       });
     }
-
+    this.dispatch(render());
   }
 
   end(layerCanvas) {
@@ -226,6 +228,7 @@ export class PencilAction extends ToolActionBase {
       }
     }
     this._clearStaging();
+    this.dispatch(render());
   }
 }
 
@@ -297,6 +300,7 @@ export class BrushAction extends ToolActionBase {
     });
     this.lastDest = {x, y};
     this.lastMid = newMid;
+    this.dispatch(render());
   }
 
   end(layerCanvas) {
@@ -314,6 +318,7 @@ export class BrushAction extends ToolActionBase {
     
     this._clearStaging();
     this.processing = null;
+    this.dispatch(render());
   }
 }
 
@@ -398,6 +403,7 @@ export class FilterBrushAction extends ToolActionBase {
     });
     this.lastDest = {x, y};
     this.lastMid = newMid;
+    this.dispatch(render());
   }
 
   async end(layerCanvas) {
@@ -415,6 +421,7 @@ export class FilterBrushAction extends ToolActionBase {
     this._clearStaging();
     this.processing = null;
     this.filtered = null;
+    this.dispatch(render());
   }
 }
 
@@ -518,6 +525,7 @@ export class StampAction extends ToolActionBase {
     });
     this.lastDest = {x, y};
     this.lastMid = newMid;
+    this.dispatch(render());
   }
 
   async end(layerCanvas) {
@@ -535,6 +543,7 @@ export class StampAction extends ToolActionBase {
     ))
     this._clearStaging();
     this.processing = null;
+    this.dispatch(render());
   }
 }
 
@@ -596,6 +605,7 @@ export class EraserAction extends ToolActionBase {
     });
     this.lastDest = {x, y};
     this.lastMid = newMid;
+    this.dispatch(render());
   }
 
   end(layerCanvas) {
@@ -607,6 +617,7 @@ export class EraserAction extends ToolActionBase {
       this.prevImgData
     ));
     this.prevImgData = null;
+    this.dispatch(render());
   }
 }
 
@@ -678,6 +689,7 @@ export class ShapeAction extends ToolActionBase {
         }
       })
     };
+    this.dispatch(render());
   }
 
   end(layerCanvas) {
@@ -752,6 +764,7 @@ export class ShapeAction extends ToolActionBase {
       }
     }
     this._clearStaging();
+    this.dispatch(render());
   }
 }
 
@@ -800,16 +813,12 @@ export class MoveAction extends ToolActionBase {
     this.alwaysFire = true;
   }
 
-  start(ev) {
+  start(ev, layerCanvas) {
     this.origin = {x: ev.screenX, y: ev.screenY}
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
-    this.dispatch(updateLayerPosition(
-      this.activeLayer,
-      null,
-      null,
-      false
-    ))
+    this.sizeOrigin = {w: layerCanvas[this.activeLayer].width, h: layerCanvas[this.activeLayer].height}
+    this.rectOrigin = getImageRect(layerCanvas[this.activeLayer]);
   }
 
   move(ev) {
@@ -833,7 +842,8 @@ export class MoveAction extends ToolActionBase {
       null,
       newOffset,
       true
-    ))
+    ));
+    this.dispatch(render());
   }
 
   end(layerCanvas) {
@@ -867,12 +877,25 @@ export class MoveAction extends ToolActionBase {
         newSize,
         newOffset,
         true
-      ))
+      ));
       if (redrawData) {
         canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
         canvas.getContext("2d").putImageData(redrawData, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
       }
-    })
+      this.dispatch(putHistoryData(this.activeLayer, this.layerCanvas[this.activeLayer].getContext("2d"), null, null, {
+        oldMove: {
+          offset: this.offsetOrigin,
+          size: this.sizeOrigin,
+          rect: this.rectOrigin
+        },
+        newMove: {
+          offset: newOffset,
+          size: newSize,
+          rect: canvasRect
+        }
+      }));
+      this.dispatch(render());
+    });
   }
 }
 
@@ -900,5 +923,6 @@ export class FillAction extends ToolActionBase {
         }
       })
     ));
+    this.dispatch(render());
   }
 }
