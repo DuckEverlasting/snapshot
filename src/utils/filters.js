@@ -56,32 +56,51 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
     divisor = 0;
     matrix.forEach(a => a.forEach(b => divisor+=b));
   }
+
   const dataCopy = new Uint8ClampedArray(data);
-  console.log(opacity);
   for (let i=0; i<data.length; i+=4) {
-    if (dataCopy[i+3] === 0) {
-      if (opacity) {
-        data[i+3] = getConvolutionValue(i+3);
+    if (opacity) {
+      const opacityStart = data[i+3];
+      data[i+3] = getConvolutionValue(i+3);
+      if (data[i+3] && data[i+3] !== opacityStart) {
+        for (let j=0; j<=2; j++) {
+          data[j+i] = getConvolutionValue(j+i, true, j);
+        }
+      } else if (data[i+3]) {
+        for (let j=0; j<=2; j++) {
+          data[j+i] = getConvolutionValue(j+i);
+        }
       }
-      continue;
+    } else {
+      for (let j=i; j<=i+2; j++) {
+        data[j] = getConvolutionValue(j);
+      }
     }
-    for (let j=i; j<=i+(opacity?3:2); j++) {
-      data[j] = getConvolutionValue(j);
-    }
-    function getConvolutionValue(index) {
-      const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length);
+
+    function getConvolutionValue(index, checkOpacity, rgb) {
+      const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length, checkOpacity, rgb);
+      let recheckDivisor = false;
+      let currDivisor = divisor;
       let result = 0;
       dataMatrix.forEach((row, rowIndex) => {
         row.forEach((num, colIndex) => {
-          result += num * matrix[rowIndex][colIndex]
+          if (checkOpacity && num === null) {
+            recheckDivisor = true;
+          } else {
+            result += num * matrix[rowIndex][colIndex]
+          }
         });
       });
-      return result / divisor + offset;
+      if (checkOpacity) {
+        currDivisor = 0;
+        matrix.forEach((a, i) => a.forEach((b, j) => currDivisor += (dataMatrix[i][j] === null ? 0 : b)));
+      }
+      return result / currDivisor + offset;
     }
   }
 }
 
-function getMatrixAt(data, width, index, matrixLength) {
+function getMatrixAt(data, width, index, matrixLength, checkOpacity, rgb) {
   const matrix = new Array(matrixLength);
   const row = new Array(matrixLength);
   const originX = (index / 4) % width;
@@ -91,7 +110,9 @@ function getMatrixAt(data, width, index, matrixLength) {
     for (let j = 0; j < matrixLength; j++) {
       const x = j - (matrixLength - 1) / 2;
       const newIndex = index + x * width * 4 + y * 4;
-      if (
+      if (checkOpacity && !data[newIndex+(3-rgb)]) {
+        matrix[i][j] = null;
+      } else if (
         data[newIndex] !== undefined &&
         originX + x >= 0 &&
         originX + x < width
