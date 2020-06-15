@@ -1,7 +1,8 @@
+/* eslint-disable eqeqeq */
 /**
  * Created by @sakri on 25-3-14.
  * Edited and optimized by @mamrehn on 08-09-16
- * Modified for use in Photosmith by Matt Klein
+ * Modified for use in SnapShot Image Editor by Matt Klein
  *
  * Javascript port of :
  * http://devblog.phillipspiess.com/2010/02/23/better-know-an-algorithm-1-marching-squares/

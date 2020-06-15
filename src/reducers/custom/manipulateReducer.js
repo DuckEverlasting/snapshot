@@ -24,19 +24,19 @@ export default function(ctx, { action, params }) {
   }
   if (params.clip) {
     if (params.clipOffset) {
-      ctx.translate(-params.clipOffset.x, -params.clipOffset.y)
+      ctx.translate(Math.floor(-params.clipOffset.x), Math.floor(-params.clipOffset.y))
     }
     ctx.clip(params.clip);
     if (params.clipOffset) {
-      ctx.translate(params.clipOffset.x, params.clipOffset.y)
+      ctx.translate(Math.floor(params.clipOffset.x), Math.floor(params.clipOffset.y))
     }
   }
   switch (action) {
-    case "move":
-      move(ctx, params);
-      break;
     case "paste":
       paste(ctx, params);
+      break;
+    case "move":
+      move(ctx, params);
       break;
     case "undelete":
       undelete(ctx, params);

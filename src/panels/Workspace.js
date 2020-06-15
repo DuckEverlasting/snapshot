@@ -11,6 +11,7 @@ import {
   PencilAction,
   BrushAction,
   FilterBrushAction,
+  StampAction,
   EraserAction,
   ShapeAction,
   EyeDropperAction,
@@ -25,6 +26,8 @@ import getCursor from "../utils/cursors";
 
 import manipulate from "../reducers/custom/manipulateReducer";
 
+import render from "../actions/redux/renderCanvas";
+
 import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection, putHistoryDataMultiple, updateSelectionPath } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
 import HelpModal from "../components/HelpModal";
@@ -32,6 +35,7 @@ import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
+import MainCanvas from "../components/MainCanvas";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -87,16 +91,21 @@ export default function Workspace() {
     selectionPath,
     selectionActive,
     transformSelectionTarget,
-    layerData,
+    layerCanvas,
     layerSettings,
     layerOrder,
-    stagingPinnedTo
+    stampData
   } = useSelector(state => state.main.present);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const importImageFile = useSelector(state => state.ui.importImageFile);
   
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
+  const [keys, setKeys] = useState({
+    shift: false,
+    ctrl: false,
+    alt: false
+  });
 
   const workspaceRef = useRef(null);
   let workspaceElement = workspaceRef.current;
@@ -104,19 +113,19 @@ export default function Workspace() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    function updateAnimatedLayers() {
+      const reqFrame = requestAnimationFrame(updateAnimatedLayers);
+      animationFrame = reqFrame;
+    }
+    
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
 
-  function updateAnimatedLayers() {
-    const reqFrame = requestAnimationFrame(updateAnimatedLayers);
-    animationFrame = reqFrame;
-  }
-
   function getTranslateData(noOffset) {
-    const marginLeft = .5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100);
-    const marginTop = .5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100);
+    const marginLeft = .5 * (Math.floor(workspaceRef.current.clientWidth) - documentWidth * zoomPct / 100);
+    const marginTop = .5 * (Math.floor(workspaceRef.current.clientHeight) - documentHeight * zoomPct / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
@@ -130,8 +139,8 @@ export default function Workspace() {
 
   function eventIsWithinCanvas(ev) {
     const translateData = getTranslateData(),
-      x = ev.nativeEvent.offsetX + translateData.x,
-      y = ev.nativeEvent.offsetY + translateData.y;
+      x = Math.floor(ev.nativeEvent.offsetX) + translateData.x,
+      y = Math.floor(ev.nativeEvent.offsetY) + translateData.y;
 
     return x > 0 && y > 0 && x < documentWidth * zoomPct / 100 && y < documentHeight * zoomPct / 100; 
   }
@@ -232,6 +241,15 @@ export default function Workspace() {
       case "move":
         if (!activeLayer || selectionActive) {return}
         return new MoveAction(activeLayer, dispatch, getTranslateData());
+      case "stamp":
+        if (!activeLayer) {return}
+        return new StampAction(activeLayer, dispatch, getTranslateData(), {
+          stampData,
+          width: toolSettings.stamp.width,
+          hardness: toolSettings.stamp.hardness,
+          opacity: toolSettings.stamp.opacity,
+          clip: selectionPath
+        });
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
@@ -248,13 +266,31 @@ export default function Workspace() {
           filterInput: {amount: toolSettings.saturate.amount},
           clip: selectionPath
         });
+      case "dodge":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.dodge.width,
+          hardness: toolSettings.dodge.hardness,
+          filter: filter.dodge.apply,
+          filterInput: {amount: toolSettings.dodge.amount, range: toolSettings.dodge.range},
+          clip: selectionPath
+        });
+      case "burn":
+        if (!activeLayer) {return}
+        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
+          width: toolSettings.burn.width,
+          hardness: toolSettings.burn.hardness,
+          filter: filter.burn.apply,
+          filterInput: {amount: toolSettings.burn.amount, range: toolSettings.burn.range},
+          clip: selectionPath
+        });
       case "blur":
         if (!activeLayer) {return}
         return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.blur.width,
           hardness: toolSettings.blur.hardness,
           filter: filter.blur.apply,
-          filterInput: {amount: toolSettings.blur.amount, width: layerData[activeLayer].width},
+          filterInput: {amount: toolSettings.blur.amount, width: layerCanvas[activeLayer].width},
           clip: selectionPath
         });
       case "sharpen":
@@ -263,7 +299,7 @@ export default function Workspace() {
           width: toolSettings.sharpen.width,
           hardness: toolSettings.sharpen.hardness,
           filter: filter.sharpen.apply,
-          filterInput: {amount: toolSettings.sharpen.amount, width: layerData[activeLayer].width},
+          filterInput: {amount: toolSettings.sharpen.amount, width: layerCanvas[activeLayer].width},
           clip: selectionPath
         });
       default:
@@ -339,22 +375,37 @@ export default function Workspace() {
     } else {
       translateTool(ev);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);
+  
+  const handleKeys = useCallback(ev => {
+    let modifier = window.navigator.platform.includes("Mac")
+        ? ev.metaKey
+        : ev.ctrlKey;
+    setKeys({
+      shift: ev.shiftKey,
+      ctrl: modifier,
+      alt: ev.altKey
+    })
+  }, [])
+
+  useEventListener("keydown", handleKeys);
+  useEventListener("keyup", handleKeys);
 
   const handleMouseDown = ev => {
     if (ev.buttons === 4 || activeTool === "hand") {
       setIsDragging(true);
       setDragOrigin({
-        x: (ev.screenX - translateX) * 100 / zoomPct,
-        y: (ev.screenY - translateY) * 100 / zoomPct
+        x: (Math.floor(ev.screenX) - translateX) * 100 / zoomPct,
+        y: (Math.floor(ev.screenY) - translateY) * 100 / zoomPct
       });
     } else if (ev.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
-        const activeCtx = layerData[activeLayer].getContext("2d"),
-          selectionCtx = layerData.selection.getContext("2d"),
-          placeholderCtx = layerData.placeholder.getContext("2d");
+        const activeCtx = layerCanvas[activeLayer].getContext("2d"),
+          selectionCtx = layerCanvas.selection.getContext("2d"),
+          placeholderCtx = layerCanvas.placeholder.getContext("2d");
         manipulate(placeholderCtx, {
           action: "paste",
           params: {
@@ -380,15 +431,15 @@ export default function Workspace() {
           })
         }]));
         dispatch(updateSelectionPath(null, true));
-        return dispatch(setTransformSelection(
+        dispatch(setTransformSelection(
           activeLayer,
-          {startEvent: {button: 0, screenX: ev.screenX, screenY: ev.screenY}},
+          {startEvent: {button: 0, screenX: Math.floor(ev.screenX), screenY: Math.floor(ev.screenY)}},
           true
         ));
       }
       currentAction = buildAction();
       if (!currentAction) {return};
-      currentAction.start(ev, layerData);
+      currentAction.start(ev, layerCanvas);
       if (eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
@@ -396,7 +447,7 @@ export default function Workspace() {
   const handleMouseLeave = (ev) => {
     if (currentAction && ev.buttons === 1) {
       if (isDrawing) {
-        currentAction.end(layerData);
+        currentAction.end(layerCanvas);
         isDrawing = false;
       };
       currentAction = null;
@@ -407,8 +458,8 @@ export default function Workspace() {
     if (isDragging) {
       if (animationFrame === lastFrame) return;
       lastFrame = animationFrame;
-      const newTranslateX = ev.screenX - dragOrigin.x * (zoomPct / 100);
-      const newTranslateY = ev.screenY - dragOrigin.y * (zoomPct / 100);
+      const newTranslateX = Math.floor(ev.screenX) - dragOrigin.x * (zoomPct / 100);
+      const newTranslateY = Math.floor(ev.screenY) - dragOrigin.y * (zoomPct / 100);
       dispatch(
         updateWorkspaceSettings({
           translateX: newTranslateX,
@@ -416,7 +467,7 @@ export default function Workspace() {
         })
       );
     } else if (currentAction && ev.buttons === 1) {
-      currentAction.move(ev, layerData);
+      currentAction.move(ev, layerCanvas);
       if (!isDrawing && eventIsWithinCanvas(ev)) {isDrawing = true};
     }
   };
@@ -429,7 +480,7 @@ export default function Workspace() {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
       if (isDrawing || currentAction.alwaysFire) {
-        currentAction.end(layerData);
+        currentAction.end(layerCanvas);
         isDrawing = false;
       };
       currentAction = null;
@@ -461,7 +512,7 @@ export default function Workspace() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
-      cursor={getCursor(isDragging ? "activeHand" : activeTool)}
+      cursor={getCursor(isDragging ? "activeHand" : activeTool, keys)}
     >
       <DropZone onDrop={handleDrop} />
       <CanvasPaneSC
@@ -471,95 +522,27 @@ export default function Workspace() {
         height={documentHeight}
         zoomPct={zoomPct}
       >
-        <LayerRenderer
-          layerOrder={layerOrder}
-          layerData={layerData}
-          layerSettings={layerSettings}
-          stagingPinnedTo={stagingPinnedTo}
-          docSize={{w: documentWidth, h: documentHeight}}
-        />
+        <MainCanvas />
       </CanvasPaneSC>
-      {importImageFile && <TransformObject
-        source={importImageFile}
-        target={layerOrder[layerOrder.length - 1]}
-        targetCtx={layerData[layerOrder[layerOrder.length - 1]].getContext("2d")}
-      />}
+      {
+        importImageFile && <TransformObject
+          source={importImageFile}
+          target={layerOrder[layerOrder.length - 1]}
+          targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
+        />
+      }
       {
         transformSelectionTarget && <TransformObject
-          source={layerData.placeholder}
+          source={layerCanvas.placeholder}
           target={transformSelectionTarget}
-          targetCtx={layerData[transformSelectionTarget].getContext("2d")}
+          targetCtx={layerCanvas[transformSelectionTarget].getContext("2d")}
           targetOffset={layerSettings[transformSelectionTarget].offset}
           docSize={{w: documentWidth, h: documentHeight}}
-          index={layerOrder.indexOf(stagingPinnedTo) + 1}
         />
       }
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
     </WorkspaceSC>
-  );
-}
-
-function LayerRenderer({
-  layerOrder,
-  layerData,
-  layerSettings,
-  stagingPinnedTo,
-  docSize
-}) {
-  return (
-    <>
-      <Layer
-        id={"clipboard"}
-        docSize={docSize}
-        index={1}
-        data={layerData.clipboard}
-        hidden
-      />
-      <Layer
-        id={"placeholder"}
-        docSize={docSize}
-        index={1}
-        data={layerData.placeholder}
-        hidden
-      />
-      {layerOrder.length !== 0 &&
-        layerOrder.map((layerId, i) => {
-          let layerDat = layerData[layerId];
-          let layerSet = layerSettings[layerId];
-          return <Layer
-            key={layerId}
-            id={layerId}
-            docSize={docSize}
-            size={layerSet.size}
-            offset={layerSet.offset}
-            index={i + 1}
-            data={layerDat}
-            hidden={layerSet.hidden}
-            edgeClip={
-              calculateLayerClipping(layerSet.size, layerSet.offset, docSize)
-            }
-          />
-        })}
-      <Layer
-        id={"selection"}
-        docSize={docSize}
-        index={layerOrder.length + 2}
-        data={layerData.selection}
-      />
-      {
-        stagingPinnedTo && <Layer
-          key={"staging"}
-          id={"staging"}
-          docSize={docSize}
-          size={layerSettings[stagingPinnedTo].size}
-          offset={layerSettings[stagingPinnedTo].offset}
-          index={stagingPinnedTo === "selection" ? layerOrder.length + 2 : layerOrder.indexOf(stagingPinnedTo) + 1}
-          data={layerData.staging}
-          edgeClip={calculateLayerClipping(layerSettings[stagingPinnedTo].size, layerSettings[stagingPinnedTo].offset, docSize, 1)}
-        />
-      }
-    </>
   );
 }

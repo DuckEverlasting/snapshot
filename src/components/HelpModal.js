@@ -159,8 +159,8 @@ const CloseButtonSC = styled(Button)`
 `;
 
 function HelpModal() {
-  const height = useSelector(state => state.ui.workspaceSettings.height);
-  const width = useSelector(state => state.ui.workspaceSettings.width);
+  const height = window.innerHeight;
+  const width = window.innerWidth;
   const currentTopic = useSelector(state => state.ui.currentHelpTopic);
   const dispatch = useDispatch();
 
@@ -176,7 +176,7 @@ function HelpModal() {
   }
 
   return (
-    <DraggableWindow name="PhotoSmith Help" onKeyDown={handleKeyDown} initSize={{y: height * 0.6, x: width * 0.4}} minimumSize={{y: height * 0.4, x: width * 0.3}}>
+    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{y: height * 0.6, x: width * 0.4}} minimumSize={{y: height * 0.4, x: width * 0.3}}>
       <HelpModalSC>
         <MainContentSC>
           <TopicMenu
@@ -198,21 +198,21 @@ function TopicMenu({ height, width, currentTopic, setCurrentTopic }) {
   const [isScrollable, setIsScrollable] = useState(false);
   const topicMenuRef = useRef();
 
-  function checkIfScrollable() {
+  const checkIfScrollable = useCallback(() => {
     const curr = topicMenuRef.current;
     if (curr.scrollHeight > curr.clientHeight && !isScrollable) {
       setIsScrollable(true);
     } else if (curr.scrollHeight <= curr.clientHeight && isScrollable) {
       setIsScrollable(false);
     }
-  }
+  }, [isScrollable])
 
   useEffect(checkIfScrollable, [height, width])
 
   const wheelHandler = useCallback(ev => {
     checkIfScrollable();
     if (isScrollable) {ev.stopPropagation()}
-  }, [isScrollable])
+  }, [isScrollable, checkIfScrollable])
 
   useEventListener("wheel", wheelHandler, topicMenuRef.current);
 
@@ -248,21 +248,21 @@ function TopicDisplay({ height, width, data, setCurrentTopic }) {
 
   const topicDisplayRef = useRef();
 
-  function checkIfScrollable() {
+  const checkIfScrollable = useCallback(() => {
     const curr = topicDisplayRef.current;
     if (curr.scrollHeight > curr.clientHeight && !isScrollable) {
       setIsScrollable(true);
     } else if (curr.scrollHeight <= curr.clientHeight && isScrollable) {
       setIsScrollable(false);
     }
-  }
+  }, [isScrollable])
 
   useEffect(checkIfScrollable, [height, width, data])
 
   const wheelHandler = useCallback(ev => {
     checkIfScrollable();
     if (isScrollable) {ev.stopPropagation()}
-  }, [isScrollable])
+  }, [isScrollable, checkIfScrollable])
 
   useEventListener("wheel", wheelHandler, topicDisplayRef.current);
 

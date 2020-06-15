@@ -1,23 +1,27 @@
-const initWidth = (window.innerWidth - 300) * .8;
-const initHeight = (window.innerHeight - 30) * .8;
+const initWidth = Math.floor((window.innerWidth - 300) * .8);
+const initHeight = Math.floor((window.innerHeight - 30) * .8);
 const initSelectionPath = new Path2D();
 initSelectionPath.rect(0, 0, initWidth, initHeight);
+
+// NOTE: Opacity uses 0 - 100 instead of 0 - 1. 
+// This is so the number input component won't get confused.
+// Opacity is converted to 0 - 1 format when drawn.
 
 export const initMainState = {
   onUndo: null,
   onRedo: null,
-  onUndelete: null,
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
     documentName: "Untitled_1"
   },
-  layerData: {
-    1: null,
-    selection: null,
-    clipboard: null,
-    placeholder: null,
-    staging: null
+  layerCanvas: {
+    main: null,
+    1: new OffscreenCanvas(initWidth, initHeight),
+    selection: new OffscreenCanvas(initWidth, initHeight),
+    clipboard: new OffscreenCanvas(initWidth, initHeight),
+    placeholder: new OffscreenCanvas(initWidth, initHeight),
+    staging: new OffscreenCanvas(initWidth, initHeight)
   },
   layerSettings: {
     1: {
@@ -32,6 +36,8 @@ export const initMainState = {
         y: 0
       },
       hidden: false,
+      opacity: 100,
+      blend: "source-over"
     },
     "selection": {
       size: {
@@ -41,7 +47,7 @@ export const initMainState = {
       offset: {
         x: 0,
         y: 0
-      },
+      }
     },
     "clipboard": {
       size: {
@@ -51,7 +57,7 @@ export const initMainState = {
       offset: {
         x: 0,
         y: 0
-      },
+      }
     }
   },
   selectionPath: initSelectionPath,
@@ -66,20 +72,20 @@ export const initMainState = {
   layerOrder: [1],
   layerCounter: 2,
   activeLayer: 1,
-  clipboardUsed: false
+  clipboardUsed: false,
+  stampData: {
+    canvas: null,
+    origin: null,
+    destination: null
+  }
 };
 
 export const initUiState = {
   workspaceSettings: {
-    height: window.innerHeight,
-    width: window.innerWidth,
     translateX: 0,
     translateY: 0,
     zoomPct: 100
   },
-  // NOTE: Tool opacity uses 0 - 100 instead of 0 - 1. 
-  // This is so the number input component won't get confused.
-  // Opacity is converted to 0 - 1 format when drawn.
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100 },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },
@@ -98,6 +104,9 @@ export const initUiState = {
     zoom: { name: "Zoom" },
     bucketFill: { name: "Paint Bucket", opacity: 100, tolerance: 0 },
     saturate: { name: "Saturate", width: 20, hardness: 0, amount: 50 },
+    stamp: { name: "Stamp", width: 20, opacity: 100, hardness: 0 },
+    dodge: { name: "Dodge", width: 20, hardness: 0, amount: 50, range: "Midtones" },
+    burn: { name: "Burn", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
     sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 }
     // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }

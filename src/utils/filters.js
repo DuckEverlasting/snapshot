@@ -1,3 +1,6 @@
+import { getQuadEquation } from "../utils/helpers";
+import { toHslFromRgb, toRgbFromHsl } from "../utils/colorConversion";
+
 class Filter {
   constructor(name, inputInfo, applyFunct) {
     this.name = name;
@@ -11,33 +14,93 @@ const amount = {
   type: "Number",
   init: 0,
   min: -100,
-  max: 100
+  max: 100,
+  required: true
 }
 
-function convolve(data, width, matrix, offset=0, divisor) {
+const size = {
+  name: "Size",
+  type: "Number",
+  init: 1,
+  min: 0,
+  max: 10,
+  required: true
+}
+
+const range = {
+  name: "",
+  type: "Radio",
+  init: "Midtones",
+  options: ["Shadows", "Midtones", "Highlights"],
+  required: true
+}
+
+const mono = {
+  name: "Monochrome",
+  type: "Checkbox",
+  init: false,
+  required: false
+}
+
+const levels = {
+  name: "Levels",
+  type: "Number",
+  init: 6,
+  min: 2,
+  max: 255,
+  required: true
+}
+
+function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
   if (!divisor) {
     divisor = 0;
     matrix.forEach(a => a.forEach(b => divisor+=b));
   }
+
   const dataCopy = new Uint8ClampedArray(data);
   for (let i=0; i<data.length; i+=4) {
-    if (dataCopy[i+3] === 0) continue;
-    for (let j=i; j<=i+2; j++) {
-      const dataMatrix = getMatrixAt(dataCopy, width, j, matrix.length);
+    if (opacity) {
+      const opacityStart = data[i+3];
+      data[i+3] = getConvolutionValue(i+3);
+      if (data[i+3] && data[i+3] !== opacityStart) {
+        for (let j=0; j<=2; j++) {
+          data[j+i] = getConvolutionValue(j+i, true, j);
+        }
+      } else if (data[i+3]) {
+        for (let j=0; j<=2; j++) {
+          data[j+i] = getConvolutionValue(j+i);
+        }
+      }
+    } else {
+      for (let j=i; j<=i+2; j++) {
+        data[j] = getConvolutionValue(j);
+      }
+    }
+
+    function getConvolutionValue(index, checkOpacity, rgb) {
+      const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length, checkOpacity, rgb);
+      let recheckDivisor = false;
+      let currDivisor = divisor;
       let result = 0;
       dataMatrix.forEach((row, rowIndex) => {
         row.forEach((num, colIndex) => {
-          result += num * matrix[rowIndex][colIndex]
+          if (checkOpacity && num === null) {
+            recheckDivisor = true;
+          } else {
+            result += num * matrix[rowIndex][colIndex]
+          }
         });
       });
-      result /= divisor;
-      result += offset;
-      data[j] = result;
+      if (checkOpacity) {
+        currDivisor = 0;
+        matrix.forEach((a, i) => a.forEach((b, j) => currDivisor += (dataMatrix[i][j] === null ? 0 : b)));
+      }
+      return result / currDivisor + offset;
     }
   }
 }
 
-function getMatrixAt(data, width, index, matrixLength) {
+function getMatrixAt(data, width, index, matrixLength, checkOpacity, rgb) {
   const matrix = new Array(matrixLength);
   const row = new Array(matrixLength);
   const originX = (index / 4) % width;
@@ -47,7 +110,9 @@ function getMatrixAt(data, width, index, matrixLength) {
     for (let j = 0; j < matrixLength; j++) {
       const x = j - (matrixLength - 1) / 2;
       const newIndex = index + x * width * 4 + y * 4;
-      if (
+      if (checkOpacity && !data[newIndex+(3-rgb)]) {
+        matrix[i][j] = null;
+      } else if (
         data[newIndex] !== undefined &&
         originX + x >= 0 &&
         originX + x < width
@@ -112,6 +177,16 @@ export const contrast = new Filter("Contrast", {amount}, (data, {amount}) => {
   }
 });
 
+export const hue = new Filter("Hue", {amount: {...amount, min: -180, max: 180}}, (data, {amount}) => {
+  for (let i=0; i<data.length; i+=4) {
+    const {h, s, l} = toHslFromRgb(data[i], data[i + 1], data[i + 2]);
+    const {r, g, b} = toRgbFromHsl(h + amount, s, l);
+    data[i] = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
+})
+
 export const saturation = new Filter("Saturation", {amount}, (data, {amount}) => {
   amount /= -100;
   for (let i=0; i<data.length; i+=4) {
@@ -122,9 +197,89 @@ export const saturation = new Filter("Saturation", {amount}, (data, {amount}) =>
   }
 });
 
+export const posterize = new Filter("Posturize", {levels}, (data, {levels}) => {
+  const interval = 255 / (levels - 1);
+  for (let i=0; i<data.length; i+=4) {
+    if (data[i + 3] === 0) continue;
+    for (let j=0; j<3; j++) {
+      const remainder = data[i + j] % interval;
+      data[i + j] = remainder < interval - remainder ? Math.floor(data[i + j] - remainder) : Math.floor(data[i + j] + interval - remainder);
+    }
+  }
+});
+
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
   const matrix = getGaussianKernel(amount / 10);
-  convolve(data, width, matrix);
+  convolve(data, width, matrix, 0, true);
+});
+
+export const boxBlur = new Filter("Box Blur", {size}, (data, {size, width}) => {
+  let count = null, total = null;
+  for (let i = 0; i < data.length; i += 4) {
+    const x = (i / 4) % width;
+    if (x === width - 1) {
+      count = null;
+      total = null;
+    }
+    if (data[i + 3] === 0) continue;
+    if (x === 0 || count === null) {
+      [count, total] = getAverage(x, i);
+    } else {
+      [count, total] = getAverageWithPrev(count, total, x, i);
+    }
+    data[i] = count[0] / total;
+    data[i + 1] = count[1] / total;
+    data[i + 2] = count[2] / total
+    if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0) {
+      break;
+    }
+  }
+  
+  function getAverage(x, i) {
+    let count = [0, 0, 0], total = 0;
+    for (let w = -size; w <= size; w++) {
+      for (let v = -size; v <= size; v++) {
+        const index = i + (v + w * width) * 4;
+        if (
+          data[index + 4] &&
+          x + v >= 0 &&
+          x + v < width
+        ) {
+          count[0] += data[index];
+          count[1] += data[index + 1];
+          count[2] += data[index + 2];
+          total++;
+        }
+      }
+    }
+    return [count, total]
+  }
+
+  function getAverageWithPrev(count, total, x, i) {
+    let leftIndex, rightIndex;
+    if (x + size < width) {
+      for (let w = -size; w <= size; w++) {
+        if (!data[i + w * width + 4]) continue;
+        leftIndex = i + (i - size + w * width) * 4;
+        rightIndex = i + (i + size + w * width) * 4;
+        count[0] -= data[leftIndex];
+        count[0] += data[rightIndex];
+        count[1] -= data[leftIndex + 1];
+        count[1] += data[rightIndex + 1];
+        count[2] -= data[leftIndex + 2];
+        count[2] += data[rightIndex + 2];
+      }
+    } else {
+      for (let w = -size; w <= size; w++) {
+        if (!data[i + w * width + 4]) continue;
+        count[0] -= data[leftIndex];
+        count[1] -= data[leftIndex + 1];
+        count[2] -= data[leftIndex + 2];
+        total--;
+      }
+    }
+    return [count, total]
+  }
 });
 
 export const sharpen = new Filter("Sharpen", {amount: {...amount, min:0}}, (data, {amount, width}) => {
@@ -134,11 +289,105 @@ export const sharpen = new Filter("Sharpen", {amount: {...amount, min:0}}, (data
   convolve(data, width, matrix);
 });
 
+export const findEdges = new Filter("Find Edges", {amount: {...amount, min:0}}, (data, {amount, width}) => {
+  const strength = amount / 100;
+  const a = -1 * strength, b = -8 * a;
+  const matrix = [[a, a, a], [a, b, a], [a, a, a]];
+  convolve(data, width, matrix, 0, false, 1);
+});
+
+export const emboss = new Filter("Emboss", {amount: {...amount, min:0, init: 10}, mono}, (data, {amount, mono, width}) => {
+  if (mono) saturation.apply(data, {amount: -100});
+  const a = amount / 10;
+  const matrix = [[-a, -a, 0], [-a, 0, a], [0, a, a]];
+  convolve(data, width, matrix, 128, false, 1);
+});
+
+export const dodge = new Filter("Dodge", {amount: {...amount, min:0}, range}, (data, {amount, range}) => {
+  let equation = x => x;
+
+  if (range === "Highlights") {
+    equation = x => (1 + amount / 200) * x;
+  } else if (range === "Midtones") {
+    const mid = {x: 128 - (amount * .32), y: 128 + (amount * .32)}
+    equation = getQuadEquation({x: 0, y: 0}, mid, {x: 255, y: 255});
+  } else if (range === "Shadows") {
+    equation = x => (1 - amount / 300) * x + (amount * .85);
+  }
+
+  for (let i=0; i<data.length; i+=4) {
+      data[i] = equation(data[i]);
+      data[i + 1] = equation(data[i + 1]);
+      data[i + 2] = equation(data[i + 2]);
+  }
+});
+
+export const burn = new Filter("Burn", {amount: {...amount, min:1}, range}, (data, {amount, range}) => {
+  let equation;
+
+  if (range === "Highlights") {
+    equation = x => (1 - amount / 300) * x;
+  } else if (range === "Midtones") {
+    const mid = {x: 128 + (amount * .32), y: 128 - (amount * .32)}
+    equation = getQuadEquation({x: 0, y: 0}, mid, {x: 255, y: 255});
+  } else if (range === "Shadows") {
+    equation = x => (1 + amount / 200) * x - (amount * 1.28);
+  }
+
+  for (let i=0; i<data.length; i+=4) {
+      data[i] = equation(data[i]);
+      data[i + 1] = equation(data[i + 1]);
+      data[i + 2] = equation(data[i + 2]);
+  }
+});
+
+export const brightnessContrast = new Filter(
+  "Brightness / Contrast",
+  {brightness: {...amount, name: "Brightness"}, contrast: {...amount, name: "Contrast"}},
+  (data, {brightness: brightnessAmount , contrast: contrastAmount}) => {
+    brightness.apply(data, {amount: brightnessAmount});
+    contrast.apply(data, {amount: contrastAmount});
+  }
+)
+
+export const hueSaturation = new Filter(
+  "Hue / Saturation",
+  {hue: {...amount, name: "Hue", min: -180, max: 180}, saturation: {...amount, name: "Saturation"}, brightness: {...amount, name: "Brightness"}},
+  (data, {hue: hueAmount , saturation: saturationAmount, brightness: brightnessAmount}) => {
+    for (let i=0; i<data.length; i+=4) {
+      let {h, s, l} = toHslFromRgb(data[i], data[i + 1], data[i + 2]);
+      h = (h + hueAmount + 360) % 360;
+      if (saturationAmount > 0) {
+        s += (100 - s) * saturationAmount / 100;
+      } else {
+        s += s * saturationAmount / 100;
+      }
+      if (brightnessAmount > 0) {
+        l += (100 - l) * brightnessAmount / 100;
+      } else {
+        l += l * brightnessAmount / 100;
+      }
+      const {r, g, b} = toRgbFromHsl(h, s, l);
+      data[i] = r;
+      data[i + 1] = g;
+      data[i + 2] = b;
+    }
+  }
+)
+
 export const filter = {
   invert,
   brightness,
   contrast,
   saturation,
   blur,
-  sharpen
+  boxBlur,
+  sharpen,
+  findEdges,
+  emboss,
+  dodge,
+  burn,
+  posterize,
+  brightnessContrast,
+  hueSaturation
 }

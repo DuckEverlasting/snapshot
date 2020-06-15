@@ -9,7 +9,6 @@ import ToolPanel from "./panels/ToolPanel.js";
 import LayerPanel from "./panels/LayerPanel.js";
 
 import {
-  updateWorkspaceSettings,
   makeActiveTool,
   toggleAboutModal
 } from "./actions/redux";
@@ -21,7 +20,7 @@ const AppSC = styled.div`
   text-align: center;
   display: flex;
   width: 100%;
-  height: ${props => props.height}px;
+  height: 100vh;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -31,15 +30,16 @@ const AppSC = styled.div`
 const AppContainerSC = styled.div`
   text-align: center;
   width: 100%;
+  height: calc(100% - 35px);
   flex-shrink: 1;
   flex-grow: 1;
   display: flex;
   justify-content: center;
+  align-items: stretch;
   user-select: none;
 `;
 
 function App() {
-  const height = useSelector(state => state.ui.workspaceSettings.height);
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const transformSelectionTarget = useSelector(state => state.main.present.transformSelectionTarget);
   const importImageFile = useSelector(state => state.ui.importImageFile);
@@ -47,14 +47,6 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const adjustSizing = () => {
-      dispatch(
-        updateWorkspaceSettings({
-          width: window.innerWidth,
-          height: window.innerHeight
-        })
-      );
-    };
     const handleKeyDown = ev => {
       ev.preventDefault();
       if (overlayVisible || transformSelectionTarget || importImageFile) {return}
@@ -74,16 +66,14 @@ function App() {
         dispatch(menuAction(keyCombo.payload));
       }
     };
-    window.addEventListener("resize", adjustSizing);
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener("resize", adjustSizing);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [overlayVisible, transformSelectionTarget, importImageFile]);
 
   return (
-    <AppSC id="App" height={height}>
+    <AppSC id="App">
       <TopBar />
       <AppContainerSC>
         <ToolPanel />

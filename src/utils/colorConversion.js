@@ -150,7 +150,7 @@ export function getHue(r, g, b) {
   return h;
 }
 
-function toRgbFromHsl(h,s,l) {
+export function toRgbFromHsl(h,s,l) {
   // Must be fractions of 1
   s /= 100;
   l /= 100;

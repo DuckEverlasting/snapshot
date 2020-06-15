@@ -2,17 +2,19 @@ import {
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_LAYER_DATA,
+  UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_SELECTION,
   SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
+  UPDATE_LAYER_BLEND_MODE,
   UPDATE_LAYER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   MAKE_ACTIVE_LAYER,
+  SET_STAMP_DATA
 } from "../../actions/redux";
 
 import { initMainState } from "./initState";
@@ -41,14 +43,16 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           y: 0
         },
         hidden: false,
-        opacity: 1,
+        opacity: 100,
+        blend: "source-over"
       };
+      const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
       let orderAfterCreate = state.layerOrder.slice(0);
       orderAfterCreate.splice(position + 1, 0, layerId);
 
       return {
         ...state,
-        layerData: {...state.layerData, [layerId]: source ? source : null},
+        layerCanvas: {...state.layerCanvas, [layerId]: source ? source : newLayerCanvas},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
         layerOrder: orderAfterCreate,
         activeLayer: state.layerCounter,
@@ -56,7 +60,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       };
     
     case DELETE_LAYER:
-      let afterDeleteData = {...state.layerData, [payload.id]: undefined}
+      let afterDeleteData = {...state.layerCanvas, [payload.id]: undefined}
       let afterDeleteSettings = {...state.layerSettings, [payload.id]: undefined}
       let afterDeleteOrder = state.layerOrder.filter(id => {
         return id !== payload.id;
@@ -64,7 +68,7 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       let afterDeleteActive = state.activeLayer === payload.id ? null : state.activeLayer
       return {
         ...state,
-        layerData: afterDeleteData,
+        layerCanvas: afterDeleteData,
         layerSettings: afterDeleteSettings,
         layerOrder: afterDeleteOrder,
         activeLayer: afterDeleteActive
@@ -87,11 +91,11 @@ const mainReducer = (state = initMainState, {type, payload}) => {
         activeLayer
       }
 
-    case UPDATE_LAYER_DATA:
+    case UPDATE_CANVAS:
       return {
         ...state,
-        layerData: {
-          ...state.layerData,
+        layerCanvas: {
+          ...state.layerCanvas,
           [payload.id]: payload.changes
         }
       };
@@ -138,6 +142,18 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           [payload.id]: {
             ...state.layerSettings[payload.id],
             opacity: payload.opacity,
+          }
+        }
+      };
+    
+    case UPDATE_LAYER_BLEND_MODE:
+      return {
+        ...state,
+        layerSettings: {
+          ...state.layerSettings, 
+          [payload.id]: {
+            ...state.layerSettings[payload.id],
+            blend: payload.blend,
           }
         }
       };
@@ -203,6 +219,15 @@ const mainReducer = (state = initMainState, {type, payload}) => {
       return {
         ...state,
         activeLayer: payload.layerId,
+      };
+    
+    case SET_STAMP_DATA:
+      return {
+        ...state,
+        stampData: {
+          ...state.stampData,
+          ...payload.changes
+        }
       };
 
     default:

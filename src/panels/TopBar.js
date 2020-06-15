@@ -7,6 +7,7 @@ import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
 import { toggleAboutModal, setFilterTool, toggleHelp, setExportOptions } from "../actions/redux/index";
 
+import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";
 
 const TopBarSC = styled.div`
@@ -49,7 +50,7 @@ export default function TopBar() {
   );
   const overlayVisible = useSelector(state => state.ui.overlayVisible);
   const dispatch = useDispatch();
-  let mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
+  const mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
 
   function exportAs(type, compression) {
     return async dispatch => {
@@ -115,15 +116,19 @@ export default function TopBar() {
         <Menu id="image" label="Image">
           <MenuItem 
             label="Brightness / Contrast"
-            onClick={() => dispatch(setFilterTool("on", filter.brightness))}
+            onClick={() => dispatch(setFilterTool("on", filter.brightnessContrast))}
           />
           <MenuItem
             label="Hue / Saturation"
-            onClick={() => dispatch(setFilterTool("on", filter.saturation))}
+            onClick={() => dispatch(setFilterTool("on", filter.hueSaturation))}
           />
           <MenuItem 
             label="Desaturate"
-            disabled
+            onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
+          />
+          <MenuItem 
+            label="Invert"
+            onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
           />
           <MenuBranch label="Filter">
             <MenuItem 
@@ -133,6 +138,26 @@ export default function TopBar() {
             <MenuItem 
               label="Sharpen"
               onClick={() => dispatch(setFilterTool("on", filter.sharpen))}
+            />
+            <MenuItem 
+              label="Find Edges"
+              onClick={() => dispatch(setFilterTool("on", filter.findEdges))}
+            />
+            <MenuItem 
+              label="Emboss"
+              onClick={() => dispatch(setFilterTool("on", filter.emboss))}
+            />
+            <MenuItem 
+              label="Dodge"
+              onClick={() => dispatch(setFilterTool("on", filter.dodge))}
+            />
+            <MenuItem 
+              label="Burn"
+              onClick={() => dispatch(setFilterTool("on", filter.burn))}
+            />
+            <MenuItem 
+              label="Posterize"
+              onClick={() => dispatch(setFilterTool("on", filter.posterize))}
             />
           </MenuBranch>
         </Menu>
@@ -174,18 +199,18 @@ export default function TopBar() {
         </Menu>
         <Menu id="help" label="Help">
           <MenuItem
-            label="About Photosmith"
+            label="About SnapShot"
             onClick={() => dispatch(toggleAboutModal())}
           />
           <MenuItem
-            label="Photosmith Help"
+            label="SnapShot Help"
             onClick={() => dispatch(toggleHelp())}
             disabled
           />
         </Menu>
       </MenuBar>
       <RightBoxSC>
-        <TitleSC>PhotoSmith Image Editor</TitleSC>
+        <TitleSC>SnapShot Image Editor</TitleSC>
       </RightBoxSC>
     </TopBarSC>
   );

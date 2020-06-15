@@ -5,11 +5,11 @@ import {
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
-  PUT_HISTORY_DATA_MULTIPLE,
-  DELETE_LAYER
+  PUT_HISTORY_DATA_MULTIPLE
 } from "../../actions/redux/index";
 
 const rootReducer = combineReducers({
+  lastAction,
   ui: uiReducer,
   main: undoable(mainReducer, {
     filter: action => !action.payload.ignoreHistory,
@@ -18,6 +18,10 @@ const rootReducer = combineReducers({
 });
 
 export default rootReducer;
+
+function lastAction(state, {type}) {
+  return {type, time: Date.now()}
+}
 
 function undoable(reducer, { filter = () => true, limit = undefined }) {
   const initialState = {
@@ -32,25 +36,26 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
 
     switch (type) {
       case PUT_HISTORY_DATA:
+        const { oldMove=null, newMove=null, ...params } = payload.params;
         return {
           ...state,
           past: [
             ...past,
             {
               ...present,
-              onUndo: { id: payload.id, data: payload.old },
-              onRedo: { id: payload.id, data: payload.new },
-              historyParams: payload.params
+              onUndo: { id: payload.id, data: payload.old, move: oldMove },
+              onRedo: { id: payload.id, data: payload.new, move: newMove },
+              historyParams: params
             }
           ],
           present: { ...present }
         };
       case PUT_HISTORY_DATA_MULTIPLE:
         const onUndoArray = payload.map(el => {
-          return {id: el.id, data: el.old}
+          return {id: el.id, data: el.old, move: payload.oldMove}
         });
         const onRedoArray = payload.map(el => {
-          return {id: el.id, data: el.new}
+          return {id: el.id, data: el.new, move: payload.newMove}
         });
         return {
           ...state,
@@ -87,22 +92,6 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           present: next,
           future: newFuture
         };
-      case DELETE_LAYER:
-        if (!filter({ type, payload })) {
-          return {
-            ...state,
-            present: reducer(present, { type, payload })
-          };
-        } else {
-          return {
-            past: [
-              ...past,
-              { ...present, onUndelete: { id: payload.id, data: payload.data } }
-            ],
-            present: reducer(present, { type, payload }),
-            future: []
-          };
-        }
       default:
         newPresent = reducer(present, { type, payload });
         if (present === newPresent) {

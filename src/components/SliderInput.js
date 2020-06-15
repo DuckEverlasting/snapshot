@@ -27,11 +27,11 @@ const SliderSC = styled.input`
     -webkit-appearance: none;
     height: 25px;
     width: 10px;
-    background: #eeeeee;
+    background: ${props => props.disabled ? "transparent" : "#eeeeee"};
     margin-top: -10px;
-    border: 1px solid #444444;
+    border: 1px solid ${props => props.disabled ? "transparent" : "#444444"};
     border-radius: 40%;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? "auto" : "pointer"};
 
     &:active {
       background: #f3f3f3;
@@ -49,8 +49,6 @@ const SliderSC = styled.input`
 `;
 
 const NumberInputSC = styled.input`
-  -moz-appearance: textfield;
-  appearance: textfield;
   margin: 1px 0 0;
   border-radius: 3px;
   border: 1px solid #222222;
@@ -64,6 +62,7 @@ const NumberInputSC = styled.input`
 `;
 
 const PickerSC = styled(NumberInputSC)`
+  margin-left: 5px;
   width: 25px;
 `;
 
@@ -76,28 +75,40 @@ const LabelSC = styled.label`
 
   & div {
     display: flex;
-    width: 70%;
-    justify-content: space-between;
+    min-width: 70%;
+    justify-content: center;
     align-items: center;
-    margin: 15px 0;
+    margin: 10px 0;
+
+    & span {
+      margin-right: 5px;
+    }
   }
 `;
 
-export default function SliderInput({onChange, value, name, min=1, max=100, step=1}) {
+export default function SliderInput({onChange, value, name, min=1, max=100, step=1, disabled}) {
   const keydownHandler = ev => {
     ev.stopPropagation();
   };
 
   const inputHandler = ev => {
     let newValue = Number(ev.target.value);
-    if (value < min) {
+    if (ev.target.value === "-" || ev.target.value === "") {
+      newValue = ev.target.value;
+    } else if (Number.isNaN(newValue)) {
+      newValue = value;
+    } else if (newValue < min) {
       newValue = min;
-    }
-    if (value > max) {
+    } else if (newValue > max) {
       newValue = max;
     }
     onChange(newValue)
   };
+
+  const blurHandler = () => {
+    if (value === "")
+    onChange(min)
+  }
 
   return (
     <LabelSC>
@@ -107,19 +118,21 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
           value={value}
           onKeyDown={keydownHandler}
           onChange={inputHandler}
-          type="number"
+          onBlur={blurHandler}
+          type="text"
           min={min}
           max={min}
-          step={step}
+          disabled={disabled}
         />
       </div>
       <SliderSC
-        value={value}
+        value={!value && value !== 0 ? min : value}
         onChange={inputHandler}
         type="range"
         min={min}
         max={max}
         step={step}
+        disabled={disabled}
       />
     </LabelSC>
   );

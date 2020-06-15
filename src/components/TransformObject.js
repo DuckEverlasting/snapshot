@@ -7,6 +7,7 @@ import { setImportImageFile, setTransformSelection, putHistoryData, setTransform
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
+import render from "../actions/redux/renderCanvas";
 
 import styled from "styled-components";
 
@@ -26,8 +27,8 @@ const ContainerSC = styled.div.attrs((props) => ({
                 translateY(${props.offset.y}px)
                 rotate(${props.rotation}rad)`,
     transformOrigin: `${props.anchorPoint.x * 100}% ${props.anchorPoint.y * 100}%`,
-    width: props.size ? props.size.w * props.zoom + "px" : "auto",
-    height: props.size ? props.size.h * props.zoom + "px" : "auto",
+    width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
+    height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
     cursor: props.overrideCursor || "move",
     border: props.borderStyle || "2px solid #ffe312",
   },
@@ -202,6 +203,9 @@ export default function TransformObject({
   const anchorRef = useRef();
 
   useEffect(() => {
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
     if (source instanceof File) {
       const image = new Image();
       image.src = URL.createObjectURL(source);
@@ -222,7 +226,7 @@ export default function TransformObject({
           h: initHeight,
         });
       };
-    } else if (source instanceof HTMLCanvasElement) {
+    } else if (source instanceof OffscreenCanvas) {
       const imageRect = getImageRect(source);
       if (!imageRect) {
         dispatch(setImportImageFile(null));
@@ -243,7 +247,8 @@ export default function TransformObject({
         h: imageRect.h,
       });
     }
-  }, [source]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!image) return;
@@ -262,6 +267,8 @@ export default function TransformObject({
     } else {
       canvasRef.current.getContext("2d").drawImage(image, 0, 0);
     }
+    dispatch(render());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, transformCanvasSize]);
 
   function handleMouseDown(ev, actionType) {
@@ -305,8 +312,8 @@ export default function TransformObject({
     const yFromCenter =
       (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
     return {
-      x: xFromCenter + workspaceOffset.x + offset.x * zoom,
-      y: yFromCenter + workspaceOffset.y + offset.y * zoom,
+      x: Math.floor(xFromCenter + workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(yFromCenter + workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -335,6 +342,7 @@ export default function TransformObject({
               rotation
             },
           });
+          dispatch(render());
         }, null, {groupWithPrevious: true}));
         dispatch(setImportImageFile(null));
         dispatch(setTransformSelection(null, null, true));
@@ -342,6 +350,7 @@ export default function TransformObject({
         dispatch(setTransformParams({resizable: true, rotatable: true}))
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
   );
 

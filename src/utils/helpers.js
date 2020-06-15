@@ -32,6 +32,24 @@ export function getQuadLength(p1, p2, p3) {
   return distA + distB;
 }
 
+export function getQuadEquation(p1, p2, p3) {
+  const a = p1.y/((p1.x-p2.x)*(p1.x-p3.x))
+    + p2.y/((p2.x-p1.x)*(p2.x-p3.x))
+    + p3.y/((p3.x-p1.x)*(p3.x-p2.x));
+
+  const b = -p1.y*(p2.x+p3.x)/((p1.x-p2.x)*(p1.x-p3.x))
+    -p2.y*(p1.x+p3.x)/((p2.x-p1.x)*(p2.x-p3.x))
+    -p3.y*(p1.x+p2.x)/((p3.x-p1.x)*(p3.x-p2.x));
+
+  const c = p1.y*p2.x*p3.x/((p1.x-p2.x)*(p1.x-p3.x))
+  + p2.y*p1.x*p3.x/((p2.x-p1.x)*(p2.x-p3.x))
+  + p3.y*p1.x*p2.x/((p3.x-p1.x)*(p3.x-p2.x));
+
+  return function(x) {
+    return a * x * x + b * x + c;
+  }
+}
+
 export function getGradient(color, hardness) {         
   const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
   const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
@@ -75,7 +93,6 @@ export function convertDestToRegularShape({x: origX, y: origY}, {x, y}) {
 
 export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
   if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
-    console.log(x1, y1, x2, y2);
     throw new Error('ERROR: getDistance requires 2 points with an "x" and "y" property.');
   }
   if (typeof x1 !== "number" || typeof y1 !== "number" || typeof x2 !== "number" || typeof y2 !== "number") {
@@ -86,18 +103,18 @@ export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
 
 export function calculateClipping(size, offset, docSize, zoom) {
   return {
-    up: (0.5 * size.h - offset.y - 0.5 * docSize.h) * zoom,
-    down: (0.5 * size.h + offset.y - 0.5 * docSize.h) * zoom,
-    left: (0.5 * size.w - offset.x - 0.5 * docSize.w) * zoom,
-    right: (0.5 * size.w + offset.x - 0.5 * docSize.w) * zoom,
+    up: Math.floor((0.5 * size.h - offset.y - 0.5 * docSize.h) * zoom - 1),
+    down: Math.floor((0.5 * size.h + offset.y - 0.5 * docSize.h) * zoom),
+    left: Math.floor((0.5 * size.w - offset.x - 0.5 * docSize.w) * zoom - 1),
+    right: Math.floor((0.5 * size.w + offset.x - 0.5 * docSize.w) * zoom),
   };
 }
 
 export function calculateLayerClipping(size, offset, docSize, zoom=1) {
   return {
-    up: (0.5 * size.h - offset.y - 0.5 * docSize.h - .5 * (size.h - docSize.h)) * zoom,
-    down: (0.5 * size.h + offset.y - 0.5 * docSize.h + .5 * (size.h - docSize.h)) * zoom,
-    left: (0.5 * size.w - offset.x - 0.5 * docSize.w - .5 * (size.w - docSize.w)) * zoom,
-    right: (0.5 * size.w + offset.x - 0.5 * docSize.w + .5 * (size.w - docSize.w)) * zoom,
+    up: Math.floor((0.5 * size.h - offset.y - 0.5 * docSize.h - .5 * (size.h - docSize.h)) * zoom),
+    down: Math.floor((0.5 * size.h + offset.y - 0.5 * docSize.h + .5 * (size.h - docSize.h)) * zoom),
+    left: Math.floor((0.5 * size.w - offset.x - 0.5 * docSize.w - .5 * (size.w - docSize.w)) * zoom),
+    right: Math.floor((0.5 * size.w + offset.x - 0.5 * docSize.w + .5 * (size.w - docSize.w)) * zoom),
   };
 }

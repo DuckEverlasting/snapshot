@@ -5,7 +5,11 @@ import styled from "styled-components";
 
 import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
-import { createLayer, updateLayerOrder } from "../actions/redux";
+import SliderInput from "../components/SliderInput";
+import SelectBlendMode from "../components/SelectBlendMode";
+import { createLayer, updateLayerOrder, updateLayerOpacity, undo } from "../actions/redux";
+
+import render from "../actions/redux/renderCanvas";
 
 const LayerPanelSC = styled.div`
   display: flex;
@@ -13,7 +17,8 @@ const LayerPanelSC = styled.div`
   align-items: center;
   position: relative;
   width: 200px;
-  height: 100%;
+  height: calc(100% - 35px);
+  overflow: hidden;
   border-top: 1px solid black;
   background: #666666;
   z-index: 1;
@@ -66,8 +71,11 @@ const LayerPanelButtonSC = styled(Button)`
 `
 
 export default function LayerPanel() {
-  const layerSettings = useSelector(state => state.main.present.layerSettings)
-  const layerOrder = useSelector(state => state.main.present.layerOrder)
+  const layerSettings = useSelector(state => state.main.present.layerSettings);
+  const layerOrder = useSelector(state => state.main.present.layerOrder);
+  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const lastAction = useSelector(state => state.lastAction);
+  const opacity = activeLayer ? layerSettings[activeLayer].opacity : null;
   const dispatch = useDispatch();
 
   const onDragEnd = result => {
@@ -85,6 +93,17 @@ export default function LayerPanel() {
 
     dispatch(updateLayerOrder(src, dest))
   }
+
+  const inputHandler = value => {
+    if (
+      lastAction.type === "UPDATE_LAYER_OPACITY" &&
+      Date.now() - lastAction.time < 1000
+    ) {
+      dispatch(undo());
+    }
+    dispatch(updateLayerOpacity(activeLayer, value));
+    dispatch(render());
+  };
 
   return (
     <LayerPanelSC>
@@ -122,6 +141,14 @@ export default function LayerPanel() {
         <LayerPanelButtonSC title="New Layer" onClick={() => dispatch(createLayer("top"))}>
           NEW LAYER
         </LayerPanelButtonSC>
+        <SelectBlendMode />
+        <SliderInput 
+          onChange={inputHandler}
+          value={opacity}
+          name={"Opacity"}
+          min={0}
+          disabled={opacity === null}
+        />
       </BottomBoxSC>
     </LayerPanelSC>
   );

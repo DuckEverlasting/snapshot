@@ -1,5 +1,12 @@
 import { midpoint, getQuadLength } from "../../utils/helpers";
 
+function floor(vector) {
+  return {
+    x: Math.floor(vector.x),
+    y: Math.floor(vector.y),
+  }
+}
+
 function getPointInQuad(p1, p2, p3, t) {
   const x = (1 - t) * (1 - t) * p1.x + 2 * (1 - t) * t * p2.x + t * t * p3.x 
   const y = (1 - t) * (1 - t) * p1.y + 2 * (1 - t) * t * p2.y + t * t * p3.y 
@@ -22,13 +29,13 @@ export function line(ctx, { orig, dest, destArray, translation }) {
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
   if (!destArray) {
-    destArray = [orig, dest]
+    destArray = [floor(orig), floor(dest)]
   }
   destArray.forEach(dest => {
     if (dest.newStroke) {
-      ctx.moveTo(dest.x, dest.y)  
+      ctx.moveTo(Math.floor(dest.x), Math.floor(dest.y))  
     } else {
-      ctx.lineTo(dest.x, dest.y);
+      ctx.lineTo(Math.floor(dest.x), Math.floor(dest.y));
     }
   });
   if (translation) ctx.translate(-translation, -translation);
@@ -41,9 +48,9 @@ export function quadratic(ctx, { destArray, translation }) {
   destArray.forEach((dest, i) => {
     if (i < destArray.length - 1) {
       const mid = midpoint(dest, destArray[i + 1]);
-      ctx.quadraticCurveTo(dest.x, dest.y, mid.x, mid.y);
+      ctx.quadraticCurveTo(Math.floor(dest.x), Math.floor(dest.y), Math.floor(mid.x), Math.floor(mid.y));
     } else {
-      ctx.lineTo(dest.x, dest.y);
+      ctx.lineTo(Math.floor(dest.x), Math.floor(dest.y));
     }
   });
   if (translation) ctx.translate(-translation, -translation);
@@ -57,12 +64,12 @@ export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100,
   const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
     ctx.beginPath();
-    let grad = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, width * (2 - hardness / 100) / 2);
+    let grad = ctx.createRadialGradient(Math.floor(point.x), Math.floor(point.y), 0, Math.floor(point.x), Math.floor(point.y), width * (2 - hardness / 100) / 2);
     gradient.forEach(data => {
       grad.addColorStop(data[0], data[1]);
     })
     ctx.fillStyle = grad;
-    ctx.arc(point.x, point.y, (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
+    ctx.arc(Math.floor(point.x), Math.floor(point.y), (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
     ctx.fill();
   })
   if (translation) ctx.translate(-translation, -translation);
@@ -70,15 +77,15 @@ export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100,
 
 export function rectangle(ctx, { orig, dest, translation }) {
   if (translation) ctx.translate(translation, translation);
-  ctx.rect(orig.x, orig.y, dest.x - orig.x, dest.y - orig.y);
+  ctx.rect(Math.floor(orig.x), Math.floor(orig.y), Math.floor(dest.x - orig.x), Math.floor(dest.y - orig.y));
   if (translation) ctx.translate(-translation, -translation);
 }
 
 export function circle(ctx, { orig, dest }) {
   ctx.beginPath();
   ctx.arc(
-    orig.x,
-    orig.y,
+    Math.floor(orig.x),
+    Math.floor(orig.y),
     Math.sqrt(
       (dest.x - orig.x) * (dest.x - orig.x) +
         (dest.y - orig.y) * (dest.y - orig.y)
@@ -93,14 +100,14 @@ export function ellipse(ctx, { orig, dest }) {
   const center = midpoint(orig, dest);
   const radiusX = Math.abs(dest.x - center.x);
   const radiusY = Math.abs(dest.y - center.y);
-  ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.ellipse(Math.floor(center.x), Math.floor(center.y), radiusX, radiusY, 0, 0, Math.PI * 2);
 }
 
 export function move(ctx, { orig, dest }) {
   let [x, y] = [dest.x - orig.x, dest.y - orig.y];
   const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.putImageData(data, x, y);
+  ctx.putImageData(data, Math.floor(x), Math.floor(y));
 }
 
 export function paste(ctx, { sourceCtx, orig={x:0,y:0}, dest={x:0,y:0}, size={w: sourceCtx.canvas.width, h: sourceCtx.canvas.height}, anchorPoint={x:0,y:0}, rotation=0 }) {
@@ -111,7 +118,7 @@ export function paste(ctx, { sourceCtx, orig={x:0,y:0}, dest={x:0,y:0}, size={w:
   ctx.rotate(rotation);
   ctx.translate(-(zoom.x * sourceCtx.canvas.width * anchorPoint.x + dest.x), -(zoom.y * sourceCtx.canvas.height * anchorPoint.y + dest.y));
 
-  ctx.drawImage(sourceCtx.canvas, orig.x, orig.y, sourceCtx.canvas.width, sourceCtx.canvas.height, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
+  ctx.drawImage(sourceCtx.canvas, Math.floor(orig.x), Math.floor(orig.y), sourceCtx.canvas.width, sourceCtx.canvas.height, Math.floor(dest.x), Math.floor(dest.y), size.w, size.h)
   ctx.restore();
 }
 
@@ -120,8 +127,8 @@ export function undelete(ctx, { source }) {
 }
 
 export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
   const imgData = ctx.getImageData(
     0,
@@ -209,8 +216,14 @@ export function blend(ctx, { source }) {
 }
 
 export function getDiff(ctx, { prevImgData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  if (!prevImgData) {
+    return {
+      old: null,
+      new: null
+    }
+  }
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   const imgData = ctx.getImageData(
     0,
     0,
@@ -231,8 +244,8 @@ export function getDiff(ctx, { prevImgData }) {
 }
 
 export function swapData(ctx, { changeData }) {
-  const viewWidth = Math.ceil(ctx.canvas.width);
-  const viewHeight = Math.ceil(ctx.canvas.height);
+  const viewWidth = Math.floor(ctx.canvas.width);
+  const viewHeight = Math.floor(ctx.canvas.height);
   const imgData = ctx.getImageData(
     0,
     0,
