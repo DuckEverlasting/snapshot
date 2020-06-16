@@ -880,6 +880,8 @@ export class MoveAction extends ToolActionBase {
       ));
       if (redrawData) {
         canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = newSize.w;
+        canvas.height = newSize.h;
         canvas.getContext("2d").putImageData(redrawData, Math.max(0, this.offset.x + canvasRect.x), Math.max(0, this.offset.y + canvasRect.y));
       }
       this.dispatch(putHistoryData(this.activeLayer, this.layerCanvas[this.activeLayer].getContext("2d"), null, null, {
