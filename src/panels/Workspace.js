@@ -36,6 +36,7 @@ import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
+import HistogramModal from "../components/HistogramModal";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -543,6 +544,7 @@ export default function Workspace() {
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       {overlayVisible === "filterTool" && <FilterTool />}
       {overlayVisible === "helpModal" && <HelpModal />}
+      {overlayVisible === "histogram" && <HistogramModal />}
     </WorkspaceSC>
   );
 }

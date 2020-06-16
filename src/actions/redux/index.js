@@ -33,6 +33,7 @@ export const [
   SET_ACTIVE_MENU_LIST,
   SET_CLIPBOARD_IS_USED,
   TOGGLE_ABOUT_MODAL,
+  TOGGLE_HISTOGRAM,
   TOGGLE_HELP,
   SET_HELP_TOPIC,
   SET_FILTER_TOOL,
@@ -71,6 +72,7 @@ export const [
   "SET_ACTIVE_MENU_LIST",
   "SET_CLIPBOARD_IS_USED",
   "TOGGLE_ABOUT_MODAL",
+  "TOGGLE_HISTOGRAM",
   "TOGGLE_HELP",
   "SET_HELP_TOPIC",
   "SET_FILTER_TOOL",
@@ -410,6 +412,12 @@ export const setClipboardIsUsed = bool => {
 export const toggleAboutModal = () => {
   return {
     type: TOGGLE_ABOUT_MODAL
+  }
+}
+
+export const toggleHistogram = () => {
+  return {
+    type: TOGGLE_HISTOGRAM
   }
 }
 

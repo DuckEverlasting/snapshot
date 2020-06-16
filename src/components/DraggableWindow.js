@@ -98,23 +98,23 @@ export default function DraggableWindow({
   useEffect(() => {
     let initWidth, initHeight;
     if (initSize) {
-      initWidth = initSize.x;
-      initHeight = initSize.y;
+      initWidth = initSize.w;
+      initHeight = initSize.h;
     } else {
       initWidth = Math.floor(modalRef.current.clientWidth);
       initHeight = Math.floor(modalRef.current.clientHeight);
     }
     setBoundingDimensions({
-      x: Math.floor(boundingBoxRef.current.clientWidth),
-      y: Math.floor(boundingBoxRef.current.clientHeight),
+      w: Math.floor(boundingBoxRef.current.clientWidth),
+      h: Math.floor(boundingBoxRef.current.clientHeight),
     });
     setModalDimensions({
-      x: initWidth,
-      y: initHeight
+      w: initWidth,
+      h: initHeight
     });
     setMinSize(minimumSize || {
-      x: initWidth,
-      y: initHeight
+      w: initWidth,
+      h: initHeight
     });
     setOffset(initPosition || {
       x: Math.floor(boundingBoxRef.current.clientWidth) / 2 - initWidth / 2,
@@ -154,29 +154,29 @@ export default function DraggableWindow({
       setOffset({
         x: Math.min(
           Math.max(x, 0),
-          boundingDimensions.x - dragOrigin.w
+          boundingDimensions.w - dragOrigin.w
         ),
         y: Math.min(
           Math.max(y, 0),
-          boundingDimensions.y - dragOrigin.h
+          boundingDimensions.h - dragOrigin.h
         ),
       });
     } else if (isResizing === "se") {
       setModalDimensions({
-        x: Math.max(minSize.x, dragOrigin.w + (Math.floor(ev.screenX) - dragOrigin.x)),
-        y: Math.max(minSize.y, dragOrigin.h + (Math.floor(ev.screenY) - dragOrigin.y))
+        x: Math.max(minSize.w, dragOrigin.w + (Math.floor(ev.screenX) - dragOrigin.x)),
+        y: Math.max(minSize.h, dragOrigin.h + (Math.floor(ev.screenY) - dragOrigin.y))
       });
     } else if (isResizing === "sw") {
       setOffset( prevOffset => ({
         x: Math.min(
           Math.max(x, 0),
-          dragOrigin.offX + (dragOrigin.w - minSize.x)
+          dragOrigin.offX + (dragOrigin.w - minSize.w)
         ),
         y: prevOffset.y
       }));
       setModalDimensions({
-        x: Math.min(Math.max(minSize.x, dragOrigin.w - (ev.screenX - dragOrigin.x)), dragOrigin.offX + dragOrigin.w),
-        y: Math.max(minSize.y, dragOrigin.h + (ev.screenY - dragOrigin.y))
+        x: Math.min(Math.max(minSize.w, dragOrigin.w - (ev.screenX - dragOrigin.x)), dragOrigin.offX + dragOrigin.w),
+        y: Math.max(minSize.h, dragOrigin.h + (ev.screenY - dragOrigin.y))
       });
     }
   }

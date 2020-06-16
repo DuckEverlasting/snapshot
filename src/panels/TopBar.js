@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { toggleAboutModal, setFilterTool, toggleHelp, setExportOptions } from "../actions/redux/index";
+import { toggleAboutModal, setFilterTool, toggleHelp, setExportOptions, toggleHistogram } from "../actions/redux/index";
 
 import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";
@@ -129,6 +129,10 @@ export default function TopBar() {
           <MenuItem 
             label="Invert"
             onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
+          />
+          <MenuItem
+            label="Histogram"
+            onClick={() => dispatch(toggleHistogram())}
           />
           <MenuBranch label="Filter">
             <MenuItem 

@@ -9,6 +9,7 @@ import {
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
   TOGGLE_ABOUT_MODAL,
+  TOGGLE_HISTOGRAM,
   TOGGLE_HELP,
   SET_HELP_TOPIC,
   SET_FILTER_TOOL,
@@ -95,6 +96,11 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       return {
         ...state,
         overlayVisible: state.overlayVisible === "aboutModal" ? null : "aboutModal"
+      }
+    case TOGGLE_HISTOGRAM:
+      return {
+        ...state,
+        overlayVisible: state.overlayVisible === "histogram" ? null : "histogram"
       }
     case TOGGLE_HELP:
       return {
