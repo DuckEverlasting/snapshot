@@ -5,8 +5,8 @@ import { updateCanvas } from '../actions/redux'
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
-    width: `${props.size.w + 30}px`,
-    height: `${props.size.h + 30}px`
+    width: `${props.size.w}px`,
+    height: `${props.size.h}px`
   }
 }))`
   position: absolute;
@@ -41,7 +41,7 @@ function MainCanvas() {
   }, [])
 
   return <LayerWrapperSC size={docSize}>
-    <LayerSC width={docSize.w + 30} height={docSize.h + 30} ref={canvasRef} />
+    <LayerSC width={docSize.w} height={docSize.h} ref={canvasRef} />
   </LayerWrapperSC>
 }
 
