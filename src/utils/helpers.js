@@ -65,7 +65,7 @@ export function getHistogram(ctx, channel) {
 
 export function getAllHistogram(ctx) {
   const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-  const result = [new Array(255).fill(0), new Array(255).fill(0), new Array(255).fill(0), new Array(255).fill(0)];
+  const result = [new Array(256).fill(0), new Array(256).fill(0), new Array(256).fill(0), new Array(256).fill(0)];
   for (let i = 0; i < imageData.data.length; i += 4) {
     if (imageData.data[i + 3] !== 0) {
       result[0][imageData.data[i]]++;
@@ -73,7 +73,7 @@ export function getAllHistogram(ctx) {
       result[2][imageData.data[i+2]]++;
     }
   }
-  for (let i = 0; i < 255; i++) {
+  for (let i = 0; i < 256; i++) {
     result[3][i] = (result[0][i] + result[1][i] + result[2][i]) / 3;
   }
   return result;

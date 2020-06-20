@@ -176,7 +176,7 @@ function HelpModal() {
   }
 
   return (
-    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{h: height * 0.6, w: width * 0.4}} minimumSize={{h: height * 0.4, w: width * 0.3}}>
+    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{h: height * 0.6, w: width * 0.4}} minimumSize={{h: height * 0.4, z: width * 0.3}}>
       <HelpModalSC>
         <MainContentSC>
           <TopicMenu
@@ -289,7 +289,7 @@ function Topic({ data, currentTopic, setCurrentTopic, triggerSizeCheck }) {
         {data.contents && <button onClick={() => {
           setTimeout(triggerSizeCheck, 200);
           setIsOpen(!isOpen)
-        }}>></button>}
+        }}>{'>'}</button>}
       </p>
       {data.contents &&
         isOpen &&

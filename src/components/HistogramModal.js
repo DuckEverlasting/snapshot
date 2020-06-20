@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { updateCanvas } from '../actions/redux'
 
 import DraggableWindow from "./DraggableWindow";
+import Histogram from "../utils/Histogram";
 
 import { getAllHistogram } from "../utils/helpers";
 
@@ -14,7 +15,7 @@ function HistogramModal() {
   });
   return (
     <DraggableWindow name={"Histogram"} resizable={false} initSize={{w: 300, h: 300}}>
-      <Histogram data={getAllHistogram(activeCtx)}/>
+      <HistogramCanvas sourceCtx={activeCtx}/>
     </DraggableWindow>
   )
 }
@@ -40,7 +41,7 @@ const HistogramSC = styled.canvas`
   pointer-events: none;
 `
 
-function Histogram({data}) {
+function HistogramCanvas({sourceCtx}) {
   const canvasRef = useRef(null);
   const dispatch = useDispatch();
 
@@ -54,19 +55,9 @@ function Histogram({data}) {
   }, [])
 
   useEffect(() => {
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.fillStyle = "#000000"
-    ctx.strokeStyle = "#FFFFFF"
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.beginPath();
-    const max = Math.max(...data[3]);
-    console.log(max);
-    for (let i = 0; i < 255; i++) {
-      ctx.moveTo(10 + i, 290);
-      ctx.lineTo(10 + i, 290 - data[3][i] * (280 / max));
-    }
-    ctx.stroke();
-  }, [data])
+    const histogram = new Histogram(sourceCtx);
+    histogram.drawAll(canvasRef.current.getContext("2d"));
+  }, [sourceCtx])
 
   return <HistogramWrapperSC size={{w: 300, h: 300}}>
     <HistogramSC width={300} height={300} ref={canvasRef} />
