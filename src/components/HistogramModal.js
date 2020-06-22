@@ -12,7 +12,7 @@ function HistogramModal() {
     return state.main.present.layerCanvas[activeLayer].getContext("2d");
   });
   return (
-    <DraggableWindow name={"Histogram"} resizable>
+    <DraggableWindow name={"Histogram"} resizable minimumSize={{w: 100, h: 100}}>
       <HistogramCanvas sourceCtx={activeCtx}/>
     </DraggableWindow>
   )
@@ -31,7 +31,8 @@ const HistogramWrapperSC = styled.div`
 const HistogramSC = styled.canvas`
   position: relative;
   width: 100%;
-  height: 100%;
+  flex: 1 1 256px;
+  min-height: 0;
   left: 0;
   top: 0;
   image-rendering: pixelated;
