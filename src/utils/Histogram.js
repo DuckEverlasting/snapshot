@@ -35,13 +35,13 @@ export default class Histogram {
     if (!color in this.colorRef) {
       throw new Error("Error: invalid histogram color " + color);
     }
-    const increment = Math.max(Math.floor(ctx.canvas.width / 255), 1);
+    const increment = Math.max(Math.floor(ctx.canvas.width / 256), 1);
     const height = ctx.canvas.height; 
     if (max === null) max = this.getMax(color);
 
     ctx.strokeStyle = this.colorRef[color].hex;
     ctx.beginPath();
-    for (let i = 0; i < 255; i++) {
+    for (let i = 0; i < 256; i++) {
       ctx.moveTo(increment * i, height);
       ctx.lineTo(increment * i, height - this.data[this.colorRef[color].index][i] * (height / max));
     }
@@ -53,15 +53,15 @@ export default class Histogram {
       throw new Error("Error: invalid histogram color " + color);
     }
     const colorNum = this.colorRef[color].index;
-    const increment = Math.max(Math.floor(ctx.canvas.width / 255), 1);
+    const increment = Math.max(Math.floor(ctx.canvas.width / 256), 1);
     const height = ctx.canvas.height; 
     if (max === null) max = this.getMax(color);
 
     ctx.strokeStyle = this.colorRef[color].hex;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, height);
-    for (let i = 1; i < 255; i++) {
+    ctx.moveTo(0, height - this.data[this.colorRef[color].index][0] * (height / max));
+    for (let i = 1; i < 256; i++) {
       ctx.lineTo(increment * i, height - this.data[this.colorRef[color].index][i] * (height / max));
     }
     ctx.stroke();

@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateCanvas } from '../actions/redux'
+import { updateCanvas, toggleHistogram } from '../actions/redux'
 
 import DraggableWindow from "./DraggableWindow";
 import Histogram from "../utils/Histogram";
-
-import { getAllHistogram } from "../utils/helpers";
 
 function HistogramModal() {
   const activeCtx = useSelector(state => {
@@ -14,31 +12,36 @@ function HistogramModal() {
     return state.main.present.layerCanvas[activeLayer].getContext("2d");
   });
   return (
-    <DraggableWindow name={"Histogram"} resizable={false} initSize={{w: 300, h: 300}}>
+    <DraggableWindow name={"Histogram"} resizable>
       <HistogramCanvas sourceCtx={activeCtx}/>
     </DraggableWindow>
   )
 }
 
-const HistogramWrapperSC = styled.div.attrs(props => ({
-  style: {
-    width: `${props.size.w}px`,
-    height: `${props.size.h}px`
-  }
-}))`
+const HistogramWrapperSC = styled.div`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   position: relative;
-  overflow: hidden;
-  pointer-events: none;
 `
 
 const HistogramSC = styled.canvas`
-  position: absolute;
+  position: relative;
   width: 100%;
   height: 100%;
   left: 0;
   top: 0;
   image-rendering: pixelated;
   pointer-events: none;
+  border: 2px solid black;
+  margin-bottom: 10px;
+`
+
+const CloseButtonSC = styled.button`
+  cursor: pointer;
 `
 
 function HistogramCanvas({sourceCtx}) {
@@ -59,8 +62,14 @@ function HistogramCanvas({sourceCtx}) {
     histogram.drawAll(canvasRef.current.getContext("2d"));
   }, [sourceCtx])
 
-  return <HistogramWrapperSC size={{w: 300, h: 300}}>
-    <HistogramSC width={300} height={300} ref={canvasRef} />
+  function handleMouseDown(ev) {
+    dispatch(toggleHistogram());
+    ev.stopPropagation();
+  }
+
+  return <HistogramWrapperSC>
+    <HistogramSC width={256} height={256} ref={canvasRef} />
+    <CloseButtonSC onClick={handleMouseDown}>Close</CloseButtonSC>
   </HistogramWrapperSC>
 }
 

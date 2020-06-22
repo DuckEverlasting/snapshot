@@ -3,8 +3,6 @@ import { useSelector, useDispatch } from "react-redux";
 
 import styled from "styled-components";
 
-import Layer from "../components/Layer";
-
 import TransformObject from "../components/TransformObject";
 
 import { 
@@ -19,14 +17,12 @@ import {
   FillAction
 } from "../utils/ToolAction";
 
-import { getZoomAmount, calculateLayerClipping } from "../utils/helpers";
+import { getZoomAmount } from "../utils/helpers";
 import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
 import manipulate from "../reducers/custom/manipulateReducer";
-
-import render from "../actions/redux/renderCanvas";
 
 import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection, putHistoryDataMultiple, updateSelectionPath } from "../actions/redux";
 import FilterTool from "../components/FilterTool";
@@ -67,6 +63,7 @@ const CanvasPaneSC = styled.div.attrs(props => ({
     height: props.height,
     transform: `translateX(${props.translateX}px)
       translateY(${props.translateY}px)
+      translateZ(-.001px)
       scale(${props.zoomPct / 100})`
   }
 }))`
