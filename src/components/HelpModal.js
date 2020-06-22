@@ -62,7 +62,7 @@ const TopicBoxSC = styled.div`
 
   & h2 {
     margin-bottom: 8px;
-    font-size: 20px;
+    font-size: ${props => props.theme.fontSizes.large};
     text-align: center;
   }
 `;
@@ -76,7 +76,7 @@ const CurrentTopicSC = styled(ContentBoxSC)`
 
   & h2 {
     margin-bottom: 10px;
-    font-size: 20px;
+    font-size: ${props => props.theme.fontSizes.large};
     text-align: center;
   }
 
@@ -110,9 +110,9 @@ const CurrentTopicSC = styled(ContentBoxSC)`
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: ${props => props.theme.fontSizes.medium};
     font-family: "PT Sans";
-    color: #ffe312;
+    color: ${props => props.theme.colors.highlight};
     padding: 0;
   }
 `;
@@ -123,7 +123,7 @@ const TopicSC = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   margin-left: 20px;
-  color: ${(props) => (props.isCurrentTopic ? "#ffe312" : "white")};
+  color: ${(props) => (props.isCurrentTopic ? props.theme.colors.highlight : "white")};
 
   & p {
     display: flex;

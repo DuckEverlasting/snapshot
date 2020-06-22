@@ -58,7 +58,7 @@ export default class Histogram {
     if (max === null) max = this.getMax(color);
 
     ctx.strokeStyle = this.colorRef[color].hex;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = Math.ceil(ctx.canvas.width / 256);
     ctx.beginPath();
     ctx.moveTo(0, height - this.data[this.colorRef[color].index][0] * (height / max));
     for (let i = 1; i < 256; i++) {

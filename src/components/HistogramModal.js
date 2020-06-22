@@ -12,7 +12,7 @@ function HistogramModal() {
     return state.main.present.layerCanvas[activeLayer].getContext("2d");
   });
   return (
-    <DraggableWindow name={"Histogram"} resizable minimumSize={{w: 100, h: 100}}>
+    <DraggableWindow name={"Histogram"} resizable initSize={{w: 256, h: 256}} minimumSize={{w: 100, h: 100}}>
       <HistogramCanvas sourceCtx={activeCtx}/>
     </DraggableWindow>
   )
@@ -69,7 +69,7 @@ function HistogramCanvas({sourceCtx}) {
   }
 
   return <HistogramWrapperSC>
-    <HistogramSC width={256} height={256} ref={canvasRef} />
+    <HistogramSC width={1024} height={1024} ref={canvasRef} />
     <CloseButtonSC onClick={handleMouseDown}>Close</CloseButtonSC>
   </HistogramWrapperSC>
 }

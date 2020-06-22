@@ -30,7 +30,7 @@ const ContainerSC = styled.div.attrs((props) => ({
     width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
     height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
     cursor: props.overrideCursor || "move",
-    border: props.borderStyle || "2px solid #ffe312",
+    border: props.borderStyle || "2px solid " + props.theme.colors.highlight,
   },
 }))`
   flex-grow: 0;

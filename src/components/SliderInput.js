@@ -70,7 +70,7 @@ const LabelSC = styled.label`
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 15px;
+  font-size: ${props => props.theme.fontSizes.small};
   margin-bottom: 10px;
 
   & div {

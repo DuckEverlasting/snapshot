@@ -37,7 +37,7 @@ const InnerModalSC = styled.div.attrs((props) => ({
 
 const TitleSC = styled.h3.attrs((props) => ({
   style: {
-    background: props.caution ? "#ffe312" : "#303030",
+    background: props.caution ? props.theme.colors.highlight : "#303030",
     transition: props.caution ? "none" : "background 1s",
   },
 }))`

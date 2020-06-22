@@ -24,7 +24,7 @@ const AppSC = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-family: "PT Sans", sans-serif;
+  font-family: ${props => props.theme.fonts.main};
 `;
 
 const AppContainerSC = styled.div`

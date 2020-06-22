@@ -33,8 +33,8 @@ const RightBoxSC = styled.div`
 
 const TitleSC = styled.h1`
   margin: 0;
-  padding: 3px 10px;
-  font-size: 1.6rem;
+  padding: 3px 10px 5px;
+  font-size: ${props => props.theme.fontSizes.xLarge};
   font-weight: bold;
   white-space: nowrap;
   user-select: none;
