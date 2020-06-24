@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { PanelTitleSC } from "../styles/shared";
 
 import ToolBox from "../components/ToolBox.js"
 import ColorBox from "../components/ColorBox.js"
@@ -18,14 +19,7 @@ const ToolPanelSC = styled.div`
   z-index: 1;
 `;
 
-const TitleSC = styled.h3`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 0 20px;
-  font-size: 24px;
-  margin: 0;
-`
+const TitleSC = styled(PanelTitleSC)``;
 
 const ToolPanelDividerSC = styled.div`
   display: flex;

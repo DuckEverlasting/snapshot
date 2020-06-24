@@ -2,6 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
+import { PanelTitleSC } from "../styles/shared";
 
 import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
@@ -17,7 +18,7 @@ const LayerPanelSC = styled.div`
   align-items: center;
   position: relative;
   width: 200px;
-  height: calc(100% - 35px);
+  height: 100%;
   overflow: hidden;
   border-top: 1px solid black;
   background: #666666;
@@ -52,14 +53,7 @@ const LayerBoxSC = styled.div`
   }
 `;
 
-const TitleSC = styled.h3`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 0 20px;
-  font-size: 24px;
-  margin: 0;
-`;
+const TitleSC = styled(PanelTitleSC)``;
 
 const BottomBoxSC = styled.div`
   height: 20%;

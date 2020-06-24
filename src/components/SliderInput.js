@@ -70,7 +70,7 @@ const LabelSC = styled.label`
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 15px;
+  font-size: ${props => props.theme.fontSizes.small};
   margin-bottom: 10px;
 
   & div {
@@ -115,7 +115,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
       <div>
         <span>{name}</span>
         <PickerSC
-          value={value}
+          value={!value && value !== 0 ? min : value}
           onKeyDown={keydownHandler}
           onChange={inputHandler}
           onBlur={blurHandler}

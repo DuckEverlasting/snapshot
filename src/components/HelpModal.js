@@ -3,7 +3,7 @@ import useEventListener from "../hooks/useEventListener";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 
-import { toggleHelp, setHelpTopic } from "../actions/redux";
+import { toggleOverlay, setHelpTopic } from "../actions/redux";
 
 import { helpHierarchy, helpContent } from "../constants/helpDocumentation.json";
 
@@ -62,7 +62,7 @@ const TopicBoxSC = styled.div`
 
   & h2 {
     margin-bottom: 8px;
-    font-size: 20px;
+    font-size: ${props => props.theme.fontSizes.large};
     text-align: center;
   }
 `;
@@ -76,7 +76,7 @@ const CurrentTopicSC = styled(ContentBoxSC)`
 
   & h2 {
     margin-bottom: 10px;
-    font-size: 20px;
+    font-size: ${props => props.theme.fontSizes.large};
     text-align: center;
   }
 
@@ -110,9 +110,9 @@ const CurrentTopicSC = styled(ContentBoxSC)`
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: ${props => props.theme.fontSizes.medium};
     font-family: "PT Sans";
-    color: #ffe312;
+    color: ${props => props.theme.colors.highlight};
     padding: 0;
   }
 `;
@@ -123,7 +123,7 @@ const TopicSC = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   margin-left: 20px;
-  color: ${(props) => (props.isCurrentTopic ? "#ffe312" : "white")};
+  color: ${(props) => (props.isCurrentTopic ? props.theme.colors.highlight : "white")};
 
   & p {
     display: flex;
@@ -172,11 +172,11 @@ function HelpModal() {
   }
 
   function handleClose() {
-    dispatch(toggleHelp());
+    dispatch(toggleOverlay("help"));
   }
 
   return (
-    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{y: height * 0.6, x: width * 0.4}} minimumSize={{y: height * 0.4, x: width * 0.3}}>
+    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{h: height * 0.6, w: width * 0.4}} minimumSize={{h: height * 0.4, z: width * 0.3}}>
       <HelpModalSC>
         <MainContentSC>
           <TopicMenu
@@ -289,7 +289,7 @@ function Topic({ data, currentTopic, setCurrentTopic, triggerSizeCheck }) {
         {data.contents && <button onClick={() => {
           setTimeout(triggerSizeCheck, 200);
           setIsOpen(!isOpen)
-        }}>></button>}
+        }}>{'>'}</button>}
       </p>
       {data.contents &&
         isOpen &&

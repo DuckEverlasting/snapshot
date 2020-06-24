@@ -7,7 +7,7 @@ const Button = styled.button`
   outline: none;
   cursor: pointer;
   padding: 2px 0;
-  background: ${props => props.active ? "#ffe312" : "#e3e3e3"};
+  background: ${props => props.active ? props.theme.colors.highlight : "#e3e3e3"};
   border: 1px solid #333333;
   border-radius: 2px;
   
@@ -18,7 +18,7 @@ const Button = styled.button`
   }
 
   &:hover{
-    background: ${props => props.active ? "#ffe312" : "#d6d6d6"};
+    background: ${props => props.active ? props.theme.colors.highlight : "#d6d6d6"};
   }
 
   &:active{

@@ -8,12 +8,11 @@ import {
   SWITCH_COLORS,
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
-  TOGGLE_ABOUT_MODAL,
-  TOGGLE_HELP,
+  TOGGLE_OVERLAY,
   SET_HELP_TOPIC,
-  SET_FILTER_TOOL,
   SET_IMPORT_IMAGE_FILE,
-  SET_EXPORT_OPTIONS
+  SET_EXPORT_OPTIONS,
+  SET_APP_IS_WAITING
 } from "../../actions/redux";
 
 import { initUiState } from "./initState";
@@ -91,27 +90,17 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         ...state,
         activeMenuList: payload
       }
-    case TOGGLE_ABOUT_MODAL:
+    case TOGGLE_OVERLAY:
       return {
         ...state,
-        overlayVisible: state.overlayVisible === "aboutModal" ? null : "aboutModal"
-      }
-    case TOGGLE_HELP:
-      return {
-        ...state,
-        overlayVisible: state.overlayVisible === "helpModal" ? null : "helpModal",
-        currentHelpTopic: payload ? payload : state.currentHelpTopic
+        overlay: state.overlay === payload.overlay ? null : payload.overlay,
+        currentHelpTopic: payload.params.helpTopic ? payload.params.helpTopic : state.currentHelpTopic,
+        currentFilter: payload.params.filter ? payload.params.filter : null
       }
     case SET_HELP_TOPIC:
       return {
         ...state,
         currentHelpTopic: payload
-      }
-    case SET_FILTER_TOOL:
-      return {
-        ...state,
-        overlayVisible: payload.bool ? "filterTool" : null,
-        currentFilter: payload.filter
       }
     case SET_IMPORT_IMAGE_FILE:
       return {
@@ -122,6 +111,11 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       return {
         ...state,
         exportOptions: payload
+      }
+    case SET_APP_IS_WAITING:
+      return {
+        ...state,
+        appIsWaiting: payload
       }
     default:
       return state;

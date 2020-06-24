@@ -50,6 +50,35 @@ export function getQuadEquation(p1, p2, p3) {
   }
 }
 
+export function getHistogram(ctx, channel) {
+  if (typeof channel !== "number" || channel > 3) return null;
+  const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const result = new Array(255).fill(0);
+  const toAlpha = 3 - channel;
+  for (let i = channel; i < imageData.data.length; i += 4) {
+    if (imageData.data[i + toAlpha] !== 0) {
+      result[imageData.data[i]]++;
+    }
+  }
+  return result;
+}
+
+export function getAllHistogram(ctx) {
+  const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const result = [new Array(256).fill(0), new Array(256).fill(0), new Array(256).fill(0), new Array(256).fill(0)];
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    if (imageData.data[i + 3] !== 0) {
+      result[0][imageData.data[i]]++;
+      result[1][imageData.data[i+1]]++;
+      result[2][imageData.data[i+2]]++;
+    }
+  }
+  for (let i = 0; i < 256; i++) {
+    result[3][i] = (result[0][i] + result[1][i] + result[2][i]) / 3;
+  }
+  return result;
+}
+
 export function getGradient(color, hardness) {         
   const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
   const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`

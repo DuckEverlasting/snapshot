@@ -4,51 +4,59 @@ import styled from "styled-components";
 const MenuGroupSC = styled.div`
   display: flex;
   height: 100%;
-  background: ${props => props.color};
+  background: ${(props) => props.color};
+  font-size: ${(props) => props.size * 0.9}rem;
   justify-content: flex-start;
   align-items: flex-end;
   overflow: visible;
-  cursor: ${props => props.cursor || "auto"};
+  cursor: ${(props) => props.cursor || "auto"};
   user-select: none;
 `;
 const MenuItemSC = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 8px 5px;
-  background: ${props => props.active && !props.disabled ? props.color : "none"};
-  color: ${props => props.disabled ? "grey" : "inherit"};
+  padding: ${(props) => props.size * 7}px ${(props) => props.size * 4}px;
+  background: ${(props) =>
+    props.active && !props.disabled ? props.color : "none"};
+  color: ${(props) => (props.disabled ? "grey" : "inherit")};
 
   &:hover {
-    background: ${props => !props.disabled ? props.color: "none"};
+    background: ${(props) => (!props.disabled ? props.color : "none")};
   }
 `;
 const MenuItemSectionSC = styled.p`
   &:first-child {
-    padding-left: 20px;
-    padding-right: 40px;
+    padding-left: ${(props) => props.size * 16}px;
+    padding-right: ${(props) => props.size * 32}px;
   }
 
   &:last-child {
-    padding-right: 20px;
+    padding-right: ${(props) => props.size * 16}px;
   }
-`
+`;
 const MenuSC = styled.div`
   width: 100%;
-  background: ${props =>
-    props.active ? props.colors.secondary : props.colors.primary
-  };
+  height: 100%;
+  background: ${(props) =>
+    props.active ? props.colors.secondary : props.colors.primary};
 `;
 const MenuPanelSC = styled.div`
   position: absolute;
-  background: ${props => props.color};
-  padding: 5px 0;
+  background: ${(props) => props.color};
+  padding: ${(props) => props.size * 4}px 0;
 `;
-const MenuLabelSC = styled.p`
-  padding: 13px 10px 7px;
-  font-size: 16px;
+const MenuLabelSC = styled.div`
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
 
   &:hover {
-    background: ${props => props.color};
+    background: ${(props) => props.color};
+  }
+
+  & p {
+    padding: ${(props) =>
+      props.size * 10 + "px " + props.size * 8 + "px " + props.size * 6 + "px"};
   }
 `;
 const MenuBranchSC = styled.div`
@@ -57,10 +65,10 @@ const MenuBranchSC = styled.div`
 const MenuBranchPanelSC = styled.div`
   position: absolute;
   width: 100%;
-  background: ${props => props.color};
+  background: ${(props) => props.color};
   left: 100%;
-  top: -5px;
-  padding: 5px 0;
+  top: -${(props) => props.size * 4}px;
+  padding: ${(props) => props.size * 4}px 0;
 `;
 
 const MenuSettings = React.createContext();
@@ -71,32 +79,64 @@ const initMenuState = {
   colors: {
     primary: "#303030",
     secondary: "#444444",
-    terciary: "#555555"
+    terciary: "#555555",
+  },
+  size: 1,
+};
+
+const parseSize = (newSize) => {
+  const sizes = {
+    small: 0.8,
+    medium: 1,
+    large: 1.2,
+  };
+
+  if (typeof newSize === "number") {
+    return newSize;
+  } else if (newSize.toLowerCase() in sizes) {
+    return sizes[newSize.toLowerCase()];
+  } else {
+    return "medium";
   }
 };
 
-function MenuSettingsProvider({ overwriteInit, children }) {
-  const [state, setState] = useState({ ...initMenuState, ...overwriteInit });
+const parseInit = (init) => {
+  if (init && "size" in init) {
+    init.size = parseSize(init.size);
+  }
+  return init;
+};
+
+function MenuSettingsProvider({ overrideInit, children }) {
+  const [state, setState] = useState({
+    ...initMenuState,
+    ...parseInit(overrideInit),
+  });
 
   const actions = {
-    setMenuIsActive: bool =>
-      setState(prevState => ({
+    setMenuIsActive: (bool) =>
+      setState((prevState) => ({
         ...prevState,
-        menuIsActive: bool
+        menuIsActive: bool,
       })),
-    setActiveMenu: listId =>
-      setState(prevState => ({
+    setActiveMenu: (listId) =>
+      setState((prevState) => ({
         ...prevState,
-        activeMenu: listId
+        activeMenu: listId,
       })),
-    setColors: newColors =>
-      setState(prevState => ({
+    setColors: (newColors) =>
+      setState((prevState) => ({
         ...prevState,
         colors: {
           ...prevState.colors,
-          ...newColors
-        }
-      }))
+          ...newColors,
+        },
+      })),
+    setSize: (newSize) =>
+      setState((prevState) => ({
+        ...prevState,
+        size: parseSize(newSize),
+      })),
   };
 
   return (
@@ -108,20 +148,22 @@ function MenuSettingsProvider({ overwriteInit, children }) {
 
 export function MenuBar({ colors: initColors, children }) {
   return (
-    <MenuSettingsProvider overwriteInit={initColors}>
+    <MenuSettingsProvider overrideInit={initColors}>
       <MenuGroup>{children}</MenuGroup>
     </MenuSettingsProvider>
   );
 }
 
 function MenuGroup({ children }) {
-  const { menuIsActive, setMenuIsActive, colors } = useContext(MenuSettings);
+  const { menuIsActive, setMenuIsActive, colors, size } = useContext(
+    MenuSettings
+  );
 
   const handleClickOutside = useCallback(() => {
     if (menuIsActive) {
       setMenuIsActive(false);
     }
-  }, [menuIsActive, setMenuIsActive])
+  }, [menuIsActive, setMenuIsActive]);
 
   useEffect(() => {
     window.addEventListener("click", handleClickOutside);
@@ -136,19 +178,16 @@ function MenuGroup({ children }) {
   }
 
   return (
-    <MenuGroupSC color={colors.primary} onClick={handleClickInside}>
+    <MenuGroupSC color={colors.primary} size={size} onClick={handleClickInside}>
       {children}
     </MenuGroupSC>
   );
 }
 
 export function Menu({ id, label, children }) {
-  const {
-    menuIsActive,
-    activeMenu,
-    setActiveMenu,
-    colors
-  } = useContext(MenuSettings);
+  const { menuIsActive, activeMenu, setActiveMenu, colors, size } = useContext(
+    MenuSettings
+  );
   const isActiveMenu = activeMenu === id;
 
   function handleMouseOver() {
@@ -157,18 +196,24 @@ export function Menu({ id, label, children }) {
 
   return (
     <MenuSC colors={colors} active={menuIsActive && isActiveMenu}>
-      <MenuLabelSC color={colors.secondary} onMouseOver={handleMouseOver}>
-        {label}
+      <MenuLabelSC
+        color={colors.secondary}
+        size={size}
+        onMouseOver={handleMouseOver}
+      >
+        <p>{label}</p>
       </MenuLabelSC>
       {menuIsActive && isActiveMenu && (
-        <MenuPanelSC color={colors.secondary}>{children}</MenuPanelSC>
+        <MenuPanelSC color={colors.secondary} size={size}>
+          {children}
+        </MenuPanelSC>
       )}
     </MenuSC>
   );
 }
 
 export function MenuBranch({ label, children }) {
-  const { colors } = useContext(MenuSettings);
+  const { colors, size } = useContext(MenuSettings);
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(false);
   let delay;
@@ -194,15 +239,16 @@ export function MenuBranch({ label, children }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <MenuItemSC color={colors.terciary} active={isActive}>
-        <MenuItemSectionSC>{label}</MenuItemSectionSC>
-        <MenuItemSectionSC>{">"}</MenuItemSectionSC>
+      <MenuItemSC color={colors.terciary} size={size} active={isActive}>
+        <MenuItemSectionSC size={size}>{label}</MenuItemSectionSC>
+        <MenuItemSectionSC size={size}>{">"}</MenuItemSectionSC>
       </MenuItemSC>
       {isOpen && (
-        <MenuBranchPanelSC 
+        <MenuBranchPanelSC
           onMouseEnter={handleMouseEnterChildren}
           onMouseLeave={handleMouseLeaveChildren}
           color={colors.secondary}
+          size={size}
         >
           {children}
         </MenuBranchPanelSC>
@@ -211,24 +257,35 @@ export function MenuBranch({ label, children }) {
   );
 }
 
-export function MenuItem({ onClick=null, disabled=false, label, hotkey, children }) {
-  const { colors } = useContext(MenuSettings);
+export function MenuItem({
+  onClick = null,
+  disabled = false,
+  label,
+  hotkey,
+  children,
+}) {
+  const { colors, size } = useContext(MenuSettings);
 
-  const clickHandler = ev => {
+  const clickHandler = (ev) => {
     if (disabled) {
       return ev.stopPropagation();
     }
     return onClick(ev);
-  }
+  };
 
   return (
-    <MenuItemSC color={colors.terciary} onClick={clickHandler} disabled={disabled}>
+    <MenuItemSC
+      color={colors.terciary}
+      size={size}
+      onClick={clickHandler}
+      disabled={disabled}
+    >
       {children ? (
-        <MenuItemSectionSC>{children}</MenuItemSectionSC>
+        <MenuItemSectionSC size={size}>{children}</MenuItemSectionSC>
       ) : (
         <>
-          <MenuItemSectionSC>{label}</MenuItemSectionSC>
-          <MenuItemSectionSC>{hotkey}</MenuItemSectionSC>
+          <MenuItemSectionSC size={size}>{label}</MenuItemSectionSC>
+          <MenuItemSectionSC size={size}>{hotkey}</MenuItemSectionSC>
         </>
       )}
     </MenuItemSC>

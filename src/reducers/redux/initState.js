@@ -119,8 +119,9 @@ export const initUiState = {
   activeTool: "pencil",
   menuIsActive: false,
   activeMenuList: null,
-  overlayVisible: null,
+  overlay: null,
   currentHelpTopic: "tools",
   currentFilter: null,
-  importImageFile: null
+  importImageFile: null,
+  appIsWaiting: false,
 }

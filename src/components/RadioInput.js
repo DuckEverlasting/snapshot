@@ -21,16 +21,18 @@ export default function RadioInput({name, selected, options, onChange, vertical}
       {name ? name : null}
       <RadioButtonsSC vertical={vertical}>
         {
-          options && options.map(option => <label>
-            {option}
-            <input
-              type="radio"
-              name="type"
-              value={option}
-              checked={selected === option}
-              onChange={() => onChange(option)}
-            />
-          </label>)
+          options && options.map((option, i) => (
+            <label key={option + " " + i}>
+              {option}
+              <input
+                type="radio"
+                name="type"
+                value={option}
+                checked={selected === option}
+                onChange={() => onChange(option)}
+              />
+            </label>
+          ))
         }
       </RadioButtonsSC>
     </RadioInputSC>

@@ -17,7 +17,7 @@ import {
 
 const LayerCardSC = styled.div.attrs(props => ({
   style: {
-    background: props.active ? "#ffe312" : "#f1f1f1",
+    background: props.active ? props.theme.colors.highlight : "#f1f1f1",
     opacity: props.layerHidden ? 0.5 : 1
   }
 }))`

@@ -5,6 +5,7 @@ const BoundingBoxSC = styled.div`
   position: absolute;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 `;
 
 const TransparentOverlaySC = styled.div`
@@ -21,10 +22,10 @@ const TransparentOverlaySC = styled.div`
 const InnerModalSC = styled.div.attrs((props) => ({
   style: {
     transform: `translateX(${props.offset.x}px)
-    translateY(${props.offset.y}px)`,
+      translateY(${props.offset.y}px)`,
     boxShadow: props.dragging ? "0 1.5px 6px #111111" : "0 .5px 3px #222222",
-    width: props.dimensions ? props.dimensions.x + "px" : "auto",
-    height: props.dimensions ? props.dimensions.y + "px": "auto"
+    width: props.dimensions ? props.dimensions.w + "px" : "auto",
+    height: props.dimensions ? props.dimensions.h + "px" : "auto",
   },
 }))`
   position: absolute;
@@ -37,7 +38,7 @@ const InnerModalSC = styled.div.attrs((props) => ({
 
 const TitleSC = styled.h3.attrs((props) => ({
   style: {
-    background: props.caution ? "#ffe312" : "#303030",
+    background: props.caution ? props.theme.colors.highlight : "#303030",
     transition: props.caution ? "none" : "background 1s",
   },
 }))`
@@ -81,7 +82,7 @@ export default function DraggableWindow({
   initPosition,
   initSize,
   minimumSize,
-  resizable=true
+  resizable = true,
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState("");
@@ -98,41 +99,45 @@ export default function DraggableWindow({
   useEffect(() => {
     let initWidth, initHeight;
     if (initSize) {
-      initWidth = initSize.x;
-      initHeight = initSize.y;
+      initWidth = initSize.w;
+      initHeight = initSize.h;
     } else {
       initWidth = Math.floor(modalRef.current.clientWidth);
       initHeight = Math.floor(modalRef.current.clientHeight);
     }
     setBoundingDimensions({
-      x: Math.floor(boundingBoxRef.current.clientWidth),
-      y: Math.floor(boundingBoxRef.current.clientHeight),
+      w: Math.floor(boundingBoxRef.current.clientWidth),
+      h: Math.floor(boundingBoxRef.current.clientHeight),
     });
     setModalDimensions({
-      x: initWidth,
-      y: initHeight
+      w: initWidth,
+      h: initHeight,
     });
-    setMinSize(minimumSize || {
-      x: initWidth,
-      y: initHeight
-    });
-    setOffset(initPosition || {
-      x: Math.floor(boundingBoxRef.current.clientWidth) / 2 - initWidth / 2,
-      y: Math.floor(boundingBoxRef.current.clientHeight) / 3 - initHeight / 3
-    });
+    setMinSize(
+      minimumSize || {
+        w: initWidth,
+        h: initHeight,
+      }
+    );
+    setOffset(
+      initPosition || {
+        x: Math.floor(boundingBoxRef.current.clientWidth) / 2 - initWidth / 2,
+        y: Math.floor(boundingBoxRef.current.clientHeight) / 3 - initHeight / 3,
+      }
+    );
   }, []);
 
   function handleMouseDown(ev, resizeType = "") {
     if (ev.button !== 0) return;
     setIsDragging(true);
     if (resizeType) {
-      setIsResizing(resizeType)
-    };
+      setIsResizing(resizeType);
+    }
     setDragOrigin({
       x: Math.floor(ev.screenX),
       y: Math.floor(ev.screenY),
-      w: modalDimensions.x,
-      h: modalDimensions.y,
+      w: modalDimensions.w,
+      h: modalDimensions.h,
       offX: offset.x,
       offY: offset.y,
     });
@@ -152,31 +157,34 @@ export default function DraggableWindow({
 
     if (!isResizing) {
       setOffset({
-        x: Math.min(
-          Math.max(x, 0),
-          boundingDimensions.x - dragOrigin.w
-        ),
-        y: Math.min(
-          Math.max(y, 0),
-          boundingDimensions.y - dragOrigin.h
-        ),
+        x: Math.min(Math.max(x, 0), boundingDimensions.w - dragOrigin.w),
+        y: Math.min(Math.max(y, 0), boundingDimensions.h - dragOrigin.h),
       });
     } else if (isResizing === "se") {
       setModalDimensions({
-        x: Math.max(minSize.x, dragOrigin.w + (Math.floor(ev.screenX) - dragOrigin.x)),
-        y: Math.max(minSize.y, dragOrigin.h + (Math.floor(ev.screenY) - dragOrigin.y))
+        w: Math.min(Math.max(
+          minSize.w,
+          dragOrigin.w + (Math.floor(ev.screenX) - dragOrigin.x)
+        ), boundingDimensions.w - dragOrigin.offX),
+        h: Math.min(Math.max(
+          minSize.h,
+          dragOrigin.h + (Math.floor(ev.screenY) - dragOrigin.y)
+        ), boundingDimensions.h - dragOrigin.offY),
       });
     } else if (isResizing === "sw") {
-      setOffset( prevOffset => ({
+      setOffset((prevOffset) => ({
         x: Math.min(
           Math.max(x, 0),
-          dragOrigin.offX + (dragOrigin.w - minSize.x)
+          dragOrigin.offX + (dragOrigin.w - minSize.w)
         ),
-        y: prevOffset.y
+        y: prevOffset.y,
       }));
       setModalDimensions({
-        x: Math.min(Math.max(minSize.x, dragOrigin.w - (ev.screenX - dragOrigin.x)), dragOrigin.offX + dragOrigin.w),
-        y: Math.max(minSize.y, dragOrigin.h + (ev.screenY - dragOrigin.y))
+        w: Math.min(
+          Math.max(minSize.w, dragOrigin.w - (ev.screenX - dragOrigin.x)),
+          dragOrigin.offX + dragOrigin.w
+        ),
+        h: Math.max(minSize.h, dragOrigin.h + (ev.screenY - dragOrigin.y)),
       });
     }
   }
@@ -205,7 +213,7 @@ export default function DraggableWindow({
       <InnerModalSC
         ref={modalRef}
         onMouseMove={handleMouseMove}
-        onMouseDown={ev => ev.stopPropagation()}
+        onMouseDown={(ev) => ev.stopPropagation()}
         dragging={isDragging}
         offset={offset}
         dimensions={modalDimensions}
@@ -219,19 +227,18 @@ export default function DraggableWindow({
           {name}
         </TitleSC>
         <ContentSC>{children}</ContentSC>
-        {
-          resizable && 
+        {resizable && (
           <>
-            <SWResizeSC 
-              onMouseDown={ev => handleMouseDown(ev, "sw")}
+            <SWResizeSC
+              onMouseDown={(ev) => handleMouseDown(ev, "sw")}
               onMouseMove={handleMouseMove}
             />
-            <SEResizeSC 
-              onMouseDown={ev => handleMouseDown(ev, "se")}
+            <SEResizeSC
+              onMouseDown={(ev) => handleMouseDown(ev, "se")}
               onMouseMove={handleMouseMove}
             />
           </>
-        }
+        )}
       </InnerModalSC>
     </BoundingBoxSC>
   );
