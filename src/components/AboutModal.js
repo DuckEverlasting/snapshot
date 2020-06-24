@@ -1,6 +1,10 @@
 import React from "react";
 import styled from "styled-components";
 
+import { useDispatch } from "react-redux";
+
+import { toggleOverlay } from "../actions/redux";
+
 const AboutModalSC = styled.div`
   position: fixed;
   top: 0;
@@ -31,9 +35,15 @@ const SpacerSC = styled.div`
   height: 20px;
 `
 
-export default function AboutModal({turnOff}) { 
+export default function AboutModal() {
+  const dispatch = useDispatch();
+
+  function handleClick() {
+    dispatch(toggleOverlay("about"))
+  }
+
   return (
-    <AboutModalSC onClick={turnOff}>
+    <AboutModalSC onClick={handleClick}>
       <InnerModalSC>
         <p>This app was created as an experiment testing the interactions between the Canvas API, React, and Redux. It is still a work in progress. Send all feedback to mklein246 at gmail.</p>
         <SpacerSC/>

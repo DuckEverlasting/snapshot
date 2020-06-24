@@ -2,16 +2,14 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 
-import AboutModal from "./components/AboutModal.js";
+import OverlayHandler from "./components/OverlayHandler.js";
 import TopBar from "./panels/TopBar.js";
+import WaitScreen from "./components/WaitScreen.js";
 import Workspace from "./panels/Workspace.js";
 import ToolPanel from "./panels/ToolPanel.js";
 import LayerPanel from "./panels/LayerPanel.js";
 
-import {
-  makeActiveTool,
-  toggleAboutModal
-} from "./actions/redux";
+import { makeActiveTool } from "./actions/redux";
 import menuAction from "./actions/redux/menuAction";
 
 import { hotkey, hotkeyCtrl } from "./constants/hotkeys";
@@ -28,6 +26,7 @@ const AppSC = styled.div`
 `;
 
 const AppContainerSC = styled.div`
+  position: relative;
   text-align: center;
   width: 100%;
   height: calc(100% - 35px);
@@ -40,16 +39,17 @@ const AppContainerSC = styled.div`
 `;
 
 function App() {
-  const overlayVisible = useSelector(state => state.ui.overlayVisible);
+  const overlay = useSelector(state => state.ui.overlay);
   const transformSelectionTarget = useSelector(state => state.main.present.transformSelectionTarget);
   const importImageFile = useSelector(state => state.ui.importImageFile);
+  const appIsWaiting = useSelector(state =>state.ui.appIsWaiting);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
     const handleKeyDown = ev => {
       ev.preventDefault();
-      if (overlayVisible || transformSelectionTarget || importImageFile) {return}
+      if (overlay || transformSelectionTarget || importImageFile) {return}
       let keyCombo;
       let modifier = window.navigator.platform.includes("Mac")
         ? ev.metaKey
@@ -70,7 +70,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [overlayVisible, transformSelectionTarget, importImageFile]);
+  }, [overlay, transformSelectionTarget, importImageFile]);
 
   return (
     <AppSC id="App">
@@ -79,8 +79,9 @@ function App() {
         <ToolPanel />
         <Workspace />
         <LayerPanel />
+        <OverlayHandler />
       </AppContainerSC>
-      {overlayVisible === "aboutModal" && <AboutModal turnOff={() => dispatch(toggleAboutModal())} />}
+      {appIsWaiting && <WaitScreen />}
     </AppSC>
   );
 }

@@ -32,14 +32,12 @@ export const [
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
   SET_CLIPBOARD_IS_USED,
-  TOGGLE_ABOUT_MODAL,
-  TOGGLE_HISTOGRAM,
-  TOGGLE_HELP,
+  TOGGLE_OVERLAY,
   SET_HELP_TOPIC,
-  SET_FILTER_TOOL,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
-  SET_STAMP_DATA
+  SET_STAMP_DATA,
+  SET_APP_IS_WAITING
 ] = [
   "UNDO",
   "REDO",
@@ -71,14 +69,12 @@ export const [
   "TOGGLE_MENU",
   "SET_ACTIVE_MENU_LIST",
   "SET_CLIPBOARD_IS_USED",
-  "TOGGLE_ABOUT_MODAL",
-  "TOGGLE_HISTOGRAM",
-  "TOGGLE_HELP",
+  "TOGGLE_OVERLAY",
   "SET_HELP_TOPIC",
-  "SET_FILTER_TOOL",
   "SET_IMPORT_IMAGE_FILE",
   "SET_EXPORT_OPTIONS",
   "SET_STAMP_DATA",
+  "SET_APP_IS_WAITING"
 ];
 
 export const undo = () => {
@@ -409,22 +405,10 @@ export const setClipboardIsUsed = bool => {
   }
 }
 
-export const toggleAboutModal = () => {
+export const toggleOverlay = (overlay, params={}) => {
   return {
-    type: TOGGLE_ABOUT_MODAL
-  }
-}
-
-export const toggleHistogram = () => {
-  return {
-    type: TOGGLE_HISTOGRAM
-  }
-}
-
-export const toggleHelp = topic => {
-  return {
-    type: TOGGLE_HELP,
-    payload: topic
+    type: TOGGLE_OVERLAY,
+    payload: {overlay, params}
   }
 }
 
@@ -432,16 +416,6 @@ export const setHelpTopic = (topic=null) => {
   return {
     type: SET_HELP_TOPIC,
     payload: topic
-  }
-}
-
-export const setFilterTool = (state, filter=null) => {
-  return {
-    type: SET_FILTER_TOOL,
-    payload: {
-      bool: state === "on",
-      filter
-    }
   }
 }
 
@@ -463,5 +437,12 @@ export const setStampData = (changes, ignoreHistory=true) => {
   return {
     type: SET_STAMP_DATA,
     payload: { changes, ignoreHistory }
+  }
+}
+
+export const setAppIsWaiting = bool => {
+  return {
+    type: SET_APP_IS_WAITING,
+    payload: bool
   }
 }

@@ -2,10 +2,11 @@ import { getQuadEquation } from "../utils/helpers";
 import { toHslFromRgb, toRgbFromHsl } from "../utils/colorConversion";
 
 class Filter {
-  constructor(name, inputInfo, applyFunct) {
+  constructor(name, inputInfo, applyFunct, delay=5) {
     this.name = name;
     this.inputInfo = inputInfo;
     this.apply = applyFunct;
+    this.delay = delay;
   }
 }
 
@@ -79,14 +80,11 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
 
     function getConvolutionValue(index, checkOpacity, rgb) {
       const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length, checkOpacity, rgb);
-      let recheckDivisor = false;
       let currDivisor = divisor;
       let result = 0;
       dataMatrix.forEach((row, rowIndex) => {
         row.forEach((num, colIndex) => {
-          if (checkOpacity && num === null) {
-            recheckDivisor = true;
-          } else {
+          if (!checkOpacity || num !== null) {
             result += num * matrix[rowIndex][colIndex]
           }
         });
@@ -211,7 +209,7 @@ export const posterize = new Filter("Posturize", {levels}, (data, {levels}) => {
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
   const matrix = getGaussianKernel(amount / 10);
   convolve(data, width, matrix, 0, true);
-});
+}, 500);
 
 export const boxBlur = new Filter("Box Blur", {size}, (data, {size, width}) => {
   let count = null, total = null;
@@ -372,7 +370,7 @@ export const hueSaturation = new Filter(
       data[i + 1] = g;
       data[i + 2] = b;
     }
-  }
+  }, 50
 )
 
 export const filter = {

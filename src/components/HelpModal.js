@@ -3,7 +3,7 @@ import useEventListener from "../hooks/useEventListener";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 
-import { toggleHelp, setHelpTopic } from "../actions/redux";
+import { toggleOverlay, setHelpTopic } from "../actions/redux";
 
 import { helpHierarchy, helpContent } from "../constants/helpDocumentation.json";
 
@@ -172,7 +172,7 @@ function HelpModal() {
   }
 
   function handleClose() {
-    dispatch(toggleHelp());
+    dispatch(toggleOverlay("help"));
   }
 
   return (

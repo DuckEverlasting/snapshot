@@ -107,10 +107,10 @@ const parseInit = (init) => {
   return init;
 };
 
-function MenuSettingsProvider({ overwriteInit, children }) {
+function MenuSettingsProvider({ overrideInit, children }) {
   const [state, setState] = useState({
     ...initMenuState,
-    ...parseInit(overwriteInit),
+    ...parseInit(overrideInit),
   });
 
   const actions = {
@@ -148,7 +148,7 @@ function MenuSettingsProvider({ overwriteInit, children }) {
 
 export function MenuBar({ colors: initColors, children }) {
   return (
-    <MenuSettingsProvider overwriteInit={initColors}>
+    <MenuSettingsProvider overrideInit={initColors}>
       <MenuGroup>{children}</MenuGroup>
     </MenuSettingsProvider>
   );

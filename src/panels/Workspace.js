@@ -5,7 +5,7 @@ import styled from "styled-components";
 
 import TransformObject from "../components/TransformObject";
 
-import { 
+import {
   PencilAction,
   BrushAction,
   FilterBrushAction,
@@ -14,7 +14,7 @@ import {
   ShapeAction,
   EyeDropperAction,
   MoveAction,
-  FillAction
+  FillAction,
 } from "../utils/ToolAction";
 
 import { getZoomAmount } from "../utils/helpers";
@@ -24,15 +24,20 @@ import getCursor from "../utils/cursors";
 
 import manipulate from "../reducers/custom/manipulateReducer";
 
-import { updateWorkspaceSettings, setImportImageFile, createLayer, setTransformSelection, putHistoryDataMultiple, updateSelectionPath } from "../actions/redux";
-import FilterTool from "../components/FilterTool";
-import HelpModal from "../components/HelpModal";
+import {
+  updateWorkspaceSettings,
+  setImportImageFile,
+  createLayer,
+  setTransformSelection,
+  putHistoryDataMultiple,
+  updateSelectionPath,
+} from "../actions/redux";
+
 import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
-import HistogramModal from "../components/HistogramModal";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -42,7 +47,7 @@ const WorkspaceSC = styled.div`
   border: 1px solid black;
   overflow: hidden;
   background: rgb(175, 175, 175);
-  cursor: ${props => props.cursor};
+  cursor: ${(props) => props.cursor};
   z-index: 2;
 `;
 
@@ -57,15 +62,15 @@ const ZoomDisplaySC = styled.div`
   pointer-events: none;
 `;
 
-const CanvasPaneSC = styled.div.attrs(props => ({
+const CanvasPaneSC = styled.div.attrs((props) => ({
   style: {
     width: props.width,
     height: props.height,
     transform: `translateX(${props.translateX}px)
       translateY(${props.translateY}px)
       translateZ(-.001px)
-      scale(${props.zoomPct / 100})`
-  }
+      scale(${props.zoomPct / 100})`,
+  },
 }))`
   position: relative;
   margin: auto;
@@ -80,10 +85,14 @@ let currentAction = null;
 let isDrawing = false;
 
 export default function Workspace() {
-  const { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings);
-  const primary = useSelector(state => state.ui.colorSettings.primary);
-  const { activeTool, toolSettings } = useSelector(state => state.ui);
-  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
+  const { translateX, translateY, zoomPct } = useSelector(
+    (state) => state.ui.workspaceSettings
+  );
+  const primary = useSelector((state) => state.ui.colorSettings.primary);
+  const { activeTool, toolSettings } = useSelector((state) => state.ui);
+  const { documentWidth, documentHeight } = useSelector(
+    (state) => state.main.present.documentSettings
+  );
   const {
     activeLayer,
     selectionPath,
@@ -92,17 +101,16 @@ export default function Workspace() {
     layerCanvas,
     layerSettings,
     layerOrder,
-    stampData
-  } = useSelector(state => state.main.present);
-  const overlayVisible = useSelector(state => state.ui.overlayVisible);
-  const importImageFile = useSelector(state => state.ui.importImageFile);
-  
+    stampData,
+  } = useSelector((state) => state.main.present);
+  const importImageFile = useSelector((state) => state.ui.importImageFile);
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
   const [keys, setKeys] = useState({
     shift: false,
     ctrl: false,
-    alt: false
+    alt: false,
   });
 
   const workspaceRef = useRef(null);
@@ -115,15 +123,21 @@ export default function Workspace() {
       const reqFrame = requestAnimationFrame(updateAnimatedLayers);
       animationFrame = reqFrame;
     }
-    
+
     const reqFrame = requestAnimationFrame(updateAnimatedLayers);
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
 
   function getTranslateData(noOffset) {
-    const marginLeft = .5 * (Math.floor(workspaceRef.current.clientWidth) - documentWidth * zoomPct / 100);
-    const marginTop = .5 * (Math.floor(workspaceRef.current.clientHeight) - documentHeight * zoomPct / 100);
+    const marginLeft =
+      0.5 *
+      (Math.floor(workspaceRef.current.clientWidth) -
+        (documentWidth * zoomPct) / 100);
+    const marginTop =
+      0.5 *
+      (Math.floor(workspaceRef.current.clientHeight) -
+        (documentHeight * zoomPct) / 100);
     return {
       x: -(translateX + marginLeft),
       y: -(translateY + marginTop),
@@ -131,8 +145,8 @@ export default function Workspace() {
       offX: noOffset ? 0 : layerSettings[activeLayer].offset.x,
       offY: noOffset ? 0 : layerSettings[activeLayer].offset.y,
       documentWidth,
-      documentHeight
-    }
+      documentHeight,
+    };
   }
 
   function eventIsWithinCanvas(ev) {
@@ -140,9 +154,14 @@ export default function Workspace() {
       x = Math.floor(ev.nativeEvent.offsetX) + translateData.x,
       y = Math.floor(ev.nativeEvent.offsetY) + translateData.y;
 
-    return x > 0 && y > 0 && x < documentWidth * zoomPct / 100 && y < documentHeight * zoomPct / 100; 
+    return (
+      x > 0 &&
+      y > 0 &&
+      x < (documentWidth * zoomPct) / 100 &&
+      y < (documentHeight * zoomPct) / 100
+    );
   }
-  
+
   function buildAction() {
     switch (activeTool) {
       case "pencil":
@@ -150,7 +169,7 @@ export default function Workspace() {
         return new PencilAction(activeLayer, dispatch, getTranslateData(), {
           width: toolSettings.pencil.width,
           color: addOpacity(primary, toolSettings.pencil.opacity / 100),
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "brush":
         if (!activeLayer) {return}
@@ -159,7 +178,7 @@ export default function Workspace() {
           color: primary,
           opacity: toolSettings.brush.opacity,
           hardness: toolSettings.brush.hardness,
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "line":
         if (!activeLayer) {return}
@@ -211,33 +230,35 @@ export default function Workspace() {
           opacity: 100,
           hardness: toolSettings.eraser.hardness,
           composite: "destination-out",
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "eyeDropper":
         return new EyeDropperAction(activeLayer, dispatch, getTranslateData(), {
-          layerOrder: layerOrder
+          layerOrder: layerOrder,
         });
       case "selectRect":
         return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
           drawActionType: "drawRect",
           regularOnShift: true,
           isSelectionTool: true,
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "selectEllipse":
         return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
           drawActionType: "drawEllipse",
           regularOnShift: true,
           isSelectionTool: true,
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "lasso":
         return new PencilAction(activeLayer, dispatch, getTranslateData(true), {
           isSelectionTool: true,
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "move":
-        if (!activeLayer || selectionActive) {return}
+        if (!activeLayer || selectionActive) {
+          return;
+        }
         return new MoveAction(activeLayer, dispatch, getTranslateData());
       case "stamp":
         if (!activeLayer) {return}
@@ -246,66 +267,106 @@ export default function Workspace() {
           width: toolSettings.stamp.width,
           hardness: toolSettings.stamp.hardness,
           opacity: toolSettings.stamp.opacity,
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "bucketFill":
         if (!activeLayer) {return}
         return new FillAction(activeLayer, dispatch, getTranslateData(), {
-          colorArray: toArrayFromRgba(primary, toolSettings.bucketFill.opacity / 100),
+          colorArray: toArrayFromRgba(
+            primary,
+            toolSettings.bucketFill.opacity / 100
+          ),
           tolerance: toolSettings.bucketFill.tolerance,
-          clip: selectionPath
+          clip: selectionPath,
         });
       case "saturate":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
-          width: toolSettings.saturate.width,
-          hardness: toolSettings.saturate.hardness,
-          filter: filter.saturation.apply,
-          filterInput: {amount: toolSettings.saturate.amount},
-          clip: selectionPath
-        });
+        return new FilterBrushAction(
+          activeLayer,
+          dispatch,
+          getTranslateData(),
+          {
+            width: toolSettings.saturate.width,
+            hardness: toolSettings.saturate.hardness,
+            filter: filter.saturation.apply,
+            filterInput: { amount: toolSettings.saturate.amount },
+            clip: selectionPath,
+          }
+        );
       case "dodge":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
-          width: toolSettings.dodge.width,
-          hardness: toolSettings.dodge.hardness,
-          filter: filter.dodge.apply,
-          filterInput: {amount: toolSettings.dodge.amount, range: toolSettings.dodge.range},
-          clip: selectionPath
-        });
+        return new FilterBrushAction(
+          activeLayer,
+          dispatch,
+          getTranslateData(),
+          {
+            width: toolSettings.dodge.width,
+            hardness: toolSettings.dodge.hardness,
+            filter: filter.dodge.apply,
+            filterInput: {
+              amount: toolSettings.dodge.amount,
+              range: toolSettings.dodge.range,
+            },
+            clip: selectionPath,
+          }
+        );
       case "burn":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
-          width: toolSettings.burn.width,
-          hardness: toolSettings.burn.hardness,
-          filter: filter.burn.apply,
-          filterInput: {amount: toolSettings.burn.amount, range: toolSettings.burn.range},
-          clip: selectionPath
-        });
+        return new FilterBrushAction(
+          activeLayer,
+          dispatch,
+          getTranslateData(),
+          {
+            width: toolSettings.burn.width,
+            hardness: toolSettings.burn.hardness,
+            filter: filter.burn.apply,
+            filterInput: {
+              amount: toolSettings.burn.amount,
+              range: toolSettings.burn.range,
+            },
+            clip: selectionPath,
+          }
+        );
       case "blur":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
-          width: toolSettings.blur.width,
-          hardness: toolSettings.blur.hardness,
-          filter: filter.blur.apply,
-          filterInput: {amount: toolSettings.blur.amount, width: layerCanvas[activeLayer].width},
-          clip: selectionPath
-        });
+        return new FilterBrushAction(
+          activeLayer,
+          dispatch,
+          getTranslateData(),
+          {
+            width: toolSettings.blur.width,
+            hardness: toolSettings.blur.hardness,
+            filter: filter.blur.apply,
+            filterInput: {
+              amount: toolSettings.blur.amount,
+              width: layerCanvas[activeLayer].width,
+            },
+            clip: selectionPath,
+          }
+        );
       case "sharpen":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, dispatch, getTranslateData(), {
-          width: toolSettings.sharpen.width,
-          hardness: toolSettings.sharpen.hardness,
-          filter: filter.sharpen.apply,
-          filterInput: {amount: toolSettings.sharpen.amount, width: layerCanvas[activeLayer].width},
-          clip: selectionPath
-        });
+        return new FilterBrushAction(
+          activeLayer,
+          dispatch,
+          getTranslateData(),
+          {
+            width: toolSettings.sharpen.width,
+            hardness: toolSettings.sharpen.hardness,
+            filter: filter.sharpen.apply,
+            filterInput: {
+              amount: toolSettings.sharpen.amount,
+              width: layerCanvas[activeLayer].width,
+            },
+            clip: selectionPath,
+          }
+        );
       default:
         break;
     }
   }
 
-  const zoom = steps => {
+  const zoom = (steps) => {
     dispatch(
       updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) })
     );
@@ -328,18 +389,18 @@ export default function Workspace() {
         dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
       }
     }
-  }
+  };
 
   const translate = (deltaX, deltaY) => {
     dispatch(
       updateWorkspaceSettings({
         translateX: translateX + deltaX,
-        translateY: translateY + deltaY
+        translateY: translateY + deltaY,
       })
     );
   };
 
-  const translateTool = ev => {
+  const translateTool = (ev) => {
     const str = ev.shiftKey ? 3 : 1;
     let dir;
     let modifier = window.navigator.platform.includes("Mac")
@@ -363,41 +424,41 @@ export default function Workspace() {
         translate(0, 10 * dir * str);
       }
     }
-  }
-  
-  const handleMouseWheel = useCallback(ev => {
-    ev.preventDefault();
-    if (ev.buttons !== 0) {return}
-    if (ev.altKey) {
-      zoomTool(ev, ev.deltaY < 0);
-    } else {
-      translateTool(ev);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [translateX, translateY, zoomPct]);
+  };
+
+  const handleMouseWheel = useCallback((ev) => {
+      ev.preventDefault();
+      if (ev.buttons !== 0) {return}
+      if (ev.altKey) {
+        zoomTool(ev, ev.deltaY < 0);
+      } else {
+        translateTool(ev);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);
-  
-  const handleKeys = useCallback(ev => {
+
+  const handleKeys = useCallback((ev) => {
     let modifier = window.navigator.platform.includes("Mac")
-        ? ev.metaKey
-        : ev.ctrlKey;
+      ? ev.metaKey
+      : ev.ctrlKey;
     setKeys({
       shift: ev.shiftKey,
       ctrl: modifier,
-      alt: ev.altKey
-    })
-  }, [])
+      alt: ev.altKey,
+    });
+  }, []);
 
   useEventListener("keydown", handleKeys);
   useEventListener("keyup", handleKeys);
 
-  const handleMouseDown = ev => {
+  const handleMouseDown = (ev) => {
     if (ev.buttons === 4 || activeTool === "hand") {
       setIsDragging(true);
       setDragOrigin({
-        x: (Math.floor(ev.screenX) - translateX) * 100 / zoomPct,
-        y: (Math.floor(ev.screenY) - translateY) * 100 / zoomPct
+        x: ((Math.floor(ev.screenX) - translateX) * 100) / zoomPct,
+        y: ((Math.floor(ev.screenY) - translateY) * 100) / zoomPct,
       });
     } else if (ev.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
@@ -408,69 +469,90 @@ export default function Workspace() {
           action: "paste",
           params: {
             sourceCtx: activeCtx,
-            dest: {x: 0, y: 0},
+            dest: { x: 0, y: 0 },
             clip: selectionPath,
-            clearFirst: true
-          }
-        })
-        dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
-          () => {
-          manipulate(activeCtx, {
-            action: "clear",
-            params: {
-              clip: selectionPath,
-              clipOffset: layerSettings[activeLayer].offset
-            }
-          })
-        }, () => {
-          manipulate(selectionCtx, {
-            action: "clear",
-            params: { selectionPath: null }
-          })
-        }]));
+            clearFirst: true,
+          },
+        });
+        dispatch(
+          putHistoryDataMultiple(
+            [activeLayer, "selection"],
+            [activeCtx, selectionCtx],
+            [
+              () => {
+                manipulate(activeCtx, {
+                  action: "clear",
+                  params: {
+                    clip: selectionPath,
+                    clipOffset: layerSettings[activeLayer].offset,
+                  },
+                });
+              },
+              () => {
+                manipulate(selectionCtx, {
+                  action: "clear",
+                  params: { selectionPath: null },
+                });
+              },
+            ]
+          )
+        );
         dispatch(updateSelectionPath(null, true));
         dispatch(setTransformSelection(
-          activeLayer,
-          {startEvent: {button: 0, screenX: Math.floor(ev.screenX), screenY: Math.floor(ev.screenY)}},
-          true
-        ));
+            activeLayer,
+            {
+              startEvent: {
+                button: 0,
+                screenX: Math.floor(ev.screenX),
+                screenY: Math.floor(ev.screenY),
+              },
+            },
+            true
+          )
+        );
       }
       currentAction = buildAction();
-      if (!currentAction) {return};
+      if (!currentAction) {return}
       currentAction.start(ev, layerCanvas);
-      if (eventIsWithinCanvas(ev)) {isDrawing = true};
+      if (eventIsWithinCanvas(ev)) {
+        isDrawing = true;
+      }
     }
   };
-  
+
   const handleMouseLeave = (ev) => {
     if (currentAction && ev.buttons === 1) {
       if (isDrawing) {
         currentAction.end(layerCanvas);
         isDrawing = false;
-      };
+      }
       currentAction = null;
     }
   };
-  
-  const handleMouseMove = ev => {
+
+  const handleMouseMove = (ev) => {
     if (isDragging) {
       if (animationFrame === lastFrame) return;
       lastFrame = animationFrame;
-      const newTranslateX = Math.floor(ev.screenX) - dragOrigin.x * (zoomPct / 100);
-      const newTranslateY = Math.floor(ev.screenY) - dragOrigin.y * (zoomPct / 100);
+      const newTranslateX =
+        Math.floor(ev.screenX) - dragOrigin.x * (zoomPct / 100);
+      const newTranslateY =
+        Math.floor(ev.screenY) - dragOrigin.y * (zoomPct / 100);
       dispatch(
         updateWorkspaceSettings({
           translateX: newTranslateX,
-          translateY: newTranslateY
+          translateY: newTranslateY,
         })
       );
     } else if (currentAction && ev.buttons === 1) {
       currentAction.move(ev, layerCanvas);
-      if (!isDrawing && eventIsWithinCanvas(ev)) {isDrawing = true};
+      if (!isDrawing && eventIsWithinCanvas(ev)) {
+        isDrawing = true;
+      }
     }
   };
-    
-  const handleMouseUp = ev => {
+
+  const handleMouseUp = (ev) => {
     if (ev.button === 1 || (ev.button === 0 && activeTool === "hand")) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
@@ -480,16 +562,16 @@ export default function Workspace() {
       if (isDrawing || currentAction.alwaysFire) {
         currentAction.end(layerCanvas);
         isDrawing = false;
-      };
+      }
       currentAction = null;
     }
   };
 
-  const handleDrop = async ev => {
+  const handleDrop = async (ev) => {
     let file;
     if (ev.dataTransfer.items) {
       for (let i = 0; i < ev.dataTransfer.items.length; i++) {
-        if (ev.dataTransfer.items[i].kind === 'file') {
+        if (ev.dataTransfer.items[i].kind === "file") {
           file = ev.dataTransfer.items[i].getAsFile();
           break;
         }
@@ -499,10 +581,12 @@ export default function Workspace() {
     }
     if (!file || !file.type.startsWith("image")) {return}
     const name = file.name.replace(/\.[^/.]+$/, "");
-    await dispatch(createLayer(layerOrder.length, false, {name}));
-    dispatch(setImportImageFile(file));
-  }
-  
+    dispatch(async (dispatch) => {
+      await dispatch(createLayer(layerOrder.length, false, { name }));
+      dispatch(setImportImageFile(file));
+    });
+  };
+
   return (
     <WorkspaceSC
       ref={workspaceRef}
@@ -522,26 +606,23 @@ export default function Workspace() {
       >
         <MainCanvas />
       </CanvasPaneSC>
-      {
-        importImageFile && <TransformObject
+      {importImageFile && (
+        <TransformObject
           source={importImageFile}
           target={layerOrder[layerOrder.length - 1]}
           targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
         />
-      }
-      {
-        transformSelectionTarget && <TransformObject
+      )}
+      {transformSelectionTarget && (
+        <TransformObject
           source={layerCanvas.placeholder}
           target={transformSelectionTarget}
           targetCtx={layerCanvas[transformSelectionTarget].getContext("2d")}
           targetOffset={layerSettings[transformSelectionTarget].offset}
-          docSize={{w: documentWidth, h: documentHeight}}
+          docSize={{ w: documentWidth, h: documentHeight }}
         />
-      }
+      )}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
-      {overlayVisible === "filterTool" && <FilterTool />}
-      {overlayVisible === "helpModal" && <HelpModal />}
-      {overlayVisible === "histogram" && <HistogramModal />}
     </WorkspaceSC>
   );
 }

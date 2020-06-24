@@ -115,7 +115,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
       <div>
         <span>{name}</span>
         <PickerSC
-          value={value}
+          value={!value && value !== 0 ? min : value}
           onKeyDown={keydownHandler}
           onChange={inputHandler}
           onBlur={blurHandler}

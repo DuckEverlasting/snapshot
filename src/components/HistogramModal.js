@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateCanvas, toggleHistogram } from '../actions/redux'
+import { updateCanvas, toggleOverlay } from '../actions/redux'
 
 import DraggableWindow from "./DraggableWindow";
 import Histogram from "../utils/Histogram";
@@ -64,7 +64,7 @@ function HistogramCanvas({sourceCtx}) {
   }, [sourceCtx])
 
   function handleMouseDown(ev) {
-    dispatch(toggleHistogram());
+    dispatch(toggleOverlay("histogram"));
     ev.stopPropagation();
   }
 

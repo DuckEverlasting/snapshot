@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
+import useWait from "../hooks/useWait";
 
-import { setFilterTool } from "../actions/redux";
+import { toggleOverlay, setAppIsWaiting } from "../actions/redux";
 import render from "../actions/redux/renderCanvas";
 import filterAction from "../utils/filterAction";
 
@@ -42,6 +43,8 @@ export default function FilterTool() {
   const filter = useSelector(state => state.ui.currentFilter);
   const stagingCanvas = useSelector(state => state.main.present.layerCanvas.staging);
 
+  const [isWaiting, withWaiting] = useWait(2);
+
   useEffect(() => {
     const initInput = {};
     Object.keys(filter.inputInfo).forEach(key => {
@@ -49,15 +52,30 @@ export default function FilterTool() {
     })
     setInput(initInput)
   }, [])
+
+  useEffect(() => {
+    if (isWaiting && filter.delay > 50) {
+      dispatch(setAppIsWaiting(true));
+    } else {
+      dispatch(setAppIsWaiting(false));
+    }
+    return () => dispatch(setAppIsWaiting(false));
+  }, [isWaiting]);
   
   useEffect(() => {
     if (showPreview) {
-      dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
+      withWaiting(() => {
+        dispatch(filterAction(
+          filter.apply,
+          {...input, width: stagingCanvas.width},
+          true
+        ))
+      })
     } else if (stagingCanvas) {
       stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
       dispatch(render());
     }
-  }, [showPreview])
+  }, [showPreview]);
 
   const handleChange = async (key, value) => {
     setInput({...input, [key]: value})
@@ -68,11 +86,17 @@ export default function FilterTool() {
     if (showPreview) {
       previewDelay = setTimeout(() => {
         if (showPreview) {
-          dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}, true))
+          withWaiting(() => {
+              dispatch(filterAction(
+              filter.apply,
+              { ...input, width: stagingCanvas.width },
+              true
+            ))
+          });
         }
-      }, 50)
+      }, filter.delay);
     }
-  }, [input])
+  }, [input]);
 
   const handleKeyDown = ev => {
     if (ev.key === "Escape") {
@@ -82,13 +106,18 @@ export default function FilterTool() {
   }
 
   const handleApply = () => {
-    dispatch(filterAction(filter.apply, {...input, width: stagingCanvas.width}))
-    dispatch(setFilterTool("off"));
+    withWaiting(() => {
+      dispatch(filterAction(
+        filter.apply,
+        {...input, width: stagingCanvas.width}
+      ));
+      dispatch(toggleOverlay("filter"));
+    }, true);
   }
 
   const handleCancel = () => {
     stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
-    dispatch(setFilterTool("off"));
+    dispatch(toggleOverlay("filter"));
   }
 
   const checkRequirementsMet = () => {
@@ -106,11 +135,12 @@ export default function FilterTool() {
     <DraggableWindow name={filter.name} onKeyDown={handleKeyDown} resizable={false}>
       <FilterToolSC>
         {
-          Object.keys(filter.inputInfo).map(key => {
+          Object.keys(filter.inputInfo).map((key, i) => {
             const info = filter.inputInfo[key];
             if (info.type === "Number") {
               return <SliderInput
                 name={info.name}
+                key={i + " " + key}
                 value={input[key]}
                 onChange={value => handleChange(key, value)}
                 max={info.max}
@@ -120,6 +150,7 @@ export default function FilterTool() {
             } else if (info.type === "Radio") {
               return <RadioInput
                 name={info.name}
+                key={i + " " + key}
                 selected={input[key]}
                 onChange={value => handleChange(key, value)}
                 options={info.options}
@@ -127,6 +158,7 @@ export default function FilterTool() {
             } else if (info.type === "Checkbox") {
               return <CheckboxInput
                 name={info.name}
+                key={i + " " + key}
                 selected={input[key]}
                 onChange={value => handleChange(key, value)}
               />
