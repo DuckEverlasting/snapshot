@@ -23,12 +23,18 @@ const InnerModalSC = styled.div`
   color: white;
   padding: 40px;
   max-width: 800px;
+  line-height: 125%;
 `
 
 const ModalListSc = styled.ul`
   text-align: left;
   width: 600px;
   margin: auto;
+
+  & li {
+    margin-bottom: 1rem;
+    list-style-type: disc;
+  }
 `
 
 const SpacerSC = styled.div`
@@ -48,10 +54,15 @@ export default function AboutModal() {
         <p>This app was created as an experiment testing the interactions between the Canvas API, React, and Redux. It is still a work in progress. Send all feedback to mklein246 at gmail.</p>
         <SpacerSC/>
         <p>Recent changes:</p>
+        <SpacerSC/>
         <ModalListSc>
-          <li>The app now supports importing images (through file menu or by drag-and-drop).</li>
-          <li>Imported images can be resized, moved, and rotated before their position is confirmed. (Working to implement this as a general transform tool.)</li>
+          <li>The app now supports importing and exporting images (import works through file menu or by drag-and-drop).</li>
+          <li>Transform action has been implemented: Layers, selections, and imported images can be resized, moved, and rotated.</li>
           <li>Shift behavior has been added for transforms, and for many other tools.</li>
+          <li>Filters now include blur, sharpen, emboss, posterize, and more.</li>
+          <li>Burn, dodge, and saturation brush tools have been implemented.</li>
+          <li>Clone brush tool has been implemented. (Hold alt to set origin.)</li>
+          <li>Layer opacity and layer blending options havebeen added.</li>
         </ModalListSc>
       </InnerModalSC>
     </AboutModalSC>

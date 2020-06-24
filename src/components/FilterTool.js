@@ -117,6 +117,7 @@ export default function FilterTool() {
 
   const handleCancel = () => {
     stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
+    dispatch(render());
     dispatch(toggleOverlay("filter"));
   }
 
