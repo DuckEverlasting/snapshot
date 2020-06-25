@@ -51,6 +51,7 @@ export default function FilterTool() {
       initInput[key] = filter.inputInfo[key].init
     })
     setInput(initInput)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function FilterTool() {
       dispatch(setAppIsWaiting(false));
     }
     return () => dispatch(setAppIsWaiting(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWaiting]);
   
   useEffect(() => {
@@ -75,6 +77,7 @@ export default function FilterTool() {
       stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
       dispatch(render());
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPreview]);
 
   const handleChange = async (key, value) => {
@@ -96,6 +99,7 @@ export default function FilterTool() {
         }
       }, filter.delay);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
 
   const handleKeyDown = ev => {

@@ -32,7 +32,7 @@ export default class Histogram {
   }
 
   fill(ctx, color, max=null) {
-    if (!color in this.colorRef) {
+    if (!this.colorRef[color]) {
       throw new Error("Error: invalid histogram color " + color);
     }
     const increment = Math.max(Math.floor(ctx.canvas.width / 256), 1);
@@ -49,10 +49,9 @@ export default class Histogram {
   }
 
   draw(ctx, color, max=null) {
-    if (!color in this.colorRef) {
+    if (!this.colorRef[color]) {
       throw new Error("Error: invalid histogram color " + color);
     }
-    const colorNum = this.colorRef[color].index;
     const increment = Math.max(Math.floor(ctx.canvas.width / 256), 1);
     const height = ctx.canvas.height; 
     if (max === null) max = this.getMax(color);

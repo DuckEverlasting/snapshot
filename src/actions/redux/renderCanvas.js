@@ -20,7 +20,7 @@ export default function renderCanvas(start, end, params={}) {
 
     for (let i = start; i < end; i++) {
       const current = layerOrder[i]
-      const { offset, blend, size, opacity } = layerSettings[current];
+      const { offset, blend, opacity } = layerSettings[current];
       
       if (layerSettings[current].hidden || opacity === 0) continue;
       manipulate(ctx, {

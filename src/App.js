@@ -70,6 +70,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay, transformSelectionTarget, importImageFile]);
 
   return (

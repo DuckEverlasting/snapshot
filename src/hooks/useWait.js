@@ -30,7 +30,7 @@ export default function useWait(frames=0) {
       })
     }
     wait();
-  }, [state])
+  }, [state, frames, override])
 
   function withCallback(callback, override=false) {
     callbackRef.current = callback;

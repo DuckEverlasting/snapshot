@@ -58,6 +58,24 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
     matrix.forEach(a => a.forEach(b => divisor+=b));
   }
 
+  function getConvolutionValue(index, checkOpacity, rgb) {
+    const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length, checkOpacity, rgb);
+    let currDivisor = divisor;
+    let result = 0;
+    dataMatrix.forEach((row, rowIndex) => {
+      row.forEach((num, colIndex) => {
+        if (!checkOpacity || num !== null) {
+          result += num * matrix[rowIndex][colIndex]
+        }
+      });
+    });
+    if (checkOpacity) {
+      currDivisor = 0;
+      matrix.forEach((a, i) => a.forEach((b, j) => currDivisor += (dataMatrix[i][j] === null ? 0 : b)));
+    }
+    return result / currDivisor + offset;
+  }
+
   const dataCopy = new Uint8ClampedArray(data);
   for (let i=0; i<data.length; i+=4) {
     if (opacity) {
@@ -76,24 +94,6 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
       for (let j=i; j<=i+2; j++) {
         data[j] = getConvolutionValue(j);
       }
-    }
-
-    function getConvolutionValue(index, checkOpacity, rgb) {
-      const dataMatrix = getMatrixAt(dataCopy, width, index, matrix.length, checkOpacity, rgb);
-      let currDivisor = divisor;
-      let result = 0;
-      dataMatrix.forEach((row, rowIndex) => {
-        row.forEach((num, colIndex) => {
-          if (!checkOpacity || num !== null) {
-            result += num * matrix[rowIndex][colIndex]
-          }
-        });
-      });
-      if (checkOpacity) {
-        currDivisor = 0;
-        matrix.forEach((a, i) => a.forEach((b, j) => currDivisor += (dataMatrix[i][j] === null ? 0 : b)));
-      }
-      return result / currDivisor + offset;
     }
   }
 }

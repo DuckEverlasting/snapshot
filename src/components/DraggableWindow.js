@@ -125,7 +125,7 @@ export default function DraggableWindow({
         y: Math.floor(boundingBoxRef.current.clientHeight) / 3 - initHeight / 3,
       }
     );
-  }, []);
+  }, [initPosition, initSize, minimumSize]);
 
   function handleMouseDown(ev, resizeType = "") {
     if (ev.button !== 0) return;
