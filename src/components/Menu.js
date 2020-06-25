@@ -15,6 +15,7 @@ const MenuGroupSC = styled.div`
 const MenuItemSC = styled.div`
   display: flex;
   justify-content: space-between;
+  white-space: nowrap;
   padding: ${(props) => props.size * 7}px ${(props) => props.size * 4}px;
   background: ${(props) =>
     props.active && !props.disabled ? props.color : "none"};
@@ -64,7 +65,7 @@ const MenuBranchSC = styled.div`
 `;
 const MenuBranchPanelSC = styled.div`
   position: absolute;
-  width: 100%;
+  width: auto;
   background: ${(props) => props.color};
   left: 100%;
   top: -${(props) => props.size * 4}px;
@@ -76,6 +77,7 @@ const MenuSettings = React.createContext();
 const initMenuState = {
   menuIsActive: false,
   activeMenu: null,
+  activeMenuBranch: null,
   colors: {
     primary: "#303030",
     secondary: "#444444",
@@ -119,10 +121,15 @@ function MenuSettingsProvider({ overrideInit, children }) {
         ...prevState,
         menuIsActive: bool,
       })),
-    setActiveMenu: (listId) =>
+    setActiveMenu: (menuId) =>
       setState((prevState) => ({
         ...prevState,
-        activeMenu: listId,
+        activeMenu: menuId,
+      })),
+    setActiveMenuBranch: (branchId) =>
+      setState((prevState) => ({
+        ...prevState,
+        activeMenuBranch: branchId,
       })),
     setColors: (newColors) =>
       setState((prevState) => ({
@@ -212,18 +219,34 @@ export function Menu({ id, label, children }) {
   );
 }
 
-export function MenuBranch({ label, children }) {
-  const { colors, size } = useContext(MenuSettings);
+export function MenuBranch({ id, label, children }) {
+  const { colors, size, activeMenuBranch, setActiveMenuBranch } = useContext(MenuSettings);
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(false);
   let delay;
 
+  useEffect(() => {
+    if (isOpen && activeMenuBranch !== id) {
+      setIsOpen(false);
+    }
+  }, [activeMenuBranch])
+
   function handleMouseEnter() {
-    delay = setTimeout(() => setIsOpen(true), 500);
+    delay = setTimeout(() => {
+      setIsOpen(true);
+      setActiveMenuBranch(id);
+    }, 500);
   }
 
   function handleMouseLeave() {
     clearTimeout(delay);
+  }
+
+  function handleClick(ev) {
+    clearTimeout(delay);
+    setIsOpen(true);
+    setActiveMenuBranch(id);
+    ev.stopPropagation();
   }
 
   function handleMouseEnterChildren() {
@@ -238,6 +261,7 @@ export function MenuBranch({ label, children }) {
     <MenuBranchSC
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       <MenuItemSC color={colors.terciary} size={size} active={isActive}>
         <MenuItemSectionSC size={size}>{label}</MenuItemSectionSC>

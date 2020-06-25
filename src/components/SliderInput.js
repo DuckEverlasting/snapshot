@@ -1,6 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 
+import { TextInputSC } from "../styles/shared";
+
 const SliderSC = styled.input`
   -webkit-appearance: none;
   background: #bbbbbb;
@@ -48,20 +50,7 @@ const SliderSC = styled.input`
   }
 `;
 
-const NumberInputSC = styled.input`
-  margin: 1px 0 0;
-  border-radius: 3px;
-  border: 1px solid #222222;
-  padding: 3px;
-
-  &::-webkit-inner-spin-button,
-  ::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`;
-
-const PickerSC = styled(NumberInputSC)`
+const PickerSC = styled(TextInputSC)`
   margin-left: 5px;
   width: 25px;
 `;

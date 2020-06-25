@@ -67,7 +67,7 @@ export default function TopBar() {
           <MenuItem disabled>New</MenuItem>
           <MenuItem disabled>Save</MenuItem>
           <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
-          <MenuBranch label="Export As">
+          <MenuBranch id="exportAs" label="Export As">
             <MenuItem disabled>PDF</MenuItem>
             <MenuItem onClick={() => dispatch(exportAs("image/jpeg"))}>JPG</MenuItem>
             <MenuItem onClick={() => dispatch(exportAs("image/png"))}>PNG</MenuItem>
@@ -114,27 +114,33 @@ export default function TopBar() {
           />
         </Menu>
         <Menu id="image" label="Image">
-          <MenuItem 
-            label="Brightness / Contrast"
-            onClick={() => dispatch(toggleOverlay("filter", {filter: filter.brightnessContrast}))}
-          />
+          <MenuBranch id="adjust" label="Adjust">
+            <MenuItem 
+              label="Brightness / Contrast"
+              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.brightnessContrast}))}
+            />
+            <MenuItem
+              label="Hue / Saturation"
+              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.hueSaturation}))}
+            />
+            <MenuItem 
+              label="Desaturate"
+              onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
+            />
+            <MenuItem 
+              label="Invert"
+              onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
+            />
+          </MenuBranch>
           <MenuItem
-            label="Hue / Saturation"
-            onClick={() => dispatch(toggleOverlay("filter", {filter: filter.hueSaturation}))}
-          />
-          <MenuItem 
-            label="Desaturate"
-            onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
-          />
-          <MenuItem 
-            label="Invert"
-            onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
+            label="Resize"
+            onClick={() => dispatch(toggleOverlay("resize"))}
           />
           <MenuItem
             label="Histogram"
             onClick={() => dispatch(toggleOverlay("histogram"))}
           />
-          <MenuBranch label="Filter">
+          <MenuBranch id="filter" label="Filter">
             <MenuItem 
               label="Blur"
               onClick={() => dispatch(toggleOverlay("filter", {filter: filter.blur}))}

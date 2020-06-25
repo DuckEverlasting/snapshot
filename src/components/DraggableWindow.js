@@ -79,9 +79,9 @@ const SEResizeSC = styled.div`
 export default function DraggableWindow({
   name,
   children,
-  initPosition,
-  initSize,
-  minimumSize,
+  initPosition=null,
+  initSize=null,
+  minimumSize=null,
   resizable = true,
 }) {
   const [isDragging, setIsDragging] = useState(false);

@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import styled from "styled-components";
 
 import FilterTool from "./FilterTool";
+import ResizeModal from "./ResizeModal";
 import HelpModal from "./HelpModal";
 import HistogramModal from "./HistogramModal";
 import AboutModal from "./AboutModal";
@@ -21,6 +22,8 @@ export default function OverlayHandler() {
     switch (overlay) {
       case "filter":
         return <FilterTool />
+      case "resize":
+        return <ResizeModal />
       case "help":
         return <HelpModal />
       case "histogram":
