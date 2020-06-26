@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { updateCanvas, toggleOverlay } from "../actions/redux";
+import { toggleOverlay } from "../actions/redux";
 
 import CheckboxInput from "./CheckboxInput";
 import NumberInput from "./NumberInput";
+import AnchorInput from "./AnchorInput";
+import AnchorPreview from "./AnchorPreview";
 import DraggableWindow from "./DraggableWindow";
 
 const ResizeModalSC = styled.div`
@@ -26,7 +28,7 @@ export default function ResizeModal() {
     state => state.main.present.layerCanvas.main
   );
   const {documentWidth, documentHeight} = useSelector(
-    state => state.main.present.layerCanvas.main.documentSettings
+    state => state.main.present.documentSettings
   );
   const [isRescaling, setIsRescaling] = useState(false);
   const [anchor, setAnchor] = useState("center");
@@ -46,7 +48,7 @@ export default function ResizeModal() {
   }
 
   function handleInput(ev) {
-
+    return null
   }
 
   return (
@@ -57,21 +59,27 @@ export default function ResizeModal() {
       <ResizeModalSC>
         <CheckboxInput 
           name="Rescale Image"
-          selected={}
-          onChange={}
+          selected={true}
+          onChange={value => handleInput(value, "isRescaling")}
         />
         <NumberInput
-          onChange={value => inputDimensionHandler(value, "width")}
+          onChange={value => handleInput(value, "width")}
           value={width[unit]}
           name={"Width"}
           min={1}
         />
         <NumberInput
-          onChange={value => inputDimensionHandler(value, "height")}
+          onChange={value => handleInput(value, "height")}
           value={height[unit]}
           name={"Height"}
           min={1}
         />
+        <AnchorInput 
+          onChange={value => handleInput(value, "anchor")}
+          value={anchor}
+          name={"Anchor"}
+        />
+        <AnchorPreview value={anchor} />
         <label>
           Unit
           <select>
