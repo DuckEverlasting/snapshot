@@ -189,12 +189,13 @@ export default function menuAction(action) {
     case "export":
       return (dispatch, getState) => {
         const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
-          placeholderCtx = layerCanvas.placeholder.getContext("2d"),
           { type, compression } = getState().ui.exportOptions,
           fileName = getState().main.present.documentSettings.documentName;
 
         if (!type) return;
       
+        let placeholderCtx = document.createElement("canvas").getContext("2d");
+
         layerOrder.forEach(id => {
           if (!layerSettings[id].hidden) {
             const sourceCtx = layerCanvas[id].getContext("2d"); 
@@ -213,6 +214,7 @@ export default function menuAction(action) {
         saveAs(href, fileName);
 
         window.URL.revokeObjectURL(href);
+        placeholderCtx = null;
       }
     case "transform":
       return async (dispatch, getState) => {
