@@ -4,11 +4,34 @@ import styled from "styled-components";
 const AnchorInputSC = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
+  width: 40%;
   margin: 10px 0;
+
+  & p {
+    margin-bottom: 5px;
+  }
 `;
+
 const AnchorButtonBoxSC = styled.div`
   display: flex;
+  width: 72px;
   flex-direction: column;
+  border: 1px solid black;
+`;
+
+const AnchorButtonSC = styled.label`
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  background: ${props => props.checked ? props.theme.colors.highlight : "white"};
+  border: 1px solid black;
+
+  & input {
+    visibility: hidden;
+    width: 0;
+    height: 0;
+  }
 `;
 
 const AnchorRowSC = styled.div`
@@ -19,7 +42,9 @@ const AnchorRowSC = styled.div`
 export default function AnchorInput({ name, selected, onChange }) {
   return (
     <AnchorInputSC>
-      {name ? name : null}
+      <p>
+        {name ? name : null}
+      </p>
       <AnchorButtonBoxSC>
         <AnchorRowSC>
           <AnchorButton value="top-left" onChange={onChange} selected={selected} />
@@ -42,8 +67,9 @@ export default function AnchorInput({ name, selected, onChange }) {
 }
 
 function AnchorButton({ value, selected, onChange }) {
+  console.log(value, selected);
   return (
-    <label>
+    <AnchorButtonSC checked={selected === value}>
       <input
         type="radio"
         name="anchor"
@@ -51,6 +77,6 @@ function AnchorButton({ value, selected, onChange }) {
         checked={selected === value}
         onChange={() => onChange(value)}
       />
-    </label>
+    </AnchorButtonSC>
   );
 }

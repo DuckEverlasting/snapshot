@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleOverlay } from "../actions/redux";
 
+import Button from "./Button";
 import CheckboxInput from "./CheckboxInput";
 import NumberInput from "./NumberInput";
 import AnchorInput from "./AnchorInput";
@@ -12,26 +13,56 @@ import DraggableWindow from "./DraggableWindow";
 const ResizeModalSC = styled.div`
   display: flex;
   flex-direction: column;
+  width: 100%;
+  font-size: ${props => props.theme.fontSizes.small};
 `
 
-const OKButtonSC = styled.button`
-  cursor: pointer;
+const LeftBoxSC = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 `;
 
-const CloseButtonSC = styled.button`
-  cursor: pointer;
+const RightBoxSC = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const InputRowSC = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+`;
+
+const AnchorInputWrapperSC = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+  width: 120px;
+  height: 120px; 
+`;
+
+const PreviewWrapperSC = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 150px;
+  height: 150px;  
 `;
 
 export default function ResizeModal() {
   const dispatch = useDispatch();
-  const mainCanvas = useSelector(
-    state => state.main.present.layerCanvas.main
-  );
+  // const mainCanvas = useSelector(
+  //   state => state.main.present.layerCanvas.main
+  // );
   const {documentWidth, documentHeight} = useSelector(
     state => state.main.present.documentSettings
   );
   const [isRescaling, setIsRescaling] = useState(false);
-  const [anchor, setAnchor] = useState("center");
+  const [anchor, setAnchor] = useState("center-center");
   const [width, setWidth] = useState({
     pixels: documentWidth,
     percent: 100
@@ -42,53 +73,120 @@ export default function ResizeModal() {
   });
   const [unit, setUnit] = useState("pixels")
 
-  function handleMouseDown(ev) {
+  function handleApply(ev) {
+    ev.stopPropagation();
+  }
+  
+  function handleCancel(ev) {
     dispatch(toggleOverlay("resize"));
     ev.stopPropagation();
   }
 
-  function handleInput(ev) {
-    return null
+  function pixelsToPercent(value, type) {
+    if (type === "width") {
+      return (value / documentWidth) * 100;
+    } else if (type === "height") {
+      return (value / documentHeight) * 100;
+    }
+  }
+  
+  function percentToPixels(value, type) {
+    if (type === "width") {
+      return documentWidth * value / 100;
+    } else if (type === "height") {
+      return documentHeight * value / 100;
+    }
+  }
+
+  function handleInput(value, type) {
+    switch (type) {
+      case "width":
+        if (unit === "pixels") {
+          setWidth({pixels: value, percent: pixelsToPercent(value, "width")});
+        } else if (unit === "percent") {
+          setWidth({pixels: percentToPixels(value, "width"), percent: value});
+        }
+        break;
+      case "height":
+        if (unit === "pixels") {
+          setHeight({pixels: value, percent: pixelsToPercent(value, "height")});
+        } else if (unit === "percent") {
+          setHeight({pixels: percentToPixels(value, "height"), percent: value});
+        }
+        break;
+      case "isRescaling":
+        setIsRescaling(value);
+        break;
+      case "unit":
+        setUnit(value);
+        break;
+      case "anchor":
+        setAnchor(value);
+        break;
+      default:
+        break;
+    }
   }
 
   return (
     <DraggableWindow
       name={"Resize"}
-      resizable
     >
       <ResizeModalSC>
-        <CheckboxInput 
-          name="Rescale Image"
-          selected={true}
-          onChange={value => handleInput(value, "isRescaling")}
-        />
-        <NumberInput
-          onChange={value => handleInput(value, "width")}
-          value={width[unit]}
-          name={"Width"}
-          min={1}
-        />
-        <NumberInput
-          onChange={value => handleInput(value, "height")}
-          value={height[unit]}
-          name={"Height"}
-          min={1}
-        />
-        <AnchorInput 
-          onChange={value => handleInput(value, "anchor")}
-          value={anchor}
-          name={"Anchor"}
-        />
-        <AnchorPreview value={anchor} />
-        <label>
-          Unit
-          <select>
-            <option value="pixels"></option>
-            <option value="percent"></option>
-          </select>
-        </label>
-        <OKButtonSC onClick={() => handleMouseDown("OK")}>OK</OKButtonSC>
-        <CloseButtonSC onClick={() => handleMouseDown("Close")}>Close</CloseButtonSC>
+        <InputRowSC>
+          <LeftBoxSC>
+            <NumberInput
+              onChange={value => handleInput(value, "width")}
+              value={width[unit]}
+              name={"Width"}
+              min={1}
+              max={unit === "pixels" ? 5000 : pixelsToPercent(5000, "width")}
+              rounding={2}
+              inputWidth={"50px"}
+            />
+            <NumberInput
+              onChange={value => handleInput(value, "height")}
+              value={height[unit]}
+              name={"Height"}
+              min={1}
+              max={unit === "pixels" ? 5000 : pixelsToPercent(5000, "height")}
+              rounding={2}
+              inputWidth={"50px"}
+            />
+          </LeftBoxSC>
+          <RightBoxSC>
+            <CheckboxInput 
+              name="Rescale Image"
+              selected={isRescaling}
+              onChange={value => handleInput(value, "isRescaling")}
+              noWrap
+            />
+            <label>
+              Unit
+              <select style={{marginLeft: "5px"}} onChange={ev => handleInput(ev.target.value, "unit")}>
+                <option value="pixels">pixels</option>
+                <option value="percent">percent</option>
+              </select>
+            </label>
+          </RightBoxSC>
+        </InputRowSC>
+        <InputRowSC>
+          <AnchorInputWrapperSC>
+            <AnchorInput 
+              name={"Anchor"}
+              selected={anchor}
+              onChange={value => handleInput(value, "anchor")}
+              disabled={isRescaling}
+            />
+          </AnchorInputWrapperSC>
+          <PreviewWrapperSC>
+            <AnchorPreview value={anchor} disabled={isRescaling} />
+          </PreviewWrapperSC>
+        </InputRowSC>
+        <InputRowSC>
+          <Button onClick={handleApply}>Apply</Button>
+          <Button onClick={handleCancel}>Cancel</Button>
+        </InputRowSC>
       </ResizeModalSC>
     </DraggableWindow>
   );
