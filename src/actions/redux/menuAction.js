@@ -13,8 +13,12 @@ import {
   setImportImageFile,
   setTransformSelection,
   setTransformParams,
-  updateLayerPosition
+  updateLayerPosition,
+  updateDocumentSettings,
+  moveAllLayers
 } from "./index";
+
+import { MoveAction } from "../../utils/ToolAction";
 
 import { filter } from "../../utils/filters";
 
@@ -26,28 +30,59 @@ import render from "./renderCanvas";
 
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
-    const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
-      placeholderCtx = layerCanvas.placeholder.getContext("2d"),
-      fileName = getState().main.present.documentSettings.documentName
-  
-    layerOrder.forEach(id => {
-      if (!layerSettings[id].hidden) {
-        const sourceCtx = layerCanvas[id].getContext("2d"); 
-        manipulate(placeholderCtx, {
-          action: "paste",
-          params: {
-            sourceCtx,
-            dest: {x: 0, y: 0}
-          }
-        })
-      }
-    })
+    const mainCanvas = getState().main.present.layerCanvas.main,
+      fileName = getState().main.present.documentSettings.documentName;
 
-    const href = placeholderCtx.canvas.toDataURL(type, compression);
+    const href = mainCanvas.toDataURL(type, compression);
   
     saveAs(href, fileName);
 
     window.URL.revokeObjectURL(href);
+  }
+}
+
+export function resizeDocument(width, height, rescale=false, anchor=null) {
+  if (!width || !height) {
+    throw new Error("Resize must specify both height and width.");
+  }
+  if (!rescale && !anchor) {
+    throw new Error("Resize must specify either parameter 'rescale' or parameter 'anchor'");
+  }
+
+  return async (dispatch, getState) => {
+    const { documentWidth, documentHeight } = getState().main.present.documentSettings;
+    const layerSettings = getState().main.present.layerSettings;
+    const layerCanvas = getState().main.present.layerCanvas;
+
+    const offsetDelta = {
+      "top-left": {x: 0, y: 0},
+      "top-center": {x: (documentWidth - width) / 2, y: 0},
+      "top-right": {x: (documentWidth - width), y: 0},
+      "center-left": {x: 0, y: (documentHeight - height) / 2},
+      "center-center": {x: (documentWidth - width) / 2, y: (documentHeight - height) / 2},
+      "center-right": {x: (documentWidth - width), y: (documentHeight - height) / 2},
+      "bottom-left": {x: 0, y: (documentHeight - height)},
+      "bottom-center": {x: (documentWidth - width) / 2, y: (documentHeight - height)},
+      "bottom-right": {x: (documentWidth - width), y: (documentHeight - height)}
+    }
+
+    await dispatch(menuAction("deselect"));
+    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
+    if (anchor) {
+      await getState().main.present.layerOrder.forEach(targetLayer => {
+        const translateData = {
+          offX: layerSettings[targetLayer].offset.x,
+          offY: layerSettings[targetLayer].offset.y,
+          documentWidth,
+          documentHeight,
+        }
+        const action = new MoveAction(targetLayer, dispatch, translateData);
+        action.manualStart(layerCanvas);
+        action.manualEnd(offsetDelta[anchor], layerCanvas, true);
+      })
+    }
+
+    dispatch(render());
   }
 }
 
@@ -188,33 +223,17 @@ export default function menuAction(action) {
       }
     case "export":
       return (dispatch, getState) => {
-        const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
+        const mainCanvas = getState().main.present.layerCanvas.main,
           { type, compression } = getState().ui.exportOptions,
           fileName = getState().main.present.documentSettings.documentName;
 
         if (!type) return;
-      
-        let placeholderCtx = document.createElement("canvas").getContext("2d");
 
-        layerOrder.forEach(id => {
-          if (!layerSettings[id].hidden) {
-            const sourceCtx = layerCanvas[id].getContext("2d"); 
-            manipulate(placeholderCtx, {
-              action: "paste",
-              params: {
-                sourceCtx,
-                dest: {x: 0, y: 0}
-              }
-            })
-          }
-        })
-
-        const href = placeholderCtx.canvas.toDataURL(type, compression);
+        const href = mainCanvas.toDataURL(type, compression);
       
         saveAs(href, fileName);
 
         window.URL.revokeObjectURL(href);
-        placeholderCtx = null;
       }
     case "transform":
       return async (dispatch, getState) => {

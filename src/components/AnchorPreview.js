@@ -38,8 +38,7 @@ const coords = {
   "bottom-right": {innerRect: {x: 66.667, y: 66.667}, pic: {horizontal: "flex-end", vertical: "flex-end"}}, 
 }
 
-function AnchorPreview({value}) {
-  console.log(value);
+function AnchorPreview({value, disabled}) {
   return (
     <PreviewWrapper horizontal={coords[value].pic.horizontal} vertical={coords[value].pic.vertical}>
         <SvgSC viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">

@@ -7,7 +7,7 @@ const AnchorInputSC = styled.div`
   align-items: center;
   width: 40%;
   margin: 10px 0;
-
+  
   & p {
     margin-bottom: 5px;
   }
@@ -67,7 +67,6 @@ export default function AnchorInput({ name, selected, onChange }) {
 }
 
 function AnchorButton({ value, selected, onChange }) {
-  console.log(value, selected);
   return (
     <AnchorButtonSC checked={selected === value}>
       <input

@@ -29,6 +29,8 @@ export const [
   UPDATE_COLOR,
   SWITCH_COLORS,
   UPDATE_WORKSPACE_SETTINGS,
+  UPDATE_DOCUMENT_SETTINGS,
+  MOVE_ALL_LAYERS,
   TOGGLE_MENU,
   SET_ACTIVE_MENU_LIST,
   SET_CLIPBOARD_IS_USED,
@@ -66,6 +68,8 @@ export const [
   "UPDATE_COLOR",
   "SWITCH_COLORS",
   "UPDATE_WORKSPACE_SETTINGS",
+  "UPDATE_DOCUMENT_SETTINGS",
+  "MOVE_ALL_LAYERS",
   "TOGGLE_MENU",
   "SET_ACTIVE_MENU_LIST",
   "SET_CLIPBOARD_IS_USED",
@@ -382,6 +386,20 @@ export const updateWorkspaceSettings = (changes) => {
   return {
     type: UPDATE_WORKSPACE_SETTINGS,
     payload: changes
+  }
+}
+
+export const updateDocumentSettings = (changes, ignoreHistory=false) => {
+  return {
+    type: UPDATE_DOCUMENT_SETTINGS,
+    payload: {changes, ignoreHistory}
+  }
+}
+
+export const moveAllLayers = (offsetDelta, ignoreHistory=true) => {
+  return {
+    type: MOVE_ALL_LAYERS,
+    payload: {offsetDelta, ignoreHistory}
   }
 }
 

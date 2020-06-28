@@ -814,11 +814,15 @@ export class MoveAction extends ToolActionBase {
   }
 
   start(ev, layerCanvas) {
-    this.origin = {x: ev.screenX, y: ev.screenY}
+    this.origin = {x: ev.screenX, y: ev.screenY};
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
-    this.sizeOrigin = {w: layerCanvas[this.activeLayer].width, h: layerCanvas[this.activeLayer].height}
+    this.sizeOrigin = {w: layerCanvas[this.activeLayer].width, h: layerCanvas[this.activeLayer].height};
     this.rectOrigin = getImageRect(layerCanvas[this.activeLayer]);
+  }
+
+  manualStart(layerCanvas) {
+    this.start({screenX: 0, screenY: 0}, layerCanvas);
   }
 
   move(ev) {
@@ -846,7 +850,7 @@ export class MoveAction extends ToolActionBase {
     this.dispatch(render());
   }
 
-  end(layerCanvas) {
+  end(layerCanvas, groupWithPrevious) {
     this.layerCanvas = layerCanvas;
     const canvas = this.layerCanvas[this.activeLayer];
     const canvasRect = getImageRect(canvas);
@@ -895,9 +899,14 @@ export class MoveAction extends ToolActionBase {
           size: newSize,
           rect: canvasRect
         }
-      }));
+      }, {groupWithPrevious}));
       this.dispatch(render());
     });
+  }
+
+  manualEnd(offsetDelta, layerCanvas, groupWithPrevious) {
+    this.offset = offsetDelta;
+    this.end(layerCanvas, groupWithPrevious);
   }
 }
 

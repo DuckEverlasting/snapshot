@@ -9,6 +9,7 @@ import NumberInput from "./NumberInput";
 import AnchorInput from "./AnchorInput";
 import AnchorPreview from "./AnchorPreview";
 import DraggableWindow from "./DraggableWindow";
+import { resizeDocument } from "../actions/redux/menuAction";
 
 const ResizeModalSC = styled.div`
   display: flex;
@@ -33,6 +34,8 @@ const InputRowSC = styled.div`
   justify-content: center;
   align-items: center;
   width: 100%;
+  opacity: ${props => props.disabled ? ".333" : "1"};
+  pointer-events: ${props => props.disabled ? "none" : "auto"};
 `;
 
 const AnchorInputWrapperSC = styled.div`
@@ -74,6 +77,7 @@ export default function ResizeModal() {
   const [unit, setUnit] = useState("pixels")
 
   function handleApply(ev) {
+    dispatch(resizeDocument(width.pixels, height.pixels, false, "center-center"));
     ev.stopPropagation();
   }
   
@@ -170,17 +174,16 @@ export default function ResizeModal() {
             </label>
           </RightBoxSC>
         </InputRowSC>
-        <InputRowSC>
+        <InputRowSC disabled={isRescaling}>
           <AnchorInputWrapperSC>
             <AnchorInput 
               name={"Anchor"}
               selected={anchor}
               onChange={value => handleInput(value, "anchor")}
-              disabled={isRescaling}
             />
           </AnchorInputWrapperSC>
           <PreviewWrapperSC>
-            <AnchorPreview value={anchor} disabled={isRescaling} />
+            <AnchorPreview value={anchor} />
           </PreviewWrapperSC>
         </InputRowSC>
         <InputRowSC>

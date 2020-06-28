@@ -38,7 +38,7 @@ function MainCanvas() {
 
     return () => dispatch(updateCanvas("main", null));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [documentWidth, documentHeight])
 
   return <LayerWrapperSC size={docSize}>
     <LayerSC width={docSize.w} height={docSize.h} ref={canvasRef} />

@@ -14,7 +14,9 @@ import {
   ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   MAKE_ACTIVE_LAYER,
-  SET_STAMP_DATA
+  SET_STAMP_DATA,
+  UPDATE_DOCUMENT_SETTINGS,
+  MOVE_ALL_LAYERS
 } from "../../actions/redux";
 
 import { initMainState } from "./initState";
@@ -229,7 +231,35 @@ const mainReducer = (state = initMainState, {type, payload}) => {
           ...payload.changes
         }
       };
+    
+    case UPDATE_DOCUMENT_SETTINGS:
+      return {
+        ...state,
+        documentSettings: {
+          ...state.documentSettings,
+          ...payload.changes
+        }
+      };
 
+    case MOVE_ALL_LAYERS:
+      const newOffsetLayerSettings = {};
+      state.layerOrder.forEach(el => {
+        newOffsetLayerSettings[el] = {
+          ...state.layerSettings[el],
+          offset: {
+            x: state.layerSettings[el].offset.x + payload.offsetDelta.x,
+            y: state.layerSettings[el].offset.y + payload.offsetDelta.y
+          }
+        }
+      });
+      return {
+        ...state,
+        layerSettings: {
+          ...state.layerSettings,
+          ...newOffsetLayerSettings
+        }
+      };
+      
     default:
       return state;
   }
