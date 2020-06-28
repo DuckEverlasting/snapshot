@@ -77,7 +77,7 @@ export default function ResizeModal() {
   const [unit, setUnit] = useState("pixels")
 
   function handleApply(ev) {
-    dispatch(resizeDocument(width.pixels, height.pixels, false, "center-center"));
+    dispatch(resizeDocument(width.pixels, height.pixels, isRescaling, isRescaling ? null : anchor));
     ev.stopPropagation();
   }
   

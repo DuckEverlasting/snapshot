@@ -56,19 +56,19 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
 
     const offsetDelta = {
       "top-left": {x: 0, y: 0},
-      "top-center": {x: (documentWidth - width) / 2, y: 0},
-      "top-right": {x: (documentWidth - width), y: 0},
-      "center-left": {x: 0, y: (documentHeight - height) / 2},
-      "center-center": {x: (documentWidth - width) / 2, y: (documentHeight - height) / 2},
-      "center-right": {x: (documentWidth - width), y: (documentHeight - height) / 2},
-      "bottom-left": {x: 0, y: (documentHeight - height)},
-      "bottom-center": {x: (documentWidth - width) / 2, y: (documentHeight - height)},
-      "bottom-right": {x: (documentWidth - width), y: (documentHeight - height)}
+      "top-center": {x: -(documentWidth - width) / 2, y: 0},
+      "top-right": {x: -(documentWidth - width), y: 0},
+      "center-left": {x: 0, y: -(documentHeight - height) / 2},
+      "center-center": {x: -(documentWidth - width) / 2, y: -(documentHeight - height) / 2},
+      "center-right": {x: -(documentWidth - width), y: -(documentHeight - height) / 2},
+      "bottom-left": {x: 0, y: -(documentHeight - height)},
+      "bottom-center": {x: -(documentWidth - width) / 2, y: -(documentHeight - height)},
+      "bottom-right": {x: -(documentWidth - width), y: -(documentHeight - height)}
     }
 
     await dispatch(menuAction("deselect"));
-    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
     if (anchor) {
+      console.log(anchor)
       await getState().main.present.layerOrder.forEach(targetLayer => {
         const translateData = {
           offX: layerSettings[targetLayer].offset.x,
@@ -78,9 +78,11 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
         }
         const action = new MoveAction(targetLayer, dispatch, translateData);
         action.manualStart(layerCanvas);
+        console.log(offsetDelta[anchor]);
         action.manualEnd(offsetDelta[anchor], layerCanvas, true);
       })
     }
+    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
 
     dispatch(render());
   }
