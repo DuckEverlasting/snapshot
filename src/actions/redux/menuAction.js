@@ -67,8 +67,8 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
     }
 
     await dispatch(menuAction("deselect"));
+    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
     if (anchor) {
-      console.log(anchor)
       await getState().main.present.layerOrder.forEach(targetLayer => {
         const translateData = {
           offX: layerSettings[targetLayer].offset.x,
@@ -78,11 +78,9 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
         }
         const action = new MoveAction(targetLayer, dispatch, translateData);
         action.manualStart(layerCanvas);
-        console.log(offsetDelta[anchor]);
         action.manualEnd(offsetDelta[anchor], layerCanvas, true);
       })
     }
-    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
 
     dispatch(render());
   }

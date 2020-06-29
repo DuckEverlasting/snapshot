@@ -107,6 +107,7 @@ export default function Workspace() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOrigin, setDragOrigin] = useState({ x: null, y: null });
+  const [lastEndpoint, setLastEndpoint] = useState(null);
   const [keys, setKeys] = useState({
     shift: false,
     ctrl: false,
@@ -166,23 +167,27 @@ export default function Workspace() {
     switch (activeTool) {
       case "pencil":
         if (!activeLayer) {return}
-        return new PencilAction(activeLayer, dispatch, getTranslateData(), {
+        return new PencilAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           width: toolSettings.pencil.width,
           color: addOpacity(primary, toolSettings.pencil.opacity / 100),
           clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
         });
       case "brush":
         if (!activeLayer) {return}
-        return new BrushAction(activeLayer, dispatch, getTranslateData(), {
+        return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           width: toolSettings.brush.width,
           color: primary,
           opacity: toolSettings.brush.opacity,
           hardness: toolSettings.brush.hardness,
           clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
         });
       case "line":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           drawActionType: "drawLine",
           color: addOpacity(primary, toolSettings.line.opacity / 100),
           width: toolSettings.line.width,
@@ -190,7 +195,7 @@ export default function Workspace() {
         });
       case "fillRect":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           drawActionType: "fillRect",
           color: addOpacity(primary, toolSettings.fillRect.opacity / 100),
           regularOnShift: true,
@@ -198,7 +203,7 @@ export default function Workspace() {
         });
       case "drawRect":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           drawActionType: "drawRect",
           color: addOpacity(primary, toolSettings.drawRect.opacity / 100),
           width: toolSettings.drawRect.width,
@@ -207,7 +212,7 @@ export default function Workspace() {
         });
       case "fillEllipse":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           drawActionType: "fillEllipse",
           color: addOpacity(primary, toolSettings.fillEllipse.opacity / 100),
           regularOnShift: true,
@@ -215,7 +220,7 @@ export default function Workspace() {
         });
       case "drawEllipse":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           drawActionType: "drawEllipse",
           color: addOpacity(primary, toolSettings.drawEllipse.opacity / 100),
           width: toolSettings.drawEllipse.width,
@@ -224,54 +229,57 @@ export default function Workspace() {
         });
       case "eraser":
         if (!activeLayer) {return}
-        return new EraserAction(activeLayer, dispatch, getTranslateData(), {
+        return new EraserAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           width: toolSettings.eraser.width,
           color: "rgba(0, 0, 0, 1)",
           opacity: 100,
           hardness: toolSettings.eraser.hardness,
           composite: "destination-out",
           clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
         });
       case "eyeDropper":
-        return new EyeDropperAction(activeLayer, dispatch, getTranslateData(), {
+        return new EyeDropperAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           layerOrder: layerOrder,
         });
       case "selectRect":
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
+        return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
           drawActionType: "drawRect",
           regularOnShift: true,
-          isSelectionTool: true,
           clip: selectionPath,
         });
       case "selectEllipse":
-        return new ShapeAction(activeLayer, dispatch, getTranslateData(true), {
+        return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
           drawActionType: "drawEllipse",
           regularOnShift: true,
-          isSelectionTool: true,
           clip: selectionPath,
         });
       case "lasso":
-        return new PencilAction(activeLayer, dispatch, getTranslateData(true), {
-          isSelectionTool: true,
+        return new PencilAction("selection", layerCanvas, dispatch, getTranslateData(true), {
           clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
         });
       case "move":
         if (!activeLayer || selectionActive) {
           return;
         }
-        return new MoveAction(activeLayer, dispatch, getTranslateData());
+        return new MoveAction(activeLayer, layerCanvas, dispatch, getTranslateData());
       case "stamp":
         if (!activeLayer) {return}
-        return new StampAction(activeLayer, dispatch, getTranslateData(), {
+        return new StampAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           stampData,
           width: toolSettings.stamp.width,
           hardness: toolSettings.stamp.hardness,
           opacity: toolSettings.stamp.opacity,
           clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
         });
       case "bucketFill":
         if (!activeLayer) {return}
-        return new FillAction(activeLayer, dispatch, getTranslateData(), {
+        return new FillAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           colorArray: toArrayFromRgba(
             primary,
             toolSettings.bucketFill.opacity / 100
@@ -281,86 +289,69 @@ export default function Workspace() {
         });
       case "saturate":
         if (!activeLayer) {return}
-        return new FilterBrushAction(
-          activeLayer,
-          dispatch,
-          getTranslateData(),
-          {
-            width: toolSettings.saturate.width,
-            hardness: toolSettings.saturate.hardness,
-            filter: filter.saturation.apply,
-            filterInput: { amount: toolSettings.saturate.amount },
-            clip: selectionPath,
-          }
-        );
+        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          width: toolSettings.saturate.width,
+          hardness: toolSettings.saturate.hardness,
+          filter: filter.saturation.apply,
+          filterInput: { amount: toolSettings.saturate.amount },
+          clip: selectionPath,
+        });
       case "dodge":
         if (!activeLayer) {return}
-        return new FilterBrushAction(
-          activeLayer,
-          dispatch,
-          getTranslateData(),
-          {
-            width: toolSettings.dodge.width,
-            hardness: toolSettings.dodge.hardness,
-            filter: filter.dodge.apply,
-            filterInput: {
-              amount: toolSettings.dodge.amount,
-              range: toolSettings.dodge.range,
-            },
-            clip: selectionPath,
-          }
-        );
+        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          width: toolSettings.dodge.width,
+          hardness: toolSettings.dodge.hardness,
+          filter: filter.dodge.apply,
+          filterInput: {
+            amount: toolSettings.dodge.amount,
+            range: toolSettings.dodge.range,
+          },
+          clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
+        });
       case "burn":
         if (!activeLayer) {return}
-        return new FilterBrushAction(
-          activeLayer,
-          dispatch,
-          getTranslateData(),
-          {
-            width: toolSettings.burn.width,
-            hardness: toolSettings.burn.hardness,
-            filter: filter.burn.apply,
-            filterInput: {
-              amount: toolSettings.burn.amount,
-              range: toolSettings.burn.range,
-            },
-            clip: selectionPath,
-          }
-        );
+        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          width: toolSettings.burn.width,
+          hardness: toolSettings.burn.hardness,
+          filter: filter.burn.apply,
+          filterInput: {
+            amount: toolSettings.burn.amount,
+            range: toolSettings.burn.range,
+          },
+          clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
+        });
       case "blur":
         if (!activeLayer) {return}
-        return new FilterBrushAction(
-          activeLayer,
-          dispatch,
-          getTranslateData(),
-          {
-            width: toolSettings.blur.width,
-            hardness: toolSettings.blur.hardness,
-            filter: filter.blur.apply,
-            filterInput: {
-              amount: toolSettings.blur.amount,
-              width: layerCanvas[activeLayer].width,
-            },
-            clip: selectionPath,
-          }
-        );
+        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          width: toolSettings.blur.width,
+          hardness: toolSettings.blur.hardness,
+          filter: filter.blur.apply,
+          filterInput: {
+            amount: toolSettings.blur.amount,
+            width: layerCanvas[activeLayer].width,
+          },
+          clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
+        });
       case "sharpen":
         if (!activeLayer) {return}
-        return new FilterBrushAction(
-          activeLayer,
-          dispatch,
-          getTranslateData(),
-          {
-            width: toolSettings.sharpen.width,
-            hardness: toolSettings.sharpen.hardness,
-            filter: filter.sharpen.apply,
-            filterInput: {
-              amount: toolSettings.sharpen.amount,
-              width: layerCanvas[activeLayer].width,
-            },
-            clip: selectionPath,
-          }
-        );
+        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          width: toolSettings.sharpen.width,
+          hardness: toolSettings.sharpen.hardness,
+          filter: filter.sharpen.apply,
+          filterInput: {
+            amount: toolSettings.sharpen.amount,
+            width: layerCanvas[activeLayer].width,
+          },
+          clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
+        });
       default:
         break;
     }
