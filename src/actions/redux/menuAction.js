@@ -15,7 +15,6 @@ import {
   setTransformParams,
   updateLayerPosition,
   updateDocumentSettings,
-  moveAllLayers
 } from "./index";
 
 import { MoveAction } from "../../utils/ToolAction";
@@ -66,21 +65,32 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
       "bottom-right": {x: -(documentWidth - width), y: -(documentHeight - height)}
     }
 
-    await dispatch(menuAction("deselect"));
     await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
     if (anchor) {
       await getState().main.present.layerOrder.forEach(targetLayer => {
         const translateData = {
           offX: layerSettings[targetLayer].offset.x,
           offY: layerSettings[targetLayer].offset.y,
-          documentWidth,
-          documentHeight,
+          documentWidth: width,
+          documentHeight: height,
         }
-        const action = new MoveAction(targetLayer, dispatch, translateData);
-        action.manualStart(layerCanvas);
-        action.manualEnd(offsetDelta[anchor], layerCanvas, true);
+        const action = new MoveAction(targetLayer, layerCanvas, dispatch, translateData);
+        action.manualStart();
+        action.manualEnd(offsetDelta[anchor], true);
       })
     }
+    await dispatch(menuAction("deselect"));
+    layerCanvas.selection.width = width;
+    layerCanvas.selection.height = height;
+    layerCanvas.staging.width = width;
+    layerCanvas.staging.height = height;
+    layerCanvas.placeholder.width = width;
+    layerCanvas.placeholder.height = height;
+    const temp = new OffscreenCanvas(documentWidth, documentHeight);
+    temp.getContext("2d").drawImage(layerCanvas.clipboard, 0, 0);
+    layerCanvas.clipboard.width = width;
+    layerCanvas.clipboard.height = height;
+    layerCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
 
     dispatch(render());
   }
