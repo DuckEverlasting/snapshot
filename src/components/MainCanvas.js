@@ -10,6 +10,7 @@ const LayerWrapperSC = styled.div.attrs(props => ({
   }
 }))`
   position: absolute;
+  background: rgba(0, 255, 0, .3);
   overflow: hidden;
   pointer-events: none;
 `

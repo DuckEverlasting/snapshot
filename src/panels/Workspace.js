@@ -70,10 +70,13 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
       translateY(${props.translateY}px)
       translateZ(-.001px)
       scale(${props.zoomPct / 100})`,
+    marginTop: `-${.5 * props.height}px`,
+    marginLeft: `-${.5 * props.width}px`
   },
 }))`
   position: relative;
-  margin: auto;
+  top: 50%;
+  left: 50%;
   background: white;
   flex: none;
   pointer-events: none;
@@ -113,6 +116,10 @@ export default function Workspace() {
     ctrl: false,
     alt: false,
   });
+  const [workspaceDimensions, setWorkspaceDimensions] = useState({
+    w: 0,
+    h: 0
+  })
 
   const workspaceRef = useRef(null);
   let workspaceElement = workspaceRef.current;
@@ -129,6 +136,16 @@ export default function Workspace() {
 
     return () => cancelAnimationFrame(reqFrame);
   }, []);
+
+  useEffect(() => {
+    if (workspaceRef.current) {
+      console.log(workspaceRef.current.width)
+      setWorkspaceDimensions({
+        w: workspaceRef.current.width,
+        h: workspaceRef.current.height,
+      })
+    }
+  }, [workspaceRef])
 
   function getTranslateData(noOffset) {
     const marginLeft =
@@ -595,6 +612,8 @@ export default function Workspace() {
         translateY={translateY}
         width={documentWidth}
         height={documentHeight}
+        workspaceWidth={workspaceDimensions.w}
+        workspaceHeight={workspaceDimensions.h}
         zoomPct={zoomPct}
       >
         <MainCanvas />

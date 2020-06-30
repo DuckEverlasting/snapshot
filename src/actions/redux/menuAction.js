@@ -66,6 +66,20 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
     }
 
     await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
+    
+    await dispatch(menuAction("deselect"));
+    layerCanvas.selection.width = width;
+    layerCanvas.selection.height = height;
+    layerCanvas.staging.width = width;
+    layerCanvas.staging.height = height;
+    layerCanvas.placeholder.width = width;
+    layerCanvas.placeholder.height = height;
+    const temp = new OffscreenCanvas(documentWidth, documentHeight);
+    temp.getContext("2d").drawImage(layerCanvas.clipboard, 0, 0);
+    layerCanvas.clipboard.width = width;
+    layerCanvas.clipboard.height = height;
+    layerCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
+
     if (anchor) {
       await getState().main.present.layerOrder.forEach(targetLayer => {
         const translateData = {
@@ -79,18 +93,6 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
         action.manualEnd(offsetDelta[anchor], true);
       })
     }
-    await dispatch(menuAction("deselect"));
-    layerCanvas.selection.width = width;
-    layerCanvas.selection.height = height;
-    layerCanvas.staging.width = width;
-    layerCanvas.staging.height = height;
-    layerCanvas.placeholder.width = width;
-    layerCanvas.placeholder.height = height;
-    const temp = new OffscreenCanvas(documentWidth, documentHeight);
-    temp.getContext("2d").drawImage(layerCanvas.clipboard, 0, 0);
-    layerCanvas.clipboard.width = width;
-    layerCanvas.clipboard.height = height;
-    layerCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
 
     dispatch(render());
   }
