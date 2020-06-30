@@ -88,7 +88,7 @@ class ToolActionBase {
   start(...args) {
     this.onStart(...args);
 
-    if (this.useStaging) {
+    if (this.usesStaging) {
       this._moveStaging();
     }
 
@@ -128,22 +128,25 @@ class ToolActionBase {
 export class FreeDrawAction extends ToolActionBase {
   constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
     super(targetLayer, layerCanvas, dispatch, translateData);
-    this.lastAction = params.lastAction;
-    this.setLastAction = params.setLastAction;
+    this.lastEndpoint = params.lastEndpoint;
+    this.setLastEndpoint = params.setLastEndpoint;
+    this.renderOnStart = true;
   }
 
   start(ev, ...args) {
-    this.origin = this._getCoordinates(ev);
-
-    this.onStart(ev, ...args);
-
-    if (this.useStaging) {
+    if (this.usesStaging) {
       this._moveStaging();
     }
 
+    this.origin = this._getCoordinates(ev);
+
+    this.coords = this.origin;
+
+    this.onStart(ev, ...args);
+
     if (this.renderOnStart) {
       this.dispatch(render());
-    };
+    }
   }
 
   move(ev, ...args) {
@@ -162,6 +165,23 @@ export class FreeDrawAction extends ToolActionBase {
       this.dispatch(render())
     };
   }
+
+  end(...args) {
+
+    this.onEnd(...args);
+    
+    if (this.setLastEndpoint) {
+      this.setLastEndpoint(this.coords);
+    }
+
+    if (this.usesStaging) {
+      this._clearStaging();
+    }
+
+    if (this.renderOnEnd) {
+      this.dispatch(render());
+    };
+  }
 }
 
 export class PencilAction extends FreeDrawAction {
@@ -173,9 +193,13 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onStart(ev) {
-    this.destArray = [this.origin];
     if (this.targetLayer === "selection") {
       this._selectionStart(ev);
+    }
+    if (this.lastEndpoint && ev.shiftKey && this.targetLayer !== "selection") {
+      this.destArray = [this.lastEndpoint, this.origin];
+    } else {
+      this.destArray = [this.origin];
     }
   }
 
@@ -183,34 +207,28 @@ export class PencilAction extends FreeDrawAction {
     this.destArray = [...this.destArray, this.coords];
 
     if (this.targetLayer === "selection") {
+      const params = {
+        destArray: this.destArray,
+        orig: this.origin,
+        width: 1,
+        strokeColor: "rgba(0, 0, 0, 1)",
+        dashPattern: [7, 7],
+        clearFirst: true
+      }
       draw(this.layerCanvas.staging.getContext("2d"), {
         action: "drawQuad",
-        params: {
-          destArray: this.destArray,
-          orig: this.origin,
-          width: 1,
-          strokeColor: "rgba(0, 0, 0, 1)",
-          dashPattern: [7, 7],
-          clearFirst: true
-        }
+        params
       });
       draw(this.layerCanvas.staging.getContext("2d"), {
         action: "drawQuad",
-        params: {
-          destArray: this.destArray,
-          orig: this.origin,
-          width: 1,
-          strokeColor: "rgba(255, 255, 255, 1)",
-          dashPattern: [7, 7],
-          dashOffset: 7
-        }
+        params: {...params, dashOffset: 7}
       });
     } else {
       draw(this.layerCanvas.staging.getContext("2d"), {
         action: "drawQuad",
         params: {
           destArray: this.destArray,
-          orig: this.origin,
+          orig: this.destArray[0],
           width: this.width,
           strokeColor: this.color,
           clip: this.clip,
@@ -223,52 +241,49 @@ export class PencilAction extends FreeDrawAction {
 
   onEnd() {
     if (this.targetLayer === "selection") {
-      let path;
       if (this.destArray.length < 2) {
-        path = null;
-      } else {
-        if (this.clip !== null && this.addToSelection) {
-          path = new Path2D(this.clip);
-        } else {
-          path = new Path2D();
-        }
-        path = selection(path, {
-          action: "drawQuadPath",
-          params: { orig: this.origin, destArray: this.destArray }
-        });
-        const selectCtx = this.layerCanvas.selection.getContext("2d");
-        const viewWidth = Math.floor(selectCtx.canvas.width);
-        const viewHeight = Math.floor(selectCtx.canvas.height);
-        this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
-        draw(selectCtx, {
-          action: "drawQuadPath",
-          params: {
-            orig: this.origin,
-            destArray: this.destArray,
-            width: 1,
-            strokeColor: "rgba(0, 0, 0, 1)",
-            dashPattern: [7, 7],
-          }
-        });
-        draw(selectCtx, {
-          action: "drawQuadPath",
-          params: {
-            orig: this.origin,
-            destArray: this.destArray,
-            width: 1,
-            strokeColor: "rgba(255, 255, 255, 1)",
-            dashPattern: [7, 7],
-            dashOffset: 7
-          }
-        })
-        this.dispatch(putHistoryData(
-          "selection",
-          selectCtx,
-          null,
-          this.prevImgData
-        ));
-        this.prevImgData = null;
+        return this.dispatch(updateSelectionPath(null));
       }
+      
+      let path;
+      if (this.clip !== null && this.addToSelection) {
+        path = new Path2D(this.clip);
+      } else {
+        path = new Path2D();
+      }
+      path = selection(path, {
+        action: "drawQuadPath",
+        params: { orig: this.destArray[0], destArray: this.destArray }
+      });
+
+      const selectCtx = this.layerCanvas.selection.getContext("2d"),
+        viewWidth = Math.floor(selectCtx.canvas.width),
+        viewHeight = Math.floor(selectCtx.canvas.height);
+
+      this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
+      
+      const params = {
+        orig: this.destArray[0],
+        destArray: this.destArray,
+        width: 1,
+        strokeColor: "rgba(0, 0, 0, 1)",
+        dashPattern: [7, 7],
+      }
+      draw(selectCtx, {
+        action: "drawQuadPath",
+        params
+      });
+      draw(selectCtx, {
+        action: "drawQuadPath",
+        params: {...params, dashOffset: 7}
+      })
+      this.dispatch(putHistoryData(
+        "selection",
+        selectCtx,
+        null,
+        this.prevImgData
+      ));
+      this.prevImgData = null;
       this.dispatch(updateSelectionPath(path));
     } else {
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
@@ -279,7 +294,7 @@ export class PencilAction extends FreeDrawAction {
           () => draw(activeCtx, {
             action: "drawQuad",
             params: {
-              orig: this.origin,
+              orig: this.destArray[0],
               destArray: this.destArray,
               width: this.width,
               strokeColor: this.color,
@@ -304,10 +319,33 @@ export class BrushAction extends FreeDrawAction {
     this.processing = document.createElement('canvas');
   }
 
-  onStart() {
+  onStart(ev) {
     this.processing.width = this.layerCanvas.staging.width;
     this.processing.height = this.layerCanvas.staging.height;
     this.processing.getContext("2d").imageSmoothingEnabled = false;
+    if (this.lastEndpoint && ev.shiftKey) {
+      draw(this.processing.getContext("2d"), {
+        action: "drawQuadPoints",
+        params: {
+          orig: this.lastEndpoint,
+          destArray: [this.lastEndpoint, this.origin, this.origin],
+          gradient: this.gradient,
+          width: this.width,
+          hardness: this.hardness,
+          density: 0.25,
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+        }
+      });
+      manipulate(this.layerCanvas.staging.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.processing.getContext("2d"),
+          globalAlpha: this.opacity / 100,
+          clearFirst: true
+        },
+      });
+    }
     this.lastDest = this.origin;
   }
 
@@ -316,7 +354,7 @@ export class BrushAction extends FreeDrawAction {
 
     if (
       getQuadLength(
-        this.lastMid || this.origin,
+        this.lastMid || this.lastDest,
         this.lastDest,
         newMid
       ) <
@@ -328,8 +366,8 @@ export class BrushAction extends FreeDrawAction {
     draw(this.processing.getContext("2d"), {
       action: "drawQuadPoints",
       params: {
-        orig: this.origin,
-        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
+        orig: this.lastMid || this.lastDest,
+        destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
         gradient: this.gradient,
         width: this.width,
         hardness: this.hardness,
@@ -378,7 +416,7 @@ export class FilterBrushAction extends FreeDrawAction {
     this.filtered = document.createElement('canvas');
   }
 
-  onStart() {
+  onStart(ev) {
     const ctx = this.layerCanvas[this.targetLayer].getContext("2d");
     this.processing.width = ctx.canvas.width;
     this.processing.height = ctx.canvas.height;
@@ -387,6 +425,35 @@ export class FilterBrushAction extends FreeDrawAction {
     const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
     this.filter(imageData.data, this.filterInput);
     this.filtered.getContext("2d").putImageData(imageData, 0, 0);
+    if (this.lastEndpoint && ev.shiftKey) {
+      draw(this.processing.getContext("2d"), {
+        action: "drawQuadPoints",
+        params: {
+          orig: this.lastEndpoint,
+          destArray: [this.lastEndpoint, this.origin, this.origin],
+          gradient: this.gradient,
+          width: this.width,
+          hardness: this.hardness,
+          density: 0.25,
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+        }
+      });
+      manipulate(this.layerCanvas.staging.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.processing.getContext("2d"),
+          clearFirst: true
+        }
+      });
+      manipulate(this.layerCanvas.staging.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.filtered.getContext("2d"),
+          composite: "source-in"
+        }
+      });
+    }
     this.lastDest = this.origin;
   }
 
@@ -395,7 +462,7 @@ export class FilterBrushAction extends FreeDrawAction {
 
     if (
       getQuadLength(
-        this.lastMid || this.origin,
+        this.lastMid || this.lastDest,
         this.lastDest,
         newMid
       ) <
@@ -407,8 +474,8 @@ export class FilterBrushAction extends FreeDrawAction {
     draw(this.processing.getContext("2d"), {
       action: "drawQuadPoints",
       params: {
-        orig: this.origin,
-        destArray: [this.lastMid || this.origin, this.lastDest, newMid],
+        orig: this.lastMid || this.lastDest,
+        destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
         gradient: this.gradient,
         width: this.width,
         hardness: this.hardness,
@@ -492,6 +559,37 @@ export class StampAction extends FreeDrawAction {
       x: this.stampOrigin.x - this.stampDestination.x,
       y: this.stampOrigin.y - this.stampDestination.y,
     };
+    if (this.lastEndpoint && ev.shiftKey) {
+      draw(this.processing.getContext("2d"), {
+        action: "drawQuadPoints",
+        params: {
+          orig: this.lastEndpoint,
+          destArray: [this.lastEndpoint, this.origin, this.origin],
+          gradient: this.gradient,
+          width: this.width,
+          hardness: this.hardness,
+          density: 0.25,
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+        }
+      });
+      manipulate(this.layerCanvas.staging.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.processing.getContext("2d"),
+          globalAlpha: this.opacity / 100,
+          clearFirst: true
+        }
+      });
+      manipulate(this.layerCanvas.staging.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.stampCanvas.getContext("2d"),
+          composite: "source-in",
+          orig: this.stampOffset
+        }
+      });
+    }
   }
 
   onMove() {
@@ -569,11 +667,27 @@ export class EraserAction extends FreeDrawAction {
     this.usesStaging = false;
   }
 
-  onStart() {
+  onStart(ev) {
     const ctx = this.layerCanvas[this.targetLayer].getContext("2d");
     const viewWidth = Math.floor(ctx.canvas.width);
     const viewHeight = Math.floor(ctx.canvas.height);
     this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
+    if (this.lastEndpoint && ev.shiftKey) {
+      draw(this.layerCanvas[this.targetLayer].getContext("2d"), {
+        action: "drawQuadPoints",
+        params: {
+          orig: this.lastEndpoint,
+          destArray: [this.lastEndpoint, this.origin, this.origin],
+          gradient: this.gradient,
+          width: this.width,
+          hardness: this.hardness,
+          density: 0.25,
+          composite: this.composite,
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+        }
+      });
+    }
     this.lastDest = this.origin;
   }
 

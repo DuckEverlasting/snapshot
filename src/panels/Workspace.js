@@ -295,6 +295,8 @@ export default function Workspace() {
           filter: filter.saturation.apply,
           filterInput: { amount: toolSettings.saturate.amount },
           clip: selectionPath,
+          lastEndpoint,
+          setLastEndpoint
         });
       case "dodge":
         if (!activeLayer) {return}
