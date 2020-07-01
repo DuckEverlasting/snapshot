@@ -92,6 +92,32 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
         action.manualStart();
         action.manualEnd(offsetDelta[anchor], true);
       })
+    } else {
+      await getState().main.present.layerOrder.forEach(targetLayer => {
+        const widthFactor = width / documentWidth;
+        const heightFactor = height / documentHeight;
+        temp.width = layerCanvas[targetLayer].width * widthFactor;
+        temp.height = layerCanvas[targetLayer].height * heightFactor;
+        manipulate(temp.getContext("2d"), {
+          action: "paste",
+          params: {
+            sourceCtx: layerCanvas[targetLayer].getContext("2d"),
+            dest: {x: 0, y: 0},
+            size: {w: temp.width, h: temp.height},
+            clearFirst: true
+          }
+        });
+        layerCanvas[targetLayer].width = temp.width;
+        layerCanvas[targetLayer].height = temp.height;
+        manipulate(layerCanvas[targetLayer].getContext("2d"), {
+          action: "paste",
+          params: {
+            sourceCtx: temp.getContext("2d"),
+            dest: {x: 0, y: 0},
+            clearFirst: true
+          }
+        });
+      });
     }
 
     dispatch(render());
