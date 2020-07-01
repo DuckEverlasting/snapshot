@@ -913,6 +913,7 @@ export class MoveAction extends ToolActionBase {
     super(targetLayer, layerCanvas, dispatch, translateData);
     this.alwaysFire = true;
     this.usesStaging = false;
+    this.renderOnEnd = false;
   }
 
   onStart(ev) {
@@ -1004,6 +1005,7 @@ export class MoveAction extends ToolActionBase {
           rect: canvasRect
         }
       }, {groupWithPrevious}));
+      this.dispatch(render());
     });
   }
 

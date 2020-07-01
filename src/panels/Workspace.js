@@ -523,7 +523,7 @@ export default function Workspace() {
       }
       currentAction = buildAction();
       if (!currentAction) {return}
-      currentAction.start(ev, layerCanvas);
+      currentAction.start(ev);
       if (eventIsWithinCanvas(ev)) {
         isDrawing = true;
       }
@@ -533,7 +533,7 @@ export default function Workspace() {
   const handleMouseLeave = (ev) => {
     if (currentAction && ev.buttons === 1) {
       if (isDrawing) {
-        currentAction.end(layerCanvas);
+        currentAction.end();
         isDrawing = false;
       }
       currentAction = null;
@@ -555,7 +555,7 @@ export default function Workspace() {
         })
       );
     } else if (currentAction && ev.buttons === 1) {
-      currentAction.move(ev, layerCanvas);
+      currentAction.move(ev);
       if (!isDrawing && eventIsWithinCanvas(ev)) {
         isDrawing = true;
       }
@@ -570,7 +570,7 @@ export default function Workspace() {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
       if (isDrawing || currentAction.alwaysFire) {
-        currentAction.end(layerCanvas);
+        currentAction.end();
         isDrawing = false;
       }
       currentAction = null;
