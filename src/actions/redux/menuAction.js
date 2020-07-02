@@ -117,6 +117,11 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
             clearFirst: true
           }
         });
+        const newOffset = {
+          x: layerSettings[targetLayer].offset.x * widthFactor,
+          y: layerSettings[targetLayer].offset.y * heightFactor
+        }
+        dispatch(updateLayerPosition(targetLayer, null, newOffset, true));
       });
     }
 

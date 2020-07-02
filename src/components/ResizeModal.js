@@ -78,6 +78,7 @@ export default function ResizeModal() {
 
   function handleApply(ev) {
     dispatch(resizeDocument(width.pixels, height.pixels, isRescaling, isRescaling ? null : anchor));
+    dispatch(toggleOverlay("resize"));
     ev.stopPropagation();
   }
   
