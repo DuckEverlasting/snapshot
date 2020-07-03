@@ -5,8 +5,10 @@ import {
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
-  PUT_HISTORY_DATA_MULTIPLE
+  PUT_HISTORY_DATA_MULTIPLE,
+  RESET_STATE
 } from "../../actions/redux/index";
+import { getInitUiState } from "./initState";
 
 const rootReducer = combineReducers({
   lastAction,
@@ -20,17 +22,21 @@ const rootReducer = combineReducers({
 export default rootReducer;
 
 function lastAction(state, {type}) {
-  return {type, time: Date.now()}
+  if (type = RESET_STATE) {
+    return null;
+  } else {
+    return {type, time: Date.now()}
+  }
 }
 
 function undoable(reducer, { filter = () => true, limit = undefined }) {
-  const initialState = {
+  const getInitUiState = () => ({
     past: [],
     present: reducer(undefined, {}),
     future: []
-  };
+  });
 
-  return function(state = initialState, { type, payload }) {
+  return function(state = getInitUiState(), { type, payload }) {
     const { past, present, future } = state;
     let newPresent;
 
@@ -92,6 +98,9 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           present: next,
           future: newFuture
         };
+      case RESET_STATE: {
+        return getInitUiState();
+      }
       default:
         newPresent = reducer(present, { type, payload });
         if (present === newPresent) {

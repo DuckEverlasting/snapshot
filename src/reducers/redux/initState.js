@@ -7,13 +7,13 @@ initSelectionPath.rect(0, 0, initWidth, initHeight);
 // This is so the number input component won't get confused.
 // Opacity is converted to 0 - 1 format when drawn.
 
-export const initMainState = {
+export const getInitMainState = () => ({
   onUndo: null,
   onRedo: null,
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
-    documentName: "Untitled_1"
+    documentName: "My Great Document"
   },
   layerCanvas: {
     main: null,
@@ -78,9 +78,9 @@ export const initMainState = {
     origin: null,
     destination: null
   }
-};
+});
 
-export const initUiState = {
+export const getInitUiState = () => ({
   workspaceSettings: {
     translateX: 0,
     translateY: 0,
@@ -124,4 +124,4 @@ export const initUiState = {
   currentFilter: null,
   importImageFile: null,
   appIsWaiting: false,
-}
+})

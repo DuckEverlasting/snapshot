@@ -12,12 +12,13 @@ import {
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
-  SET_APP_IS_WAITING
+  SET_APP_IS_WAITING,
+  RESET_STATE
 } from "../../actions/redux";
 
-import { initUiState } from "./initState";
+import { getInitUiState } from "./initState";
 
-const uiReducer = (state = initUiState, {type, payload}) => {
+const uiReducer = (state = getInitUiState(), {type, payload}) => {
   switch (type) {
     case DRAG_LAYERCARD:
       return {
@@ -117,6 +118,8 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         ...state,
         appIsWaiting: payload
       }
+    case RESET_STATE:
+      return getInitUiState();
     default:
       return state;
   }

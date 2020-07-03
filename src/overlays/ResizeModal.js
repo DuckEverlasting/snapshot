@@ -3,12 +3,12 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleOverlay } from "../actions/redux";
 
-import Button from "./Button";
-import CheckboxInput from "./CheckboxInput";
-import NumberInput from "./NumberInput";
-import AnchorInput from "./AnchorInput";
-import AnchorPreview from "./AnchorPreview";
-import DraggableWindow from "./DraggableWindow";
+import Button from "../components/Button";
+import CheckboxInput from "../components/CheckboxInput";
+import NumberInput from "../components/NumberInput";
+import AnchorInput from "../components/AnchorInput";
+import AnchorPreview from "../components/AnchorPreview";
+import DraggableWindow from "../components/DraggableWindow";
 import { resizeDocument } from "../actions/redux/menuAction";
 
 const ResizeModalSC = styled.div`
@@ -77,7 +77,7 @@ export default function ResizeModal() {
   const [unit, setUnit] = useState("pixels")
 
   function handleApply(ev) {
-    dispatch(resizeDocument(width.pixels, height.pixels, isRescaling, isRescaling ? null : anchor));
+    dispatch(resizeDocument(width.pixels, height.pixels, isRescaling ? null : anchor, isRescaling));
     dispatch(toggleOverlay("resize"));
     ev.stopPropagation();
   }

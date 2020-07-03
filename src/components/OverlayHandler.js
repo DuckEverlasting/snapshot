@@ -2,11 +2,12 @@ import React from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 
-import FilterTool from "./FilterTool";
-import ResizeModal from "./ResizeModal";
-import HelpModal from "./HelpModal";
-import HistogramModal from "./HistogramModal";
-import AboutModal from "./AboutModal";
+import FilterTool from "../overlays/FilterTool";
+import ResizeModal from "../overlays/ResizeModal";
+import HelpModal from "../overlays/HelpModal";
+import HistogramModal from "../overlays/HistogramModal";
+import AboutModal from "../overlays/AboutModal";
+import NewDocumentModal from "../overlays/NewDocumentModal";
 
 const OverlayBoxSC = styled.div`
   position: absolute;
@@ -30,6 +31,8 @@ export default function OverlayHandler() {
         return <HistogramModal />
       case "about":
         return <AboutModal />
+      case "newDocument":
+        return <NewDocumentModal />
       default:
         return null
     }

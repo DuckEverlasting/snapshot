@@ -7,11 +7,11 @@ import { toggleOverlay, setAppIsWaiting } from "../actions/redux";
 import render from "../actions/redux/renderCanvas";
 import filterAction from "../utils/filterAction";
 
-import DraggableWindow from "./DraggableWindow";
-import SliderInput from "./SliderInput";
-import RadioInput from "./RadioInput";
-import CheckboxInput from "./CheckboxInput";
-import Button from "./Button";
+import DraggableWindow from "../components/DraggableWindow";
+import SliderInput from "../components/SliderInput";
+import RadioInput from "../components/RadioInput";
+import CheckboxInput from "../components/CheckboxInput";
+import Button from "../components/Button";
 
 const FilterToolSC = styled.div`
   display: flex;

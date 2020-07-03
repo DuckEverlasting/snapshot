@@ -40,12 +40,21 @@ export function exportDocument(type, compression=null) {
   }
 }
 
-export function resizeDocument(width, height, rescale=false, anchor=null) {
+export function resizeDocument(width, height, offset=null, rescale=false) {
   if (!width || !height) {
     throw new Error("Resize must specify both height and width.");
   }
-  if (!rescale && !anchor) {
-    throw new Error("Resize must specify either parameter 'rescale' or parameter 'anchor'");
+  if (!rescale && !offset) {
+    throw new Error("Resize must specify either parameter 'rescale' or parameter 'offset'");
+  }
+  if (offset && (
+    !typeof offset === "string" ||
+    !offset.x ||
+    typeof offset.x !== "number" ||
+    !offset.y ||
+    typeof offset.y !== "number"
+  )) {
+    throw new TypeError("Invalid type in function resizeDocument: 'offset' must be a string or an object containing numbers 'x' and 'y'");
   }
 
   return async (dispatch, getState) => {
@@ -53,7 +62,7 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
     const layerSettings = getState().main.present.layerSettings;
     const layerCanvas = getState().main.present.layerCanvas;
 
-    const offsetDelta = {
+    const offsetConversion = {
       "top-left": {x: 0, y: 0},
       "top-center": {x: -(documentWidth - width) / 2, y: 0},
       "top-right": {x: -(documentWidth - width), y: 0},
@@ -80,7 +89,8 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
     layerCanvas.clipboard.height = height;
     layerCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
 
-    if (anchor) {
+    if (offset) {
+      const parsedOffset = typeof offset === "string" ? offsetConversion[offset] : offset;
       await getState().main.present.layerOrder.forEach(targetLayer => {
         const translateData = {
           offX: layerSettings[targetLayer].offset.x,
@@ -90,7 +100,7 @@ export function resizeDocument(width, height, rescale=false, anchor=null) {
         }
         const action = new MoveAction(targetLayer, layerCanvas, dispatch, translateData);
         action.manualStart();
-        action.manualEnd(offsetDelta[anchor], true);
+        action.manualEnd(parsedOffset, true);
       })
     } else {
       await getState().main.present.layerOrder.forEach(targetLayer => {

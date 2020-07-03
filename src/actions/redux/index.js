@@ -39,7 +39,8 @@ export const [
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
   SET_STAMP_DATA,
-  SET_APP_IS_WAITING
+  SET_APP_IS_WAITING,
+  RESET_STATE
 ] = [
   "UNDO",
   "REDO",
@@ -78,7 +79,8 @@ export const [
   "SET_IMPORT_IMAGE_FILE",
   "SET_EXPORT_OPTIONS",
   "SET_STAMP_DATA",
-  "SET_APP_IS_WAITING"
+  "SET_APP_IS_WAITING",
+  "RESET_STATE"
 ];
 
 export const undo = () => {
@@ -462,5 +464,11 @@ export const setAppIsWaiting = bool => {
   return {
     type: SET_APP_IS_WAITING,
     payload: bool
+  }
+}
+
+export const resetState = () => {
+  return {
+    type: RESET_STATE
   }
 }

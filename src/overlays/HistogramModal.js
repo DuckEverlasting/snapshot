@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
 import { updateCanvas, toggleOverlay } from '../actions/redux'
 
-import DraggableWindow from "./DraggableWindow";
+import DraggableWindow from "../components/DraggableWindow";
 import Histogram from "../utils/Histogram";
 
 function HistogramModal() {

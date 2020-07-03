@@ -7,8 +7,8 @@ import { toggleOverlay, setHelpTopic } from "../actions/redux";
 
 import { helpHierarchy, helpContent } from "../constants/helpDocumentation.json";
 
-import DraggableWindow from "./DraggableWindow";
-import Button from "./Button";
+import DraggableWindow from "../components/DraggableWindow";
+import Button from "../components/Button";
 
 const HelpModalSC = styled.div`
   width: 100%;

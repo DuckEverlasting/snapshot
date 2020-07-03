@@ -19,9 +19,9 @@ import {
   MOVE_ALL_LAYERS
 } from "../../actions/redux";
 
-import { initMainState } from "./initState";
+import { getInitMainState } from "./initState";
 
-const mainReducer = (state = initMainState, {type, payload}) => {
+const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
       let { position, source, params } = payload;

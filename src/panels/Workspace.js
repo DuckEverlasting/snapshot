@@ -62,6 +62,17 @@ const ZoomDisplaySC = styled.div`
   pointer-events: none;
 `;
 
+const NameDisplaySC = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: rgb(235, 235, 235);
+  padding: 10px 20px;
+  border-bottom-right-radius: 3px;
+  pointer-events: none;
+`;
+
 const CanvasPaneSC = styled.div.attrs((props) => ({
   style: {
     width: props.width,
@@ -93,7 +104,7 @@ export default function Workspace() {
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
   const { activeTool, toolSettings } = useSelector((state) => state.ui);
-  const { documentWidth, documentHeight } = useSelector(
+  const { documentWidth, documentHeight, documentName } = useSelector(
     (state) => state.main.present.documentSettings
   );
   const {
@@ -139,7 +150,6 @@ export default function Workspace() {
 
   useEffect(() => {
     if (workspaceRef.current) {
-      console.log(workspaceRef.current.width)
       setWorkspaceDimensions({
         w: workspaceRef.current.width,
         h: workspaceRef.current.height,
@@ -635,6 +645,7 @@ export default function Workspace() {
         />
       )}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
+      <NameDisplaySC>{documentName}</NameDisplaySC>
     </WorkspaceSC>
   );
 }

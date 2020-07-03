@@ -64,7 +64,10 @@ export default function TopBar() {
     <TopBarSC overlay={overlay}>
       <MenuBar>
         <Menu id="File" label="File">
-          <MenuItem disabled>New</MenuItem>
+          <MenuItem 
+            label="New"
+            onClick={() => dispatch(toggleOverlay("newDocument"))}
+          />
           <MenuItem disabled>Save</MenuItem>
           <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
           <MenuBranch id="exportAs" label="Export As">
