@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile, setTransformSelection, putHistoryData, setTransformParams } from "../actions/redux/index";
+import { setImportImageFile, setTransformSelection, putHistoryData, setTransformParams, setMenuIsDisabled } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
@@ -201,6 +201,12 @@ export default function TransformObject({
   const canvasRef = useRef();
   const boundingBoxRef = useRef();
   const anchorRef = useRef();
+
+  useEffect(() => {
+    dispatch(setMenuIsDisabled(true));
+
+    return () => dispatch(setMenuIsDisabled(false));
+  }, [])
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");

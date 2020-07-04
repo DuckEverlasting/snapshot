@@ -31,10 +31,9 @@ export const [
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_DOCUMENT_SETTINGS,
   MOVE_ALL_LAYERS,
-  TOGGLE_MENU,
-  SET_ACTIVE_MENU_LIST,
   SET_CLIPBOARD_IS_USED,
-  TOGGLE_OVERLAY,
+  SET_OVERLAY,
+  SET_MENU_IS_DISABLED,
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
@@ -71,10 +70,9 @@ export const [
   "UPDATE_WORKSPACE_SETTINGS",
   "UPDATE_DOCUMENT_SETTINGS",
   "MOVE_ALL_LAYERS",
-  "TOGGLE_MENU",
-  "SET_ACTIVE_MENU_LIST",
   "SET_CLIPBOARD_IS_USED",
-  "TOGGLE_OVERLAY",
+  "SET_OVERLAY",
+  "SET_MENU_IS_DISABLED",
   "SET_HELP_TOPIC",
   "SET_IMPORT_IMAGE_FILE",
   "SET_EXPORT_OPTIONS",
@@ -405,19 +403,6 @@ export const moveAllLayers = (offsetDelta, ignoreHistory=true) => {
   }
 }
 
-export const toggleMenu = () => {
-  return {
-    type: TOGGLE_MENU
-  }
-}
-
-export const setActiveMenuList = (id) => {
-  return {
-    type: SET_ACTIVE_MENU_LIST,
-    payload: id
-  }
-}
-
 export const setClipboardIsUsed = bool => {
   return {
     type: SET_CLIPBOARD_IS_USED,
@@ -425,10 +410,17 @@ export const setClipboardIsUsed = bool => {
   }
 }
 
-export const toggleOverlay = (overlay, params={}) => {
+export const setOverlay = (overlay, params={}) => {
   return {
-    type: TOGGLE_OVERLAY,
+    type: SET_OVERLAY,
     payload: {overlay, params}
+  }
+}
+
+export const setMenuIsDisabled = bool => {
+  return {
+    type: SET_MENU_IS_DISABLED,
+    payload: bool
   }
 }
 

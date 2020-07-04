@@ -6,9 +6,8 @@ import {
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_COLOR,
   SWITCH_COLORS,
-  TOGGLE_MENU,
-  SET_ACTIVE_MENU_LIST,
-  TOGGLE_OVERLAY,
+  SET_MENU_IS_DISABLED,
+  SET_OVERLAY,
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
@@ -81,17 +80,12 @@ const uiReducer = (state = getInitUiState(), {type, payload}) => {
           secondary: state.colorSettings.primary,
         },
       };
-    case TOGGLE_MENU:
+    case SET_MENU_IS_DISABLED:
       return {
         ...state,
-        menuIsActive: !state.menuIsActive
+        menuIsDisabled: payload
       }
-    case SET_ACTIVE_MENU_LIST:
-      return {
-        ...state,
-        activeMenuList: payload
-      }
-    case TOGGLE_OVERLAY:
+    case SET_OVERLAY:
       return {
         ...state,
         overlay: state.overlay === payload.overlay ? null : payload.overlay,

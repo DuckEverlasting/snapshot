@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { setMenuIsDisabled } from "../actions/redux";
 import useEventListener from "../hooks/useEventListener";
 import transformActionFactory from "../utils/TransformAction";
 import { calculateClipping } from "../utils/helpers";
@@ -139,6 +140,11 @@ export default function TransformObject() {
   const dispatch = useDispatch();
 
   const boundingBoxRef = useRef();
+
+  useEffect(() => {
+    dispatch(setMenuIsDisabled(true));
+    return () => dispatch(setMenuIsDisabled(false));
+  }, [])
 
   useEffect(() => {
     setOffset({

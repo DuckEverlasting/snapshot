@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateCanvas, toggleOverlay } from '../actions/redux'
+import { updateCanvas, setOverlay } from '../actions/redux'
 
 import DraggableWindow from "../components/DraggableWindow";
 import Histogram from "../utils/Histogram";
@@ -64,11 +64,11 @@ function HistogramCanvas({sourceCtx}) {
   }, [sourceCtx])
 
   function handleMouseDown(ev) {
-    dispatch(toggleOverlay("histogram"));
+    dispatch(setOverlay("histogram"));
     ev.stopPropagation();
   }
 
-  return <HistogramWrapperSC onEscape={() => dispatch(toggleOverlay("histogram"))}>
+  return <HistogramWrapperSC onEscape={() => dispatch(setOverlay("histogram"))}>
     <HistogramSC width={1024} height={1024} ref={canvasRef} />
     <CloseButtonSC onClick={handleMouseDown}>Close</CloseButtonSC>
   </HistogramWrapperSC>

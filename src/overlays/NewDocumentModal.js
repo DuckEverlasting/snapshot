@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { toggleOverlay, resetState, updateDocumentSettings } from "../actions/redux";
+import { setOverlay, resetState, updateDocumentSettings } from "../actions/redux";
 
 import Button from "../components/Button";
 import NumberInput from "../components/NumberInput";
@@ -55,7 +55,7 @@ export default function NewDocumentModal() {
   }
 
   function cancel() {
-    dispatch(toggleOverlay("newDocument"));
+    dispatch(setOverlay("newDocument"));
   }
 
   function handleInput(ev, type) {

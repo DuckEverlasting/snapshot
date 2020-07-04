@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { toggleOverlay } from "../actions/redux";
+import { setOverlay } from "../actions/redux";
 
 import Button from "../components/Button";
 import CheckboxInput from "../components/CheckboxInput";
@@ -83,7 +83,7 @@ export default function ResizeModal() {
 
   function apply() {
     dispatch(resizeDocument(width.pixels, height.pixels, isRescaling ? null : anchor, isRescaling));
-    dispatch(toggleOverlay("resize"));
+    dispatch(setOverlay("resize"));
   }
   
   function handleCancel(ev) {
@@ -92,7 +92,7 @@ export default function ResizeModal() {
   }
 
   function cancel() {
-    dispatch(toggleOverlay("resize"));
+    dispatch(setOverlay("resize"));
   }
 
   function pixelsToPercent(value, type) {

@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { toggleOverlay, setExportOptions } from "../actions/redux/index";
+import { setOverlay, setExportOptions } from "../actions/redux/index";
 
 import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";
@@ -47,8 +47,9 @@ export default function TopBar() {
   const futureLength = useSelector(state => state.main.future.length);
   const clipboardIsUsed = useSelector(
     state => state.main.present.clipboardIsUsed
-  );
+    );
   const overlay = useSelector(state => state.ui.overlay);
+  const menuIsDisabled = useSelector(state => state.ui.menuIsDisabled);
   const dispatch = useDispatch();
   const mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
 
@@ -62,11 +63,11 @@ export default function TopBar() {
 
   return (
     <TopBarSC overlay={overlay}>
-      <MenuBar>
+      <MenuBar disabled={menuIsDisabled}>
         <Menu id="File" label="File">
           <MenuItem 
             label="New"
-            onClick={() => dispatch(toggleOverlay("newDocument"))}
+            onClick={() => dispatch(setOverlay("newDocument"))}
           />
           <MenuItem disabled>Save</MenuItem>
           <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
@@ -120,11 +121,11 @@ export default function TopBar() {
           <MenuBranch id="adjust" label="Adjust">
             <MenuItem 
               label="Brightness / Contrast"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.brightnessContrast}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.brightnessContrast}))}
             />
             <MenuItem
               label="Hue / Saturation"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.hueSaturation}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.hueSaturation}))}
             />
             <MenuItem 
               label="Desaturate"
@@ -137,40 +138,40 @@ export default function TopBar() {
           </MenuBranch>
           <MenuItem
             label="Resize"
-            onClick={() => dispatch(toggleOverlay("resize"))}
+            onClick={() => dispatch(setOverlay("resize"))}
           />
           <MenuItem
             label="Histogram"
-            onClick={() => dispatch(toggleOverlay("histogram"))}
+            onClick={() => dispatch(setOverlay("histogram"))}
           />
           <MenuBranch id="filter" label="Filter">
             <MenuItem 
               label="Blur"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.blur}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.blur}))}
             />
             <MenuItem 
               label="Sharpen"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.sharpen}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.sharpen}))}
             />
             <MenuItem 
               label="Find Edges"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.findEdges}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.findEdges}))}
             />
             <MenuItem 
               label="Emboss"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.emboss}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.emboss}))}
             />
             <MenuItem 
               label="Dodge"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.dodge}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.dodge}))}
             />
             <MenuItem 
               label="Burn"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.burn}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.burn}))}
             />
             <MenuItem 
               label="Posterize"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.posterize}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.posterize}))}
             />
           </MenuBranch>
         </Menu>
@@ -213,11 +214,11 @@ export default function TopBar() {
         <Menu id="help" label="Help">
           <MenuItem
             label="About SnapShot"
-            onClick={() => dispatch(toggleOverlay("about"))}
+            onClick={() => dispatch(setOverlay("about"))}
           />
           <MenuItem
             label="SnapShot Help"
-            onClick={() => dispatch(toggleOverlay("help"))}
+            onClick={() => dispatch(setOverlay("help"))}
             disabled
           />
         </Menu>

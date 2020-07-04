@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import useWait from "../hooks/useWait";
 
-import { toggleOverlay, setAppIsWaiting } from "../actions/redux";
+import { setOverlay, setAppIsWaiting } from "../actions/redux";
 import render from "../actions/redux/renderCanvas";
 import filterAction from "../utils/filterAction";
 
@@ -108,14 +108,14 @@ export default function FilterTool() {
         filter.apply,
         {...input, width: stagingCanvas.width}
       ));
-      dispatch(toggleOverlay("filter"));
+      dispatch(setOverlay("filter"));
     }, true);
   }
 
   const handleCancel = () => {
     stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
     dispatch(render());
-    dispatch(toggleOverlay("filter"));
+    dispatch(setOverlay("filter"));
   }
 
   const checkRequirementsMet = () => {

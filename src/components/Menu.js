@@ -76,6 +76,7 @@ const MenuSettings = React.createContext();
 
 const initMenuState = {
   menuIsActive: false,
+  menuIsDisabled: false,
   activeMenu: null,
   activeMenuBranch: null,
   colors: {
@@ -121,6 +122,11 @@ function MenuSettingsProvider({ overrideInit, children }) {
         ...prevState,
         menuIsActive: bool,
       })),
+    setMenuIsDisabled: (bool) =>
+      setState((prevState) => ({
+        ...prevState,
+        menuIsDisabled: bool,
+      })),
     setActiveMenu: (menuId) =>
       setState((prevState) => ({
         ...prevState,
@@ -158,16 +164,16 @@ function MenuSettingsProvider({ overrideInit, children }) {
   );
 }
 
-export function MenuBar({ colors: initColors, children }) {
+export function MenuBar({ colors: initColors, children, disabled=false}) {
   return (
     <MenuSettingsProvider overrideInit={initColors}>
-      <MenuGroup>{children}</MenuGroup>
+      <MenuGroup disabled={disabled}>{children}</MenuGroup>
     </MenuSettingsProvider>
   );
 }
 
-function MenuGroup({ children }) {
-  const { menuIsActive, setMenuIsActive, colors, size } = useContext(
+function MenuGroup({ children, disabled }) {
+  const { menuIsActive, setMenuIsActive, setMenuIsDisabled, colors, size } = useContext(
     MenuSettings
   );
 
@@ -183,6 +189,10 @@ function MenuGroup({ children }) {
       window.removeEventListener("click", handleClickOutside);
     };
   }, [handleClickOutside]);
+
+  useEffect(() => {
+    setMenuIsDisabled(disabled);
+  }, [disabled])
 
   function handleClickInside(ev) {
     ev.stopPropagation();
@@ -293,12 +303,12 @@ export function MenuItem({
   hotkey,
   children,
 }) {
-  const { colors, size, resetMenu } = useContext(MenuSettings);
+  const { menuIsDisabled, colors, size, resetMenu } = useContext(MenuSettings);
 
   const menuItemRef = useRef(null);
 
   const clickHandler = (ev) => {
-    if (disabled) {
+    if (disabled || menuIsDisabled) {
       return ev.stopPropagation();
     }
     resetMenu();
@@ -310,7 +320,7 @@ export function MenuItem({
       color={colors.terciary}
       size={size}
       onClick={clickHandler}
-      disabled={disabled}
+      disabled={disabled || menuIsDisabled}
     >
       {children ? (
         <MenuItemSectionSC size={size}>{children}</MenuItemSectionSC>

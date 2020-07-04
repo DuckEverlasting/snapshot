@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 import { useDispatch } from "react-redux";
 
-import { toggleOverlay } from "../actions/redux";
+import { setOverlay } from "../actions/redux";
 
 const AboutModalSC = styled.div`
   position: fixed;
@@ -45,7 +45,7 @@ export default function AboutModal() {
   const dispatch = useDispatch();
 
   function handleClick() {
-    dispatch(toggleOverlay("about"))
+    dispatch(setOverlay("about"))
   }
 
   return (
