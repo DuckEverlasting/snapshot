@@ -35,10 +35,13 @@ export default function NumberInput({
   max = null,
   rounding = null,
   disabled = false,
+  stopKeydown = true,
   inputWidth = null
 }) {
   function keydownHandler(ev) {
-    ev.stopPropagation();
+    if (stopKeydown) {
+      ev.stopPropagation();
+    }
   }
 
   function inputHandler(ev) {

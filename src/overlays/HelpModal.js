@@ -164,19 +164,12 @@ function HelpModal() {
   const currentTopic = useSelector(state => state.ui.currentHelpTopic);
   const dispatch = useDispatch();
 
-  function handleKeyDown(ev) {
-    if (ev.key === "Escape") {
-      handleClose();
-    }
-    ev.stopPropagation();
-  }
-
   function handleClose() {
     dispatch(toggleOverlay("help"));
   }
 
   return (
-    <DraggableWindow name="SnapShot Help" onKeyDown={handleKeyDown} initSize={{h: height * 0.6, w: width * 0.4}} minimumSize={{h: height * 0.4, z: width * 0.3}}>
+    <DraggableWindow name="SnapShot Help" onEscape={handleClose} initSize={{h: height * 0.6, w: width * 0.4}} minimumSize={{h: height * 0.4, z: width * 0.3}}>
       <HelpModalSC>
         <MainContentSC>
           <TopicMenu

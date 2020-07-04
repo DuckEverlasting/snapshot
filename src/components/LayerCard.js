@@ -75,7 +75,7 @@ export default function LayerCard(props) {
   const activeLayer = useSelector(state => state.main.present.activeLayer);
   const dispatch = useDispatch();
 
-  const keydownHandler = ev => {
+  const handleKeyDown = ev => {
     ev.stopPropagation();
   }
 
@@ -131,7 +131,7 @@ export default function LayerCard(props) {
           </DeleteButtonSC>
           {!props.nameEditable && <NameSC onDoubleClick={enableRenameHandler}>{props.name}</NameSC>}
           {props.nameEditable && <RenameSC
-            onKeyDown={keydownHandler}
+            onKeyDown={handleKeyDown}
             defaultValue={props.name} ref={nameBox}
           />}
         </LayerCardSC>

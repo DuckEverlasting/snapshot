@@ -68,7 +68,7 @@ function HistogramCanvas({sourceCtx}) {
     ev.stopPropagation();
   }
 
-  return <HistogramWrapperSC>
+  return <HistogramWrapperSC onEscape={() => dispatch(toggleOverlay("histogram"))}>
     <HistogramSC width={1024} height={1024} ref={canvasRef} />
     <CloseButtonSC onClick={handleMouseDown}>Close</CloseButtonSC>
   </HistogramWrapperSC>

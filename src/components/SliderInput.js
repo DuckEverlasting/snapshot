@@ -75,12 +75,14 @@ const LabelSC = styled.label`
   }
 `;
 
-export default function SliderInput({onChange, value, name, min=1, max=100, step=1, disabled}) {
-  const keydownHandler = ev => {
-    ev.stopPropagation();
+export default function SliderInput({onChange, value, name, min=1, max=100, step=1, disabled=false, stopKeydown=true}) {
+  const handleKeyDown = ev => {
+    if (stopKeydown) {
+      ev.stopPropagation();
+    }
   };
 
-  const inputHandler = ev => {
+  const handleInput = ev => {
     let newValue = Number(ev.target.value);
     if (ev.target.value === "-" || ev.target.value === "") {
       newValue = ev.target.value;
@@ -94,7 +96,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
     onChange(newValue)
   };
 
-  const blurHandler = () => {
+  const handleBlur = () => {
     if (value === "")
     onChange(min)
   }
@@ -105,9 +107,9 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
         <span>{name}</span>
         <PickerSC
           value={!value && value !== 0 ? min : value}
-          onKeyDown={keydownHandler}
-          onChange={inputHandler}
-          onBlur={blurHandler}
+          onKeyDown={handleKeyDown}
+          onChange={handleInput}
+          onBlur={handleBlur}
           type="text"
           min={min}
           max={min}
@@ -116,7 +118,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
       </div>
       <SliderSC
         value={!value && value !== 0 ? min : value}
-        onChange={inputHandler}
+        onChange={handleInput}
         type="range"
         min={min}
         max={max}

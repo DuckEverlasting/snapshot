@@ -33,12 +33,12 @@ export default function NewDocumentModal() {
   const [height, setHeight] = useState(documentHeight);
   const [name, setName] = useState("My Great Document")
 
-  function keydownHandler(ev) {
+  function handleCreate(ev) {
+    create();
     ev.stopPropagation();
   }
 
-
-  function handleCreate(ev) {
+  function create() {
     dispatch(async dispatch => {
       await dispatch(resetState());
       dispatch(updateDocumentSettings({
@@ -47,12 +47,15 @@ export default function NewDocumentModal() {
         documentName: name
       }, true));
     });
-    ev.stopPropagation();
   }
   
   function handleCancel(ev) {
-    dispatch(toggleOverlay("resize"));
+    cancel();
     ev.stopPropagation();
+  }
+
+  function cancel() {
+    dispatch(toggleOverlay("newDocument"));
   }
 
   function handleInput(ev, type) {
@@ -74,6 +77,8 @@ export default function NewDocumentModal() {
   return (
     <DraggableWindow
       name={"New Document"}
+      onEscape={cancel}
+      onEnter={create}
     >
       <NewDocumentModalSC>
         <InputRowSC>
@@ -81,7 +86,6 @@ export default function NewDocumentModal() {
               Name
               <input
                 type="text"
-                onKeyDown={keydownHandler}
                 onChange={value => {handleInput(value, "name")}}
                 value={name}
               />
@@ -96,6 +100,7 @@ export default function NewDocumentModal() {
             max={5000}
             rounding={2}
             inputWidth={"50px"}
+            stopKeydown={false}
           />
           <NumberInput
             onChange={value => handleInput(value, "height")}
@@ -105,6 +110,7 @@ export default function NewDocumentModal() {
             max={5000}
             rounding={2}
             inputWidth={"50px"}
+            stopKeydown={false}
           />
         </InputRowSC>
         <InputRowSC>

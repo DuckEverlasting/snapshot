@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
 import styled from "styled-components";
 
 const MenuGroupSC = styled.div`
@@ -144,6 +144,11 @@ function MenuSettingsProvider({ overrideInit, children }) {
         ...prevState,
         size: parseSize(newSize),
       })),
+    resetMenu: () =>
+      setState({
+        ...initMenuState,
+        ...parseInit(overrideInit),
+      })
   };
 
   return (
@@ -288,12 +293,15 @@ export function MenuItem({
   hotkey,
   children,
 }) {
-  const { colors, size } = useContext(MenuSettings);
+  const { colors, size, resetMenu } = useContext(MenuSettings);
+
+  const menuItemRef = useRef(null);
 
   const clickHandler = (ev) => {
     if (disabled) {
       return ev.stopPropagation();
     }
+    resetMenu();
     return onClick(ev);
   };
 

@@ -77,14 +77,22 @@ export default function ResizeModal() {
   const [unit, setUnit] = useState("pixels")
 
   function handleApply(ev) {
+    apply();
+    ev.stopPropagation();
+  }
+
+  function apply() {
     dispatch(resizeDocument(width.pixels, height.pixels, isRescaling ? null : anchor, isRescaling));
     dispatch(toggleOverlay("resize"));
-    ev.stopPropagation();
   }
   
   function handleCancel(ev) {
-    dispatch(toggleOverlay("resize"));
+    cancel();
     ev.stopPropagation();
+  }
+
+  function cancel() {
+    dispatch(toggleOverlay("resize"));
   }
 
   function pixelsToPercent(value, type) {
@@ -136,6 +144,8 @@ export default function ResizeModal() {
   return (
     <DraggableWindow
       name={"Resize"}
+      onEnter={apply}
+      onEscape={cancel}
     >
       <ResizeModalSC>
         <InputRowSC>
@@ -148,6 +158,7 @@ export default function ResizeModal() {
               max={unit === "pixels" ? 5000 : pixelsToPercent(5000, "width")}
               rounding={2}
               inputWidth={"50px"}
+              stopKeydown={false}
             />
             <NumberInput
               onChange={value => handleInput(value, "height")}
@@ -157,6 +168,7 @@ export default function ResizeModal() {
               max={unit === "pixels" ? 5000 : pixelsToPercent(5000, "height")}
               rounding={2}
               inputWidth={"50px"}
+              stopKeydown={false}
             />
           </LeftBoxSC>
           <RightBoxSC>

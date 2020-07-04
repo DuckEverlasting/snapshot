@@ -102,13 +102,6 @@ export default function FilterTool() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
 
-  const handleKeyDown = ev => {
-    if (ev.key === "Escape") {
-      handleCancel();
-    }
-    ev.stopPropagation();
-  }
-
   const handleApply = () => {
     withWaiting(() => {
       dispatch(filterAction(
@@ -137,7 +130,7 @@ export default function FilterTool() {
   }
 
   return (
-    <DraggableWindow name={filter.name} onKeyDown={handleKeyDown} resizable={false}>
+    <DraggableWindow name={filter.name} onEscape={handleCancel} onEnter={handleApply} resizable={true}>
       <FilterToolSC>
         {
           Object.keys(filter.inputInfo).map((key, i) => {
