@@ -8,21 +8,21 @@ import {
   PUT_HISTORY_DATA_MULTIPLE,
   RESET_STATE
 } from "../../actions/redux/index";
-import { getInitUiState } from "./initState";
 
 const rootReducer = combineReducers({
-  lastAction,
+  lastAction: lastActionReducer,
   ui: uiReducer,
   main: undoable(mainReducer, {
-    filter: action => !action.payload.ignoreHistory,
+    filter: (action) => !action.payload.ignoreHistory,
     limit: 20
   })
 });
 
 export default rootReducer;
 
-function lastAction(state, {type}) {
-  if (type = RESET_STATE) {
+function lastActionReducer(state=null, {type, payload}) {
+  console.log(type, payload);
+  if (type === RESET_STATE) {
     return null;
   } else {
     return {type, time: Date.now()}
@@ -30,13 +30,13 @@ function lastAction(state, {type}) {
 }
 
 function undoable(reducer, { filter = () => true, limit = undefined }) {
-  const getInitUiState = () => ({
+  const getInitState = () => ({
     past: [],
     present: reducer(undefined, {}),
     future: []
   });
 
-  return function(state = getInitUiState(), { type, payload }) {
+  return function(state = getInitState(), { type, payload }) {
     const { past, present, future } = state;
     let newPresent;
 
@@ -57,10 +57,10 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           present: { ...present }
         };
       case PUT_HISTORY_DATA_MULTIPLE:
-        const onUndoArray = payload.map(el => {
+        const onUndoArray = payload.array.map(el => {
           return {id: el.id, data: el.old, move: payload.oldMove}
         });
-        const onRedoArray = payload.map(el => {
+        const onRedoArray = payload.array.map(el => {
           return {id: el.id, data: el.new, move: payload.newMove}
         });
         return {
@@ -99,7 +99,7 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           future: newFuture
         };
       case RESET_STATE: {
-        return getInitUiState();
+        return getInitState();
       }
       default:
         newPresent = reducer(present, { type, payload });

@@ -4,7 +4,7 @@ import {
   HIDE_LAYER,
   UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
-  SET_TRANSFORM_SELECTION,
+  SET_TRANSFORM_TARGET,
   SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
@@ -16,7 +16,8 @@ import {
   MAKE_ACTIVE_LAYER,
   SET_STAMP_DATA,
   UPDATE_DOCUMENT_SETTINGS,
-  MOVE_ALL_LAYERS
+  MOVE_ALL_LAYERS,
+  SET_HISTORY_IS_DISABLED
 } from "../../actions/redux";
 
 import { getInitMainState } from "./initState";
@@ -114,26 +115,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
       return {
         ...state,
         selectionPath: newPath,
-        selectionActive: payload.path
-      }
-
-    case SET_TRANSFORM_SELECTION:
-      return {
-        ...state,
-        transformSelectionTarget: payload.target,
-        transformParams: {
-          ...state.transformParams,
-          ...payload.params
-        }
-      }
-
-    case SET_TRANSFORM_PARAMS:
-      return {
-        ...state,
-        transformParams: {
-          ...state.transformParams,
-          ...payload.params
-        }
+        selectionActive: !!payload.path
       }
 
     case UPDATE_LAYER_OPACITY:
@@ -258,6 +240,12 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
           ...state.layerSettings,
           ...newOffsetLayerSettings
         }
+      };
+    
+    case SET_HISTORY_IS_DISABLED:
+      return {
+        ...state,
+        historyIsDisabled: payload.bool
       };
       
     default:

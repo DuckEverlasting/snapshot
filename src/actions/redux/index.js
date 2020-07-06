@@ -12,7 +12,7 @@ export const [
   HIDE_LAYER,
   UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
-  SET_TRANSFORM_SELECTION,
+  SET_TRANSFORM_TARGET,
   SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
@@ -24,7 +24,7 @@ export const [
   DRAG_LAYERCARD,
   END_DRAG_LAYERCARD,
   MAKE_ACTIVE_LAYER,
-  MAKE_ACTIVE_TOOL,
+  SET_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_COLOR,
   SWITCH_COLORS,
@@ -34,6 +34,7 @@ export const [
   SET_CLIPBOARD_IS_USED,
   SET_OVERLAY,
   SET_MENU_IS_DISABLED,
+  SET_HISTORY_IS_DISABLED,
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
@@ -51,7 +52,7 @@ export const [
   "HIDE_LAYER",
   "UPDATE_CANVAS",
   "UPDATE_SELECTION_PATH",
-  "SET_TRANSFORM_SELECTION",
+  "SET_TRANSFORM_TARGET",
   "SET_TRANSFORM_PARAMS",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_BLEND_MODE",
@@ -63,7 +64,7 @@ export const [
   "DRAG_LAYERCARD",
   "END_DRAG_LAYERCARD",
   "MAKE_ACTIVE_LAYER",
-  "MAKE_ACTIVE_TOOL",
+  "SET_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
   "UPDATE_COLOR",
   "SWITCH_COLORS",
@@ -73,6 +74,7 @@ export const [
   "SET_CLIPBOARD_IS_USED",
   "SET_OVERLAY",
   "SET_MENU_IS_DISABLED",
+  "SET_HISTORY_IS_DISABLED",
   "SET_HELP_TOPIC",
   "SET_IMPORT_IMAGE_FILE",
   "SET_EXPORT_OPTIONS",
@@ -91,9 +93,9 @@ export const undo = () => {
         executeUndo(prevState.onUndo);
       }
 
-      function executeUndo(onUndo) {
+      async function executeUndo(onUndo) {
         if (onUndo.move) {
-          dispatch(moveLayer(onUndo.id, onUndo.move));
+          await dispatch(moveLayer(onUndo.id, onUndo.move));
         } else {
           const ctx = prevState.layerCanvas[onUndo.id].getContext("2d")
           const changeData = onUndo.data
@@ -193,13 +195,12 @@ export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[],
     differences[i] = {
       id: ids[i],
       ...getDiff(ctxs[i], {prevImgData: prevImgDatas[i]}),
-      params
     }
   }
   
   return {
     type: PUT_HISTORY_DATA_MULTIPLE,
-    payload: differences
+    payload: {array: differences, params}
   }
 }
 
@@ -265,23 +266,21 @@ const defaultTransformParams = {
   resizable: null
 }
 
-export const setTransformSelection = (target, params=defaultTransformParams, ignoreHistory=true) => {
+export const setTransformTarget = (target, params=defaultTransformParams) => {
   return {
-    type: SET_TRANSFORM_SELECTION,
+    type: SET_TRANSFORM_TARGET,
     payload: {
       params: params ? params : defaultTransformParams,
-      target,
-      ignoreHistory
+      target
     }
   };
 };
 
-export const setTransformParams = (params=defaultTransformParams, ignoreHistory=true) => {
+export const setTransformParams = (params=defaultTransformParams) => {
   return {
     type: SET_TRANSFORM_PARAMS,
     payload: {
-      params: params ? params : defaultTransformParams,
-      ignoreHistory
+      params: params ? params : defaultTransformParams
     }
   };
 };
@@ -355,9 +354,9 @@ export const makeActiveLayer = layerId => {
   };
 };
 
-export const makeActiveTool = slug => {
+export const setActiveTool = slug => {
   return {
-    type: MAKE_ACTIVE_TOOL,
+    type: SET_ACTIVE_TOOL,
     payload: slug
   };
 };
@@ -421,6 +420,13 @@ export const setMenuIsDisabled = bool => {
   return {
     type: SET_MENU_IS_DISABLED,
     payload: bool
+  }
+}
+
+export const setHistoryIsDisabled = bool => {
+  return {
+    type: SET_HISTORY_IS_DISABLED,
+    payload: {bool, ignoreHistory: true}
   }
 }
 

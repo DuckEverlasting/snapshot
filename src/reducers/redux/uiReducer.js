@@ -1,7 +1,7 @@
 import {
   DRAG_LAYERCARD,
   END_DRAG_LAYERCARD,
-  MAKE_ACTIVE_TOOL,
+  SET_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_COLOR,
@@ -10,6 +10,8 @@ import {
   SET_OVERLAY,
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
+  SET_TRANSFORM_TARGET,
+  SET_TRANSFORM_PARAMS,
   SET_EXPORT_OPTIONS,
   SET_APP_IS_WAITING,
   RESET_STATE
@@ -31,7 +33,7 @@ const uiReducer = (state = getInitUiState(), {type, payload}) => {
         draggedLayercard: null,
       }
 
-    case MAKE_ACTIVE_TOOL:
+    case SET_ACTIVE_TOOL:
       return {
         ...state,
         activeTool: payload
@@ -101,6 +103,23 @@ const uiReducer = (state = getInitUiState(), {type, payload}) => {
       return {
         ...state,
         importImageFile: payload
+      }
+    case SET_TRANSFORM_TARGET:
+      return {
+        ...state,
+        transformTarget: payload.target,
+        transformParams: {
+          ...state.transformParams,
+          ...payload.params
+        }
+      }
+    case SET_TRANSFORM_PARAMS:
+      return {
+        ...state,
+        transformParams: {
+          ...state.transformParams,
+          ...payload.params
+        }
       }
     case SET_EXPORT_OPTIONS:
       return {

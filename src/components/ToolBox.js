@@ -28,7 +28,7 @@ import styled from "styled-components";
 
 import Button from "./Button";
 
-import { makeActiveTool } from "../actions/redux";
+import { setActiveTool } from "../actions/redux";
 
 const ToolboxSC = styled.div`
   display: flex;
@@ -77,7 +77,7 @@ function ToolButton({ title, name, faIcon, icon }) {
   const dispatch = useDispatch();
   const changeToolHandler = ev => {
     ev.preventDefault();
-    dispatch(makeActiveTool(ev.target.name));
+    dispatch(setActiveTool(ev.target.name));
   };
 
   return (

@@ -62,12 +62,6 @@ export const getInitMainState = () => ({
   },
   selectionPath: initSelectionPath,
   selectionActive: false,
-  transformSelectionTarget: null,
-  transformParams: {
-    startEvent: null,
-    resizable: false,
-    rotatable: false
-  },
   stagingPinnedTo: 1,
   layerOrder: [1],
   layerCounter: 2,
@@ -77,7 +71,8 @@ export const getInitMainState = () => ({
     canvas: null,
     origin: null,
     destination: null
-  }
+  },
+  historyIsDisabled: false
 });
 
 export const getInitUiState = () => ({
@@ -122,5 +117,11 @@ export const getInitUiState = () => ({
   currentHelpTopic: "tools",
   currentFilter: null,
   importImageFile: null,
-  appIsWaiting: false,
+  transformTarget: null,
+  transformParams: {
+    startEvent: null,
+    resizable: false,
+    rotatable: false
+  },
+  appIsWaiting: false
 })

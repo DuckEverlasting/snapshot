@@ -11,7 +11,7 @@ import {
   putHistoryData,
   putHistoryDataMultiple,
   setImportImageFile,
-  setTransformSelection,
+  setTransformTarget,
   setTransformParams,
   updateLayerPosition,
   updateDocumentSettings,
@@ -205,13 +205,13 @@ export default function menuAction(action) {
         dispatch(render());
       };
     case "undo":
-      return dispatch => {
-        dispatch(undo());
+      return async dispatch => {
+        await dispatch(undo());
         return dispatch(render());
       }
     case "redo":
-      return dispatch => {
-        dispatch(redo());
+      return async dispatch => {
+        await dispatch(redo());
         return dispatch(render());
       }
     case "newLayer":
@@ -319,13 +319,12 @@ export default function menuAction(action) {
             params: { selectionPath: null }
           })
         }]));
-        dispatch(setTransformSelection(
+        dispatch(setTransformTarget(
           activeLayer,
-          {startEvent: null, resizable: true, rotatable: true},
-          true
+          {startEvent: null, resizable: true, rotatable: true}
         ));
         dispatch(render());
-        dispatch(updateSelectionPath(null, true));
+        dispatch(updateSelectionPath(null));
         return;
       }
     case "desaturate":

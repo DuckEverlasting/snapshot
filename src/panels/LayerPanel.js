@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
@@ -90,6 +90,7 @@ export default function LayerPanel() {
 
   const inputHandler = value => {
     if (
+      lastAction &&
       lastAction.type === "UPDATE_LAYER_OPACITY" &&
       Date.now() - lastAction.time < 1000
     ) {

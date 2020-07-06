@@ -28,7 +28,7 @@ import {
   updateWorkspaceSettings,
   setImportImageFile,
   createLayer,
-  setTransformSelection,
+  setTransformTarget,
   putHistoryDataMultiple,
   updateSelectionPath,
 } from "../actions/redux";
@@ -107,7 +107,7 @@ export default function Workspace() {
     (state) => state.ui.workspaceSettings
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
-  const { activeTool, toolSettings } = useSelector((state) => state.ui);
+  const { activeTool, toolSettings, transformTarget } = useSelector((state) => state.ui);
   const { documentWidth, documentHeight, documentName } = useSelector(
     (state) => state.main.present.documentSettings
   );
@@ -115,7 +115,6 @@ export default function Workspace() {
     activeLayer,
     selectionPath,
     selectionActive,
-    transformSelectionTarget,
     layerCanvas,
     layerSettings,
     layerOrder,
@@ -521,8 +520,7 @@ export default function Workspace() {
             ]
           )
         );
-        dispatch(updateSelectionPath(null, true));
-        dispatch(setTransformSelection(
+        dispatch(setTransformTarget(
             activeLayer,
             {
               startEvent: {
@@ -530,10 +528,10 @@ export default function Workspace() {
                 screenX: Math.floor(ev.screenX),
                 screenY: Math.floor(ev.screenY),
               },
-            },
-            true
+            }
           )
         );
+        return dispatch(updateSelectionPath(null));
       }
       currentAction = buildAction();
       if (!currentAction) {return}
@@ -639,12 +637,12 @@ export default function Workspace() {
           targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
         />
       )}
-      {transformSelectionTarget && (
+      {transformTarget && (
         <TransformObject
           source={layerCanvas.placeholder}
-          target={transformSelectionTarget}
-          targetCtx={layerCanvas[transformSelectionTarget].getContext("2d")}
-          targetOffset={layerSettings[transformSelectionTarget].offset}
+          target={transformTarget}
+          targetCtx={layerCanvas[transformTarget].getContext("2d")}
+          targetOffset={layerSettings[transformTarget].offset}
           docSize={{ w: documentWidth, h: documentHeight }}
         />
       )}
