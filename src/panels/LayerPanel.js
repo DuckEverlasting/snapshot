@@ -89,14 +89,15 @@ export default function LayerPanel() {
   }
 
   const inputHandler = value => {
+    let ignoreHistory = false;
     if (
       lastAction &&
       lastAction.type === "UPDATE_LAYER_OPACITY" &&
       Date.now() - lastAction.time < 1000
     ) {
-      dispatch(undo());
+      ignoreHistory = true;
     }
-    dispatch(updateLayerOpacity(activeLayer, value));
+    dispatch(updateLayerOpacity(activeLayer, value, ignoreHistory));
     dispatch(render());
   };
 

@@ -216,11 +216,12 @@ export default function TransformObject({
   useEffect(() => {
     dispatch(setActiveTool("move"));
     dispatch(setMenuIsDisabled(true));
-    // dispatch(setHistoryIsDisabled(true));
+    dispatch(setHistoryIsDisabled(true));
     setInitialized(true);
+    console.log("TRANSFORM INITIALIZED")
     return () => {
       dispatch(setMenuIsDisabled(false))
-      // dispatch(setHistoryIsDisabled(false))
+      dispatch(setHistoryIsDisabled(false))
     };
   }, [])
 

@@ -13,7 +13,7 @@ const rootReducer = combineReducers({
   lastAction: lastActionReducer,
   ui: uiReducer,
   main: undoable(mainReducer, {
-    filter: (action) => !action.payload.ignoreHistory,
+    filter: (action, state) => !action.payload.ignoreHistory && !state.present.historyIsDisabled,
     limit: 20
   })
 });
@@ -105,7 +105,7 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
         newPresent = reducer(present, { type, payload });
         if (present === newPresent) {
           return state;
-        } else if (!filter({ type, payload })) {
+        } else if (!filter({ type, payload }, state)) {
           return {
             ...state,
             present: newPresent

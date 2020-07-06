@@ -22,7 +22,7 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import manipulate from "../reducers/custom/manipulateReducer";
+import createTransformObject from "../actions/redux/createTransformObject";
 
 import {
   updateWorkspaceSettings,
@@ -485,53 +485,7 @@ export default function Workspace() {
       });
     } else if (ev.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
-        const activeCtx = layerCanvas[activeLayer].getContext("2d"),
-          selectionCtx = layerCanvas.selection.getContext("2d"),
-          placeholderCtx = layerCanvas.placeholder.getContext("2d");
-        manipulate(placeholderCtx, {
-          action: "paste",
-          params: {
-            sourceCtx: activeCtx,
-            dest: { x: 0, y: 0 },
-            clip: selectionPath,
-            clearFirst: true,
-          },
-        });
-        dispatch(
-          putHistoryDataMultiple(
-            [activeLayer, "selection"],
-            [activeCtx, selectionCtx],
-            [
-              () => {
-                manipulate(activeCtx, {
-                  action: "clear",
-                  params: {
-                    clip: selectionPath,
-                    clipOffset: layerSettings[activeLayer].offset,
-                  },
-                });
-              },
-              () => {
-                manipulate(selectionCtx, {
-                  action: "clear",
-                  params: { selectionPath: null },
-                });
-              },
-            ]
-          )
-        );
-        dispatch(setTransformTarget(
-            activeLayer,
-            {
-              startEvent: {
-                button: 0,
-                screenX: Math.floor(ev.screenX),
-                screenY: Math.floor(ev.screenY),
-              },
-            }
-          )
-        );
-        return dispatch(updateSelectionPath(null));
+        return dispatch(createTransformObject(ev));
       }
       currentAction = buildAction();
       if (!currentAction) {return}
