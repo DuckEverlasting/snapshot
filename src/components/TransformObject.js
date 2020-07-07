@@ -307,16 +307,18 @@ export default function TransformObject({
     if (!actionType) return;
     currentTransformAction = transformActionFactory(
       ev,
-      size,
-      setSize,
-      offset,
-      setOffset,
-      anchorPoint,
-      setAnchorPoint,
-      rotation,
-      setRotation,
-      zoom,
-      anchorRef,
+      { 
+        size,
+        setSize,
+        offset,
+        setOffset,
+        anchorPoint,
+        setAnchorPoint,
+        rotation,
+        setRotation,
+        zoom,
+        anchorRef
+      },
       { actionType }
     );
     currentTransformAction.start(ev);

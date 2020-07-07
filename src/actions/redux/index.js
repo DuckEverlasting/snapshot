@@ -14,6 +14,8 @@ export const [
   UPDATE_SELECTION_PATH,
   SET_TRANSFORM_TARGET,
   SET_TRANSFORM_PARAMS,
+  SET_CROP_IS_ACTIVE,
+  SET_CROP_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
   UPDATE_LAYER_ORDER,
@@ -54,6 +56,8 @@ export const [
   "UPDATE_SELECTION_PATH",
   "SET_TRANSFORM_TARGET",
   "SET_TRANSFORM_PARAMS",
+  "SET_CROP_IS_ACTIVE",
+  "SET_CROP_PARAMS",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_BLEND_MODE",
   "UPDATE_LAYER_ORDER",
@@ -282,6 +286,20 @@ export const setTransformParams = (params=defaultTransformParams) => {
     payload: {
       params: params ? params : defaultTransformParams
     }
+  };
+};
+
+export const setCropIsActive = (bool, params={}) => {
+  return {
+    type: SET_CROP_IS_ACTIVE,
+    payload: {bool, params}
+  };
+};
+
+export const setCropParams = (params) => {
+  return {
+    type: SET_CROP_PARAMS,
+    payload: params
   };
 };
 

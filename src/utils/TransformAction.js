@@ -1,7 +1,7 @@
 import { getDistance } from "../utils/helpers";
 
 class TransformActionBase {
-  constructor(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params) {
+  constructor(ev, { size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef }, params) {
     this.size = size;
     this.setSize = setSize;
     this.offset = offset;
@@ -40,7 +40,18 @@ class ResizeTransformAction extends TransformActionBase {
     x = Math.floor(ev.screenX);
     y = Math.floor(ev.screenY);
 
-    if (!ev.shiftKey || this.params.direction.length > 2) {
+    let lockAspectRatio;
+    if (
+      (!ev.shiftKey && !this.params.invertShiftOnResize) ||
+      (ev.shiftKey && this.params.invertShiftOnResize) ||
+      this.params.direction.length > 2
+    ) {
+      lockAspectRatio = true;
+    } else {
+      lockAspectRatio = false;
+    }
+
+    if (lockAspectRatio) {
       const distX = x - this.origin.x;
       const distY = y - this.origin.y;
       let dist;
@@ -166,30 +177,30 @@ class MoveAnchorPointTransformAction extends TransformActionBase {
   }
 }
 
-export default function transformActionFactory(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params) {
+export default function transformActionFactory(ev, transformData, params) {
   switch(params.actionType) {
     case "move":
-      return new MoveTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params);
+      return new MoveTransformAction(ev, transformData, params);
     case "rotate":
-      return new RotateTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params);
+      return new RotateTransformAction(ev, transformData, params);
     case "n-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "n"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "n"});
     case "s-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "s"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "s"});
     case "e-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "e"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "e"});
     case "w-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "w"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "w"});
     case "ne-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "ne"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "ne"});
     case "se-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "se"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "se"});
     case "sw-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "sw"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "sw"});
     case "nw-resize":
-      return new ResizeTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "nw"});
+      return new ResizeTransformAction(ev, transformData, {...params, direction: "nw"});
     case "move-anchor":
-      return new MoveAnchorPointTransformAction(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, {...params, direction: "nw"});
+      return new MoveAnchorPointTransformAction(ev, transformData, {...params, direction: "nw"});
     default:
       break;
   }

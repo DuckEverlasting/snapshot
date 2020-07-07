@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 
 import TransformObject from "../components/TransformObject";
+import CropObject from "../components/CropObject";
 
 import {
   PencilAction,
@@ -107,7 +108,7 @@ export default function Workspace() {
     (state) => state.ui.workspaceSettings
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
-  const { activeTool, toolSettings, transformTarget } = useSelector((state) => state.ui);
+  const { activeTool, toolSettings, transformTarget, cropIsActive } = useSelector((state) => state.ui);
   const { documentWidth, documentHeight, documentName } = useSelector(
     (state) => state.main.present.documentSettings
   );
@@ -599,6 +600,9 @@ export default function Workspace() {
           targetOffset={layerSettings[transformTarget].offset}
           docSize={{ w: documentWidth, h: documentHeight }}
         />
+      )}
+      {cropIsActive && (
+        <CropObject />
       )}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
       <NameDisplaySC>{documentName}</NameDisplaySC>

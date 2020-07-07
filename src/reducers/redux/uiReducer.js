@@ -12,6 +12,8 @@ import {
   SET_IMPORT_IMAGE_FILE,
   SET_TRANSFORM_TARGET,
   SET_TRANSFORM_PARAMS,
+  SET_CROP_IS_ACTIVE,
+  SET_CROP_PARAMS,
   SET_EXPORT_OPTIONS,
   SET_APP_IS_WAITING,
   RESET_STATE
@@ -121,6 +123,23 @@ const uiReducer = (state = getInitUiState(), {type, payload}) => {
           ...payload.params
         }
       }
+    case SET_CROP_IS_ACTIVE:
+      return {
+        ...state,
+        cropIsActive: payload.bool,
+        cropParams: {
+          ...state.cropParams,
+          ...payload.params
+        }
+      }
+    case SET_CROP_PARAMS:
+      return {
+        ...state,
+        cropParams: {
+          ...state.cropParams,
+          ...payload
+        }
+      }  
     case SET_EXPORT_OPTIONS:
       return {
         ...state,

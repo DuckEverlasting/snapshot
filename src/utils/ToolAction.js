@@ -13,7 +13,8 @@ import {
   updateStagingPosition,
   updateLayerPosition,
   setStampData,
-  putHistoryData
+  putHistoryData,
+  setCropIsActive
 } from "../actions/redux/index";
 
 import draw from "../reducers/custom/drawingReducer";
@@ -741,7 +742,6 @@ export class ShapeAction extends ToolActionBase {
     this.regularOnShift = params.regularOnShift;
     this.color = params.color;
     this.width = params.width;
-    this.dashPattern = params.dashPattern;
     this.clip = params.clip;
   }
 
@@ -1042,5 +1042,71 @@ export class FillAction extends ToolActionBase {
         }
       })
     ));
+  }
+}
+
+export class CropAction extends ToolActionBase {
+  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, dispatch, translateData);
+    this.clip = params.clip;
+  }
+
+  onStart(ev) {
+    this.origin = this._getCoordinates(ev);
+    this.layerCanvas.selection.getContext("2d").clearRect(
+      0,
+      0,
+      this.layerCanvas.selection.width,
+      this.layerCanvas.selection.height
+    );
+  }
+
+  onMove(ev) {
+    this.dest = this._getCoordinates(ev);
+    if (ev.shiftKey) {
+      this.dest = convertDestToRegularShape(this.origin, this.dest);
+    };
+    if (this.targetLayer === "selection") {
+      draw(this.layerCanvas.staging.getContext("2d"), {
+        action: this.drawActionType,
+        params: {
+          orig: this.origin,
+          dest: this.dest,
+          width: 1,
+          strokeColor: "rgba(0, 0, 0, 1)",
+          dashPattern: [7, 7],
+          clearFirst: true
+        }
+      })
+      draw(this.layerCanvas.staging.getContext("2d"), {
+        action: this.drawActionType,
+        params: {
+          orig: this.origin,
+          dest: this.dest,
+          width: 1,
+          strokeColor: "rgba(255, 255, 255, 1)",
+          dashPattern: [7, 7],
+          dashOffset: 7
+        }
+      })
+    }
+  }
+
+  onEnd() {
+    if (!this.dest) {
+      setCropIsActive(true, {
+        x: 0,
+        y: 0,
+        w: this.translateData.documentWidth,
+        h: this.translateData.documentHeight
+      })
+    } else {
+      setCropIsActive(true, {
+        x: 0,
+        y: 0,
+        w: this.translateData.documentWidth,
+        h: this.translateData.documentHeight
+      })
+    }
   }
 }

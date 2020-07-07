@@ -21,9 +21,7 @@ const BoundingBoxSC = styled.div.attrs((props) => ({
 const ContainerSC = styled.div.attrs((props) => ({
   style: {
     transform: `translateX(${props.offset.x}px)
-                translateY(${props.offset.y}px)
-                rotate(${props.rotation}rad)`,
-    transformOrigin: `${props.anchorPoint.x * 100}% ${props.anchorPoint.y * 100}%`,
+                translateY(${props.offset.y}px)`,
     width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
     height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
     cursor: props.overrideCursor || "move",
@@ -122,7 +120,7 @@ const NWResizeSC = styled(ResizeCornerSC)`
 
 let currentTransformAction = null;
 
-export default function TransformObject() {
+export default function CropObject() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ h: 0, w: 0 });
   
@@ -133,9 +131,8 @@ export default function TransformObject() {
       zoom: settings.zoomPct / 100,
     };
   });
-  const { documentWidth, documentHeight } = useSelector(
-    (state) => state.main.present.documentSettings
-  );
+  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
+  const { startDimensions } = useSelector(state => state.ui.cropParams);
 
   const dispatch = useDispatch();
 
@@ -148,15 +145,15 @@ export default function TransformObject() {
 
   useEffect(() => {
     setOffset({
-      x: 0,
-      y: 0,
+      x: startDimensions ? startDimensions.x : 0,
+      y: startDimensions ? startDimensions.y : 0,
     });
     setSize({
-      w: documentWidth,
-      h: documentHeight,
+      w: startDimensions ? startDimensions.w : documentWidth,
+      h: startDimensions ? startDimensions.h : documentHeight,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [startDimensions]);
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
@@ -164,12 +161,14 @@ export default function TransformObject() {
     if (!actionType) return;
     currentTransformAction = transformActionFactory(
       ev,
-      size,
-      setSize,
-      offset,
-      setOffset,
-      zoom,
-      { actionType }
+      { 
+        size,
+        setSize,
+        offset,
+        setOffset,
+        zoom
+      },
+      { actionType, invertShiftOnResize: true }
     );
     currentTransformAction.start(ev);
   }
@@ -216,7 +215,6 @@ export default function TransformObject() {
 
   return (
     <BoundingBoxSC
-      onMouseDown={(ev) => handleMouseDown(ev, rotatable ? "rotate" : null)}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onKeyDown={handleKeyDown}

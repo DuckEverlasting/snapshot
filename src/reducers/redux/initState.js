@@ -94,6 +94,7 @@ export const getInitUiState = () => ({
     selectRect: { name: "Select Rectangle" },
     selectEllipse: { name: "Select Ellipse" },
     lasso: { name: "Lasso" },
+    crop: { name: "Crop" },
     move: { name: "Move" },
     hand: { name: "Hand" },
     zoom: { name: "Zoom" },
@@ -122,6 +123,10 @@ export const getInitUiState = () => ({
     startEvent: null,
     resizable: false,
     rotatable: false
+  },
+  cropIsActive: false,
+  cropParams: {
+    startDimensions: null 
   },
   appIsWaiting: false
 })
