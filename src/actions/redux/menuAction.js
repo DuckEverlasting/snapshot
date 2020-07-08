@@ -91,7 +91,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
 
     if (offset) {
       const parsedOffset = typeof offset === "string" ? offsetConversion[offset] : offset;
-      await getState().main.present.layerOrder.forEach(targetLayer => {
+      await getState().main.present.renderOrder.forEach(targetLayer => {
         const translateData = {
           offX: layerSettings[targetLayer].offset.x,
           offY: layerSettings[targetLayer].offset.y,
@@ -103,7 +103,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
         action.manualEnd(parsedOffset, true);
       })
     } else {
-      await getState().main.present.layerOrder.forEach(targetLayer => {
+      await getState().main.present.renderOrder.forEach(targetLayer => {
         const widthFactor = width / documentWidth;
         const heightFactor = height / documentHeight;
         temp.width = layerCanvas[targetLayer].width * widthFactor;
@@ -216,11 +216,11 @@ export default function menuAction(action) {
       }
     case "newLayer":
       return (dispatch, getState) => {
-        const { activeLayer, layerOrder } = getState().main.present;
+        const { activeLayer, renderOrder } = getState().main.present;
         if (activeLayer) {
           dispatch(createLayer(activeLayer));
         } else {
-          dispatch(createLayer(layerOrder.length));
+          dispatch(createLayer(renderOrder.length));
         }
       };
     case "deleteLayer":
@@ -269,7 +269,7 @@ export default function menuAction(action) {
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
           dispatch(setTransformParams({resizable: true, rotatable: true}))
-          dispatch(createLayer(getState().main.present.layerOrder.length, false, {name}));
+          dispatch(createLayer(getState().main.present.renderOrder.length, false, {name}));
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }

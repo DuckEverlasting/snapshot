@@ -4,11 +4,9 @@ import {
   HIDE_LAYER,
   UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
-  SET_TRANSFORM_TARGET,
-  SET_TRANSFORM_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
-  UPDATE_LAYER_ORDER,
+  UPDATE_RENDER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
@@ -26,16 +24,17 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
     case CREATE_LAYER:
       let { position, source, params } = payload;
-      if (state.layerOrder.length >= 50) {
+      if (state.renderOrder.length >= 50) {
         return state
       };
       if (position === "top") {
-        position = state.layerOrder.length;
+        position = state.renderOrder.length;
       }
      
       const layerId = state.layerCounter;
       const newLayerSettings = {
         name: params.name ? params.name : `Layer ${state.layerCounter}`,
+        type: "raster",
         nameEditable: false,
         size: params.size || {
           w: state.documentSettings.documentWidth,
@@ -50,14 +49,14 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         blend: "source-over"
       };
       const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
-      let orderAfterCreate = state.layerOrder.slice(0);
+      let orderAfterCreate = state.renderOrder.slice(0);
       orderAfterCreate.splice(position + 1, 0, layerId);
 
       return {
         ...state,
         layerCanvas: {...state.layerCanvas, [layerId]: source ? source : newLayerCanvas},
         layerSettings: {...state.layerSettings, [layerId]: newLayerSettings},
-        layerOrder: orderAfterCreate,
+        renderOrder: orderAfterCreate,
         activeLayer: state.layerCounter,
         layerCounter: state.layerCounter + 1,
       };
@@ -65,7 +64,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
     case DELETE_LAYER:
       let afterDeleteData = {...state.layerCanvas, [payload.id]: undefined}
       let afterDeleteSettings = {...state.layerSettings, [payload.id]: undefined}
-      let afterDeleteOrder = state.layerOrder.filter(id => {
+      let afterDeleteOrder = state.renderOrder.filter(id => {
         return id !== payload.id;
       });
       let afterDeleteActive = state.activeLayer === payload.id ? null : state.activeLayer
@@ -73,7 +72,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         ...state,
         layerCanvas: afterDeleteData,
         layerSettings: afterDeleteSettings,
-        layerOrder: afterDeleteOrder,
+        renderOrder: afterDeleteOrder,
         activeLayer: afterDeleteActive
       };
     
@@ -142,13 +141,13 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         }
       };
 
-    case UPDATE_LAYER_ORDER:
+    case UPDATE_RENDER_ORDER:
       let { from, to } = payload;
-      let newLayerOrder = state.layerOrder.slice(0);
-      newLayerOrder.splice(to, 0, newLayerOrder.splice(from, 1)[0]);
+      let newRenderOrder = state.renderOrder.slice(0);
+      newRenderOrder.splice(to, 0, newRenderOrder.splice(from, 1)[0]);
       return {
         ...state,
-        layerOrder: newLayerOrder,
+        renderOrder: newRenderOrder,
       };
 
     case UPDATE_LAYER_POSITION:
@@ -225,7 +224,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
 
     case MOVE_ALL_LAYERS:
       const newOffsetLayerSettings = {};
-      state.layerOrder.forEach(el => {
+      state.renderOrder.forEach(el => {
         newOffsetLayerSettings[el] = {
           ...state.layerSettings[el],
           offset: {

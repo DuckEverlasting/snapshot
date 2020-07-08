@@ -123,7 +123,7 @@ export default function Workspace() {
     selectionActive,
     layerCanvas,
     layerSettings,
-    layerOrder,
+    renderOrder,
     stampData,
   } = useSelector((state) => state.main.present);
   const importImageFile = useSelector((state) => state.ui.importImageFile);
@@ -277,7 +277,7 @@ export default function Workspace() {
         });
       case "eyeDropper":
         return new EyeDropperAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
-          layerOrder: layerOrder,
+          renderOrder: renderOrder,
         });
       case "selectRect":
         return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
@@ -396,27 +396,24 @@ export default function Workspace() {
         });
       case "TEST":
         dispatch(putHistoryData(activeLayer, layerCanvas[activeLayer].getContext("2d"), () => {
-          console.log("yo")
           const tempCanvas = new OffscreenCanvas(layerCanvas[activeLayer].width, layerCanvas[activeLayer].height);
           tempCanvas.getContext("2d").drawImage(layerCanvas[activeLayer], 0, 0);
-          console.log("sup")
           let pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
           const ctx = tempCanvas.getContext("2d");
           const finalPath = new Path2D();
           function doTheThing(pointList) {
-            console.log(pointList.length);
             let path = MarchingSquaresOpt.getPathFromPointList(pointList);
             finalPath.addPath(path);
             ctx.save();
             ctx.translate(2, 0);
             ctx.clip(path);
+            ctx.translate(-2, 0);
             ctx.clearRect(0, 0, documentWidth, documentHeight);
             ctx.restore();
             return 1;
           }
           let prevLength = null;
           while (true) {
-            console.log(pointList)
             const one = doTheThing(pointList);
             if (one === 1) {
               pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
@@ -609,7 +606,7 @@ export default function Workspace() {
     if (!file || !file.type.startsWith("image")) {return}
     const name = file.name.replace(/\.[^/.]+$/, "");
     dispatch(async (dispatch) => {
-      await dispatch(createLayer(layerOrder.length, false, { name }));
+      await dispatch(createLayer(renderOrder.length, false, { name }));
       dispatch(setImportImageFile(file));
     });
   };
@@ -638,8 +635,8 @@ export default function Workspace() {
       {importImageFile && (
         <TransformObject
           source={importImageFile}
-          target={layerOrder[layerOrder.length - 1]}
-          targetCtx={layerCanvas[layerOrder[layerOrder.length - 1]].getContext("2d")}
+          target={renderOrder[renderOrder.length - 1]}
+          targetCtx={layerCanvas[renderOrder[renderOrder.length - 1]].getContext("2d")}
         />
       )}
       {transformTarget && (

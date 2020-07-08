@@ -26,6 +26,7 @@ export const getInitMainState = () => ({
   layerSettings: {
     1: {
       name: "Layer 1",
+      type: "raster",
       nameEditable: false,
       size: {
         w: initWidth,
@@ -63,7 +64,7 @@ export const getInitMainState = () => ({
   selectionPath: initSelectionPath,
   selectionActive: false,
   stagingPinnedTo: 1,
-  layerOrder: [1],
+  renderOrder: [1],
   layerCounter: 2,
   activeLayer: 1,
   clipboardUsed: false,

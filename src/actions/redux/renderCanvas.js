@@ -5,7 +5,7 @@ export default function renderCanvas(start, end, params={}) {
     const {
       layerCanvas,
       layerSettings,
-      layerOrder,
+      renderOrder,
       stagingPinnedTo
     } = getState().main.present;
 
@@ -16,10 +16,10 @@ export default function renderCanvas(start, end, params={}) {
     }
 
     if (start === undefined) start = 0;
-    if (end === undefined) end = layerOrder.length;
+    if (end === undefined) end = renderOrder.length;
 
     for (let i = start; i < end; i++) {
-      const current = layerOrder[i]
+      const current = renderOrder[i]
       const { offset, blend, opacity } = layerSettings[current];
       
       if (layerSettings[current].hidden || opacity === 0) continue;

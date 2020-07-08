@@ -18,7 +18,7 @@ export const [
   SET_CROP_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
-  UPDATE_LAYER_ORDER,
+  UPDATE_RENDER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
@@ -60,7 +60,7 @@ export const [
   "SET_CROP_PARAMS",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_BLEND_MODE",
-  "UPDATE_LAYER_ORDER",
+  "UPDATE_RENDER_ORDER",
   "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
   "ENABLE_LAYER_RENAME",
@@ -317,9 +317,9 @@ export const updateLayerBlendMode = (id, blend, ignoreHistory=false) => {
   };
 };
 
-export const updateLayerOrder = (from, to, ignoreHistory=false) => {
+export const updateRenderOrder = (from, to, ignoreHistory=false) => {
   return {
-    type: UPDATE_LAYER_ORDER,
+    type: UPDATE_RENDER_ORDER,
     payload: {from, to, ignoreHistory}
   };
 };
