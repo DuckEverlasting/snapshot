@@ -144,6 +144,7 @@ export default function CropObject() {
   }, [])
 
   useEffect(() => {
+    console.log("START DIMENSIONS: ", startDimensions)
     setOffset({
       x: startDimensions ? startDimensions.x : 0,
       y: startDimensions ? startDimensions.y : 0,

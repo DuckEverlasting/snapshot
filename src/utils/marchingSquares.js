@@ -15,14 +15,14 @@ MarchingSquaresOpt.getBlobOutlinePoints = function(source_array, width, height=0
   // Note: object should not be on the border of the array, since there is
   //       no padding of 1 pixel to handle points which touch edges
 
-  if (source_array instanceof HTMLCanvasElement) {
+  if (source_array instanceof HTMLCanvasElement || source_array instanceof OffscreenCanvas) {
     width = source_array.width;
     height = source_array.height;
     const data4 = source_array.getContext('2d').getImageData(0, 0, width, height).data,  // Uint8ClampedArray
       len = width * height,
       data = new Uint8Array(len);
     for (let i = 0; i < len; ++i) {
-      data[i] = data4[i << 2];
+      data[i] = data4[i * 4 + 3];
     }
     source_array = data;
   } else if (0 == height) {
@@ -42,11 +42,11 @@ MarchingSquaresOpt.getBlobOutlinePoints = function(source_array, width, height=0
 
 MarchingSquaresOpt.getFirstNonTransparentPixelTopDown = function(source_array, width, height) {
   let idx;
-  for(let h = 0|0; h < height; ++h) {
-    idx = (h * width)|0;
-    for(let w = 0|0; w < width; ++w) {
-      if(source_array[idx] > 0) {
-        return {w : w, h : h};
+  for (let h = 0 | 0; h < height; ++h) {
+    idx = (h * width) | 0;
+    for (let w = 0 | 0; w < width; ++w) {
+      if (source_array[idx] > 0) {
+        return { w, h };
       }
       ++idx;
     }
@@ -100,6 +100,16 @@ MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w
 
   return point_list;
 };
+
+MarchingSquaresOpt.getPathFromPointList = function(point_list) {
+  const path = new Path2D();
+  path.moveTo(point_list[0], point_list[1]);
+  for (let i = 2; i < point_list.length; i+=2) {
+    path.lineTo(point_list[i], point_list[i + 1]);
+  }
+  path.closePath();
+  return path;
+}
 
 // determines and sets the state of the 4 pixels that
 // represent our current state, and sets our current and

@@ -5,6 +5,7 @@ import styled from "styled-components";
 
 import TransformObject from "../components/TransformObject";
 import CropObject from "../components/CropObject";
+import { MarchingSquaresOpt } from "../utils/marchingSquares";
 
 import {
   PencilAction,
@@ -16,6 +17,7 @@ import {
   EyeDropperAction,
   MoveAction,
   FillAction,
+  CropAction,
 } from "../utils/ToolAction";
 
 import { getZoomAmount } from "../utils/helpers";
@@ -32,6 +34,7 @@ import {
   setTransformTarget,
   putHistoryDataMultiple,
   updateSelectionPath,
+  putHistoryData
 } from "../actions/redux";
 
 import DropZone from "../components/DropZone";
@@ -39,6 +42,8 @@ import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
+import render from "../actions/redux/renderCanvas";
+import manipulateReducer from "../reducers/custom/manipulateReducer";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -385,6 +390,51 @@ export default function Workspace() {
           lastEndpoint,
           setLastEndpoint
         });
+      case "crop":
+        return new CropAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          clip: selectionPath
+        });
+      case "TEST":
+        dispatch(putHistoryData(activeLayer, layerCanvas[activeLayer].getContext("2d"), () => {
+          console.log("yo")
+          const tempCanvas = new OffscreenCanvas(layerCanvas[activeLayer].width, layerCanvas[activeLayer].height);
+          tempCanvas.getContext("2d").drawImage(layerCanvas[activeLayer], 0, 0);
+          console.log("sup")
+          let pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
+          const ctx = tempCanvas.getContext("2d");
+          const finalPath = new Path2D();
+          function doTheThing(pointList) {
+            console.log(pointList.length);
+            let path = MarchingSquaresOpt.getPathFromPointList(pointList);
+            finalPath.addPath(path);
+            ctx.save();
+            ctx.translate(2, 0);
+            ctx.clip(path);
+            ctx.clearRect(0, 0, documentWidth, documentHeight);
+            ctx.restore();
+            return 1;
+          }
+          let prevLength = null;
+          while (true) {
+            console.log(pointList)
+            const one = doTheThing(pointList);
+            if (one === 1) {
+              pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
+            }
+            if (!pointList.length || pointList.length === prevLength) break;
+            prevLength = pointList.length;
+          }
+
+          const finalCtx = layerCanvas[activeLayer].getContext("2d")
+          finalCtx.clearRect(0, 0, documentWidth, documentHeight);
+          finalCtx.save();
+          finalCtx.translate(2, 0);
+          finalCtx.strokeStyle = "rgb(255,0,0)"
+          finalCtx.stroke(finalPath);
+          finalCtx.restore();
+        }))
+        dispatch(render());
+        return null;
       default:
         break;
     }

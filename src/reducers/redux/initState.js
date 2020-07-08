@@ -104,8 +104,8 @@ export const getInitUiState = () => ({
     dodge: { name: "Dodge", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     burn: { name: "Burn", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
-    sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 }
-    // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }
+    sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 },
+    TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 },
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",

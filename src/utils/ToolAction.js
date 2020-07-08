@@ -59,11 +59,14 @@ class ToolActionBase {
     }
   }
 
-  _getCoordinates(ev) {
-    return {
-      x: (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
-      y: (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY
-    };
+  _getCoordinates(ev, params={}) {
+    let x = (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y = (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY;
+    if (params.autoCrop) {
+      x = Math.min(Math.max(x, 0), this.translateData.documentWidth - 1);
+      y = Math.min(Math.max(y, 0), this.translateData.documentHeight - 1); 
+    }
+    return { x, y };
   }
 
   _setLockedAxis(ev) {
@@ -74,7 +77,7 @@ class ToolActionBase {
       throw new Error("setLockedAxis requires an origin to be stored");
     }
 
-    const {x, y} = this._getCoordinates(ev)
+    const { x, y } = this._getCoordinates(ev)
     if (this.lockedAxis && !ev.shiftKey) {
       this.lockedAxis = null;
     } else if (!this.lockedAxis && ev.shiftKey) {
@@ -132,6 +135,7 @@ export class FreeDrawAction extends ToolActionBase {
     this.lastEndpoint = params.lastEndpoint;
     this.setLastEndpoint = params.setLastEndpoint;
     this.renderOnStart = true;
+    this.isSelectionTool = targetLayer === "selection";
   }
 
   start(ev, ...args) {
@@ -139,7 +143,7 @@ export class FreeDrawAction extends ToolActionBase {
       this._moveStaging();
     }
 
-    this.origin = this._getCoordinates(ev);
+    this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
 
     this.coords = this.origin;
 
@@ -152,7 +156,7 @@ export class FreeDrawAction extends ToolActionBase {
 
   move(ev, ...args) {
     this._setLockedAxis(ev);
-    let {x, y} = this._getCoordinates(ev);
+    let {x, y} = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
@@ -194,7 +198,7 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onStart(ev) {
-    if (this.targetLayer === "selection") {
+    if (this.isSelectionTool) {
       this._selectionStart(ev);
     }
     if (this.lastEndpoint && ev.shiftKey && this.targetLayer !== "selection") {
@@ -207,7 +211,7 @@ export class PencilAction extends FreeDrawAction {
   onMove() {
     this.destArray = [...this.destArray, this.coords];
 
-    if (this.targetLayer === "selection") {
+    if (this.isSelectionTool) {
       const params = {
         destArray: this.destArray,
         orig: this.origin,
@@ -241,7 +245,7 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onEnd() {
-    if (this.targetLayer === "selection") {
+    if (this.isSelectionTool) {
       if (this.destArray.length < 2) {
         return this.dispatch(updateSelectionPath(null));
       }
@@ -743,21 +747,22 @@ export class ShapeAction extends ToolActionBase {
     this.color = params.color;
     this.width = params.width;
     this.clip = params.clip;
+    this.isSelectionTool = this.targetLayer === "selection";
   }
 
   onStart(ev) {
-    this.origin = this._getCoordinates(ev);
-    if (this.targetLayer === "selection") {
+    this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
+    if (this.isSelectionTool) {
       this._selectionStart(ev);
     }
   }
 
   onMove(ev) {
-    this.dest = this._getCoordinates(ev);
+    this.dest = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
     if (this.regularOnShift && ev.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
     };
-    if (this.targetLayer === "selection") {
+    if (this.isSelectionTool) {
       draw(this.layerCanvas.staging.getContext("2d"), {
         action: this.drawActionType,
         params: {
@@ -798,7 +803,7 @@ export class ShapeAction extends ToolActionBase {
   }
 
   onEnd() {
-    if (this.targetLayer === "selection") {
+    if (this.isSelectionTool) {
       let path;
       if (!this.dest) {
         path = null;
@@ -1052,61 +1057,70 @@ export class CropAction extends ToolActionBase {
   }
 
   onStart(ev) {
-    this.origin = this._getCoordinates(ev);
+    this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
     this.layerCanvas.selection.getContext("2d").clearRect(
       0,
       0,
-      this.layerCanvas.selection.width,
-      this.layerCanvas.selection.height
+      this.translateData.documentWidth,
+      this.translateData.documentHeight
     );
   }
 
   onMove(ev) {
-    this.dest = this._getCoordinates(ev);
+    this.dest = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
     if (ev.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
     };
-    if (this.targetLayer === "selection") {
-      draw(this.layerCanvas.staging.getContext("2d"), {
-        action: this.drawActionType,
-        params: {
-          orig: this.origin,
-          dest: this.dest,
-          width: 1,
-          strokeColor: "rgba(0, 0, 0, 1)",
-          dashPattern: [7, 7],
-          clearFirst: true
-        }
-      })
-      draw(this.layerCanvas.staging.getContext("2d"), {
-        action: this.drawActionType,
-        params: {
-          orig: this.origin,
-          dest: this.dest,
-          width: 1,
-          strokeColor: "rgba(255, 255, 255, 1)",
-          dashPattern: [7, 7],
-          dashOffset: 7
-        }
-      })
-    }
+    draw(this.layerCanvas.staging.getContext("2d"), {
+      action: "drawRect",
+      params: {
+        orig: this.origin,
+        dest: this.dest,
+        width: 1,
+        strokeColor: "rgba(0, 0, 0, 1)",
+        dashPattern: [7, 7],
+        clearFirst: true
+      }
+    })
+    draw(this.layerCanvas.staging.getContext("2d"), {
+      action: "drawRect",
+      params: {
+        orig: this.origin,
+        dest: this.dest,
+        width: 1,
+        strokeColor: "rgba(255, 255, 255, 1)",
+        dashPattern: [7, 7],
+        dashOffset: 7
+      }
+    })
   }
 
   onEnd() {
-    if (!this.dest) {
-      setCropIsActive(true, {
-        x: 0,
-        y: 0,
-        w: this.translateData.documentWidth,
-        h: this.translateData.documentHeight
-      })
+    if (this.dest) {
+      this.dispatch(setCropIsActive(true, {
+        startDimensions: {
+          x: this.origin.x,
+          y: this.origin.y,
+          w: this.dest.x - this.origin.x,
+          h: this.dest.y - this.origin.y
+        }
+      }))
     } else {
-      setCropIsActive(true, {
-        x: 0,
-        y: 0,
-        w: this.translateData.documentWidth,
-        h: this.translateData.documentHeight
-      })
+      if (this.clip) {
+        const rect = getImageRect(this.layerCanvas.placeholder, this.clip, true);
+        this.dispatch(setCropIsActive(true, {
+          startDimensions: rect
+        }))
+      } else {
+        this.dispatch(setCropIsActive(true, {
+          startDimensions: {
+            x: 0,
+            y: 0,
+            w: this.translateData.documentWidth,
+            h: this.translateData.documentHeight
+          }
+        }))
+      }
     }
   }
 }
