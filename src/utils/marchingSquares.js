@@ -82,7 +82,7 @@ MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w
     // if our current point is within our image
     // add it to the list of points
     if (w >= 0 && w < width && h >= 0 && h < height) {
-      point_list.push(w - 1, h);
+      point_list.push(w + 1, h);
     }
 
     switch (next_step) {

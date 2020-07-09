@@ -401,9 +401,7 @@ export default function Workspace() {
             let path = MarchingSquaresOpt.getPathFromPointList(pointList);
             finalPath.addPath(path);
             ctx.save();
-            ctx.translate(2, 0);
             ctx.clip(path);
-            ctx.translate(-2, 0);
             ctx.clearRect(0, 0, documentWidth, documentHeight);
             ctx.restore();
             return 1;
@@ -421,7 +419,6 @@ export default function Workspace() {
           const finalCtx = layerCanvas[activeLayer].getContext("2d")
           finalCtx.clearRect(0, 0, documentWidth, documentHeight);
           finalCtx.save();
-          finalCtx.translate(2, 0);
           finalCtx.strokeStyle = "rgb(255,0,0)"
           finalCtx.stroke(finalPath);
           finalCtx.restore();
@@ -438,6 +435,8 @@ export default function Workspace() {
       updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) })
     );
   };
+
+  useEffect(() => console.log(zoomPct), [zoomPct]);
 
   const zoomTool = (ev, zoomOut) => {
     let steps;

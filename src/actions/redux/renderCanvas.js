@@ -51,7 +51,6 @@ export default function renderCanvas(start, end, params={}) {
     
     if (selectionActive) {  
       ctx.save();
-      ctx.translate(-2, 0);
       ctx.strokeStyle = "rgba(0, 0, 0, 1)";
       ctx.setLineDash([7, 7]);
       ctx.lineWidth = 1 / zoom;

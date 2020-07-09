@@ -133,9 +133,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         let path = MarchingSquaresOpt.getPathFromPointList(pointList);
         finalPath.addPath(path);
         ctx.save();
-        ctx.translate(2, 0);
         ctx.clip(path);
-        ctx.translate(-2, 0);
         ctx.clearRect(0, 0, state.documentSettings.documentWidth, state.documentSettings.documentHeight);
         ctx.restore();
         const nextPointList = MarchingSquaresOpt.getBlobOutlinePoints(ctx.canvas);

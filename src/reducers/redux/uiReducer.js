@@ -52,13 +52,6 @@ const uiReducer = (state = getInitUiState(), {type, payload}) => {
       };
 
     case UPDATE_WORKSPACE_SETTINGS:
-      if (payload.zoomPct) {
-        if (payload.zoomPct < 12.5) {
-          payload.zoomPct = 12.5;
-        } else if (payload.zoomPct > 600) {
-          payload.zoomPct = 600;
-        }
-      }
       return {
         ...state,
         workspaceSettings: {
