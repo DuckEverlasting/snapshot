@@ -6,8 +6,12 @@ export default function renderCanvas(start, end, params={}) {
       layerCanvas,
       layerSettings,
       renderOrder,
-      stagingPinnedTo
+      stagingPinnedTo,
+      selectionPath,
+      selectionActive
     } = getState().main.present;
+
+    const zoom = getState().ui.workspaceSettings.zoomPct / 100;
 
     const ctx = params.ctx ? params.ctx : layerCanvas.main.getContext("2d");
     
@@ -44,13 +48,20 @@ export default function renderCanvas(start, end, params={}) {
         })
       }
     }
-    manipulate(ctx, {
-      action: "paste",
-      params: {
-        sourceCtx: layerCanvas.selection.getContext("2d"),
-        dest: {x: 0, y: 0}
-      }
-    })
+    
+    if (selectionActive) {  
+      ctx.save();
+      ctx.translate(-2, 0);
+      ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+      ctx.setLineDash([7, 7]);
+      ctx.lineWidth = 1 / zoom;
+      ctx.stroke(selectionPath);
+      ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+      ctx.lineDashOffset = 7;
+      ctx.stroke(selectionPath);
+      ctx.restore();
+    }
+      
     if (stagingPinnedTo === "selection") {
       manipulate(ctx, {
         action: "paste",

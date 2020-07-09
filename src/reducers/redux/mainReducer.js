@@ -19,6 +19,7 @@ import {
 } from "../../actions/redux";
 
 import { getInitMainState } from "./initState";
+import { MarchingSquaresOpt } from "../../utils/marchingSquares";
 
 const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
@@ -103,14 +104,62 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
       };
 
     case UPDATE_SELECTION_PATH:
+      let newPath;
+
       function getDefaultPath() {
         const defaultPath = new Path2D();
         defaultPath.rect(0, 0, state.documentSettings.documentWidth, state.documentSettings.documentHeight);
         return defaultPath;
       }
-      const newPath = payload.path ?
-        payload.path :
-        getDefaultPath()
+      
+      function getTempCanvas(width, height, path) {
+        const canvas = new OffscreenCanvas(width, height);
+        const ctx = canvas.getContext("2d");
+        ctx.save();
+        ctx.clip(path);
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        ctx.beginPath();
+        ctx.rect(0, 0, width, height);
+        ctx.fill();
+        ctx.restore();
+        return canvas;
+      }
+      
+      function findOutline(canvas, pointList, prevLength=null, finalPath=null) {
+        if (!finalPath) {
+          finalPath = new Path2D();
+        }
+        const ctx = canvas.getContext("2d");
+        let path = MarchingSquaresOpt.getPathFromPointList(pointList);
+        finalPath.addPath(path);
+        ctx.save();
+        ctx.translate(2, 0);
+        ctx.clip(path);
+        ctx.translate(-2, 0);
+        ctx.clearRect(0, 0, state.documentSettings.documentWidth, state.documentSettings.documentHeight);
+        ctx.restore();
+        const nextPointList = MarchingSquaresOpt.getBlobOutlinePoints(ctx.canvas);
+        if (nextPointList.length && nextPointList.length !== prevLength) {
+          const nextPrevLength = nextPointList.length;
+          return findOutline(canvas, nextPointList, nextPrevLength, finalPath);
+        } else {
+          canvas = null;
+          return finalPath;
+        }
+      }
+      
+      if (!!payload.path) {
+        const tempCanvas = getTempCanvas(
+          state.layerCanvas.selection.width, 
+          state.layerCanvas.selection.height, 
+          payload.path
+        );
+        const pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
+        newPath = findOutline(tempCanvas, pointList);
+      } else {
+        newPath = getDefaultPath();
+      }
+
       return {
         ...state,
         selectionPath: newPath,

@@ -144,16 +144,7 @@ export default function menuAction(action) {
     case "switchColors":
       return switchColors();
     case "deselect":
-      return (dispatch, getState) => {
-        const ctx = getState().main.present.layerCanvas.selection.getContext("2d");
-        dispatch(
-          putHistoryData("selection", ctx, () =>
-            manipulate(ctx, {
-              action: "clear",
-              params: { selectionPath: null }
-            })
-          )
-        );
+      return (dispatch) => {
         dispatch(updateSelectionPath(null));
         dispatch(render());
       };
@@ -304,8 +295,7 @@ export default function menuAction(action) {
             clearFirst: true
           }
         })
-        await dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
-          () => {
+        await dispatch(putHistoryData(activeLayer, activeCtx, () => {
           manipulate(activeCtx, {
             action: "clear",
             params: {
@@ -313,18 +303,13 @@ export default function menuAction(action) {
               clipOffset: layerSettings[activeLayer].offset
             }
           })
-        }, () => {
-          manipulate(selectionCtx, {
-            action: "clear",
-            params: { selectionPath: null }
-          })
-        }]));
+        }));
         dispatch(setTransformTarget(
           activeLayer,
           {startEvent: null, resizable: true, rotatable: true}
         ));
-        dispatch(render());
         dispatch(updateSelectionPath(null));
+        dispatch(render());
         return;
       }
     case "desaturate":

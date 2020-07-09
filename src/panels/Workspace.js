@@ -31,9 +31,6 @@ import {
   updateWorkspaceSettings,
   setImportImageFile,
   createLayer,
-  setTransformTarget,
-  putHistoryDataMultiple,
-  updateSelectionPath,
   putHistoryData
 } from "../actions/redux";
 
@@ -43,7 +40,6 @@ import useEventListener from "../hooks/useEventListener";
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
 import render from "../actions/redux/renderCanvas";
-import manipulateReducer from "../reducers/custom/manipulateReducer";
 
 const WorkspaceSC = styled.div`
   position: relative;

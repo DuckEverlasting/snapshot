@@ -1,5 +1,5 @@
 import {
-  putHistoryDataMultiple,
+  putHistoryData,
   setTransformTarget,
   updateSelectionPath,
 } from "./index";
@@ -15,7 +15,6 @@ export default function createTransformObject(ev) {
     } = getState().main.present;
 
     const activeCtx = layerCanvas[activeLayer].getContext("2d"),
-      selectionCtx = layerCanvas.selection.getContext("2d"),
       placeholderCtx = layerCanvas.placeholder.getContext("2d");
 
     manipulate(placeholderCtx, {
@@ -28,28 +27,15 @@ export default function createTransformObject(ev) {
       },
     });
     dispatch(
-      putHistoryDataMultiple(
-        [activeLayer, "selection"],
-        [activeCtx, selectionCtx],
-        [
-          () => {
-            manipulate(activeCtx, {
-              action: "clear",
-              params: {
-                clip: selectionPath,
-                clipOffset: layerSettings[activeLayer].offset,
-              },
-            });
+      putHistoryData(activeLayer, activeCtx, () => {
+        manipulate(activeCtx, {
+          action: "clear",
+          params: {
+            clip: selectionPath,
+            clipOffset: layerSettings[activeLayer].offset,
           },
-          () => {
-            console.log("DOIN THIS")
-            manipulate(selectionCtx, {
-              action: "clear",
-              params: { selectionPath: null },
-            });
-          },
-        ]
-      )
+        });
+      })
     );
     dispatch(
       setTransformTarget(activeLayer, {

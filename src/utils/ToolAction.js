@@ -260,35 +260,6 @@ export class PencilAction extends FreeDrawAction {
         action: "drawQuadPath",
         params: { orig: this.destArray[0], destArray: this.destArray }
       });
-
-      const selectCtx = this.layerCanvas.selection.getContext("2d"),
-        viewWidth = Math.floor(selectCtx.canvas.width),
-        viewHeight = Math.floor(selectCtx.canvas.height);
-
-      this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
-      
-      const params = {
-        orig: this.destArray[0],
-        destArray: this.destArray,
-        width: 1,
-        strokeColor: "rgba(0, 0, 0, 1)",
-        dashPattern: [7, 7],
-      }
-      draw(selectCtx, {
-        action: "drawQuadPath",
-        params
-      });
-      draw(selectCtx, {
-        action: "drawQuadPath",
-        params: {...params, dashOffset: 7}
-      })
-      this.dispatch(putHistoryData(
-        "selection",
-        selectCtx,
-        null,
-        this.prevImgData
-      ));
-      this.prevImgData = null;
       this.dispatch(updateSelectionPath(path));
     } else {
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
@@ -817,38 +788,6 @@ export class ShapeAction extends ToolActionBase {
           action: this.drawActionType,
           params: { orig: this.origin, dest: this.dest }
         });
-        const selectCtx = this.layerCanvas.selection.getContext("2d");
-        const viewWidth = Math.floor(selectCtx.canvas.width);
-        const viewHeight = Math.floor(selectCtx.canvas.height);
-        this.prevImgData = selectCtx.getImageData(0, 0, viewWidth, viewHeight);
-        draw(selectCtx, {
-          action: this.drawActionType,
-          params: {
-            orig: this.origin,
-            dest: this.dest,
-            width: 1,
-            strokeColor: "rgba(0, 0, 0, 1)",
-            dashPattern: [7, 7],
-          }
-        });
-        draw(selectCtx, {
-          action: this.drawActionType,
-          params: {
-            orig: this.origin,
-            dest: this.dest,
-            width: 1,
-            strokeColor: "rgba(255, 255, 255, 1)",
-            dashPattern: [7, 7],
-            dashOffset: 7
-          }
-        })
-        this.dispatch(putHistoryData(
-          "selection",
-          selectCtx,
-          null,
-          this.prevImgData
-        ));
-        this.prevImgData = null;
       }
       this.dispatch(updateSelectionPath(path));
     } else {
