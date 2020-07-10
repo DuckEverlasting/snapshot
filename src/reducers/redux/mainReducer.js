@@ -104,27 +104,65 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
       };
 
     case UPDATE_SELECTION_PATH:
-      let newPath;
+      let newPath, selectionIsActive;
 
       function getDefaultPath() {
         const defaultPath = new Path2D();
         defaultPath.rect(0, 0, state.documentSettings.documentWidth, state.documentSettings.documentHeight);
         return defaultPath;
       }
-      
-      function getTempCanvas(width, height, path) {
-        const canvas = new OffscreenCanvas(width, height);
-        const ctx = canvas.getContext("2d");
-        ctx.save();
-        ctx.clip(path);
-        ctx.fillStyle = "rgba(0,0,0,1)";
-        ctx.beginPath();
-        ctx.rect(0, 0, width, height);
-        ctx.fill();
-        ctx.restore();
-        return canvas;
+
+      function getMaskCanvas(width, height, operation, path, changes) {
+        const operationList = {
+          add: "source-over",
+          new: "copy",
+          remove: "destination-out",
+          intersect: "destination-in"
+        }
+        const oldCanvas = new OffscreenCanvas(width, height);
+        const oldCtx = oldCanvas.getContext("2d");
+        const newCanvas = new OffscreenCanvas(width, height);
+        const newCtx = newCanvas.getContext("2d");
+        newCtx.save();
+        newCtx.clip(changes);
+        newCtx.fillStyle = "rgba(0,255,0,1)";
+        newCtx.rect(0, 0, width, height);
+        newCtx.fill();
+        newCtx.restore();
+
+        if (path) {
+          oldCtx.save();
+          oldCtx.clip(path);
+          oldCtx.fillStyle = "rgba(0,255,0,1)";
+          oldCtx.rect(0, 0, width, height);
+          oldCtx.fill();
+          oldCtx.restore();
+          oldCtx.save();
+          oldCtx.globalCompositeOperation = operationList[operation];
+          oldCtx.drawImage(newCanvas, 0, 0);
+          oldCtx.restore();
+          return oldCanvas;
+        } else {
+          return newCanvas;
+        }
+        // oldCtx.save();
+        // oldCtx.fillStyle = "rgba(255,0,0,1)";
+        // oldCtx.beginPath();
+        // oldCtx.rect(0, 0, width, height);
+        // if (path) {
+        //   ctx.save();
+        //   ctx.fillStyle = "rgba(0,255,0,1)";
+        //   ctx.clip(path);
+        //   ctx.fill();
+        //   ctx.restore();
+        // }
+        // ctx.clip(changes);
+        // ctx.globalCompositeOperation = operationList[operation];
+        // ctx.fill();
+        // ctx.restore();
+        // return canvas;
       }
-      
+
       function findOutline(canvas, pointList, prevLength=null, finalPath=null) {
         if (!finalPath) {
           finalPath = new Path2D();
@@ -146,22 +184,80 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         }
       }
       
-      if (!!payload.path) {
-        const tempCanvas = getTempCanvas(
-          state.layerCanvas.selection.width, 
-          state.layerCanvas.selection.height, 
-          payload.path
-        );
-        const pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
-        newPath = findOutline(tempCanvas, pointList);
-      } else {
+      if (payload.operation === "clear") {
         newPath = getDefaultPath();
+        selectionIsActive = false;
+      } else {
+        const maskCanvas = getMaskCanvas(
+          state.layerCanvas.main.width, 
+          state.layerCanvas.main.height, 
+          payload.operation,
+          state.selectionActive ? new Path2D(state.selectionPath) : null,
+          new Path2D(payload.path)
+        );
+        // state.layerCanvas.selection.getContext("2d").clearRect(0, 0, state.layerCanvas.main.width, state.layerCanvas.main.height);
+        // state.layerCanvas.selection.getContext("2d").drawImage(maskCanvas, 0, 0);
+
+        function convolve(data, width) {
+          const matrixPattern = [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]];
+          const pointList = [];
+        
+          function getMatrixAt(data, width, index) {
+            const matrix = new Array(3);
+            const row = new Array(3);
+            const originX = (index / 4) % width;
+            for (let i = 0; i < 3; i++) {
+              matrix[i] = [...row];
+              const y = i - 1;
+              for (let j = 0; j < 3; j++) {
+                const x = j - 1;
+                const newIndex = index + x * width * 4 + y * 4;
+                if (
+                  data[newIndex] !== undefined &&
+                  originX + x >= 0 &&
+                  originX + x < width
+                ) {
+                  matrix[i][j] = data[newIndex];
+                } else {
+                  matrix[i][j] = data[index];
+                }
+              }
+            }
+            return matrix;
+          }
+
+          function isEdge(index) {
+            const dataMatrix = getMatrixAt(data, width, index);
+            let result = 0;
+            dataMatrix.forEach((row, rowIndex) => {
+              row.forEach((num, colIndex) => {
+                result += num * matrixPattern[rowIndex][colIndex]
+              });
+            });
+            return result === 0;
+          }
+        
+          for (let i=0; i<data.length; i+=4) {
+            if (isEdge(i+3)) {
+
+            };
+          }
+        }
+
+        const pointList = MarchingSquaresOpt.getBlobOutlinePoints(maskCanvas);
+        if (!pointList.length) {
+          newPath = getDefaultPath();
+          selectionIsActive = false;
+        } else {
+          newPath = findOutline(maskCanvas, pointList);
+          selectionIsActive = true;
+        }
       }
 
       return {
         ...state,
         selectionPath: newPath,
-        selectionActive: !!payload.path
+        selectionActive: selectionIsActive
       }
 
     case UPDATE_LAYER_OPACITY:

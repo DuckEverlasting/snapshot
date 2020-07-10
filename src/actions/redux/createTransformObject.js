@@ -46,6 +46,6 @@ export default function createTransformObject(ev) {
         },
       })
     );
-    return dispatch(updateSelectionPath(null));
+    return dispatch(updateSelectionPath("clear"));
   };
 }

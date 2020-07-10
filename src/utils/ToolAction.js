@@ -50,12 +50,14 @@ class ToolActionBase {
   }
 
   _selectionStart(ev) {
-    if (ev.shiftKey) {
-      this.addToSelection = true;
+    if (ev.shiftKey && ev.altKey) {
+      this.selectionOperation = "intersect";
+    } else if (ev.shiftKey) {
+      this.selectionOperation = "add";
+    } else if (ev.altKey) {
+      this.selectionOperation = "remove";
     } else {
-      this.layerCanvas.selection
-        .getContext("2d")
-        .clearRect(0, 0, this.layerCanvas.selection.width, this.layerCanvas.selection.height);
+      this.selectionOperation = "new";
     }
   }
 
@@ -247,20 +249,14 @@ export class PencilAction extends FreeDrawAction {
   onEnd() {
     if (this.isSelectionTool) {
       if (this.destArray.length < 2) {
-        return this.dispatch(updateSelectionPath(null));
+        return this.dispatch(updateSelectionPath("clear"));
       }
-      
-      let path;
-      if (this.clip !== null && this.addToSelection) {
-        path = new Path2D(this.clip);
-      } else {
-        path = new Path2D();
-      }
+      let path = new Path2D();
       path = selection(path, {
         action: "drawQuadPath",
         params: { orig: this.destArray[0], destArray: this.destArray }
       });
-      this.dispatch(updateSelectionPath(path));
+      this.dispatch(updateSelectionPath(this.selectionOperation, path));
     } else {
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
       if (this.destArray.length > 1) {
@@ -775,21 +771,15 @@ export class ShapeAction extends ToolActionBase {
 
   onEnd() {
     if (this.isSelectionTool) {
-      let path;
       if (!this.dest) {
-        path = null;
-      } else {
-        if (this.clip !== null && this.addToSelection) {
-          path = new Path2D(this.clip);
-        } else {
-          path = new Path2D();
-        }
-        path = selection(path, {
-          action: this.drawActionType,
-          params: { orig: this.origin, dest: this.dest }
-        });
+        return this.dispatch(updateSelectionPath("clear"));
       }
-      this.dispatch(updateSelectionPath(path));
+      let path = new Path2D();
+      path = selection(path, {
+        action: this.drawActionType,
+        params: { orig: this.origin, dest: this.dest }
+      });
+      this.dispatch(updateSelectionPath(this.selectionOperation, path));        
     } else {
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
       if (this.dest) {
@@ -1048,12 +1038,7 @@ export class CropAction extends ToolActionBase {
 
   onStart(ev) {
     this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
-    this.layerCanvas.selection.getContext("2d").clearRect(
-      0,
-      0,
-      this.translateData.documentWidth,
-      this.translateData.documentHeight
-    );
+    this.dispatch(updateSelectionPath("clear"));
   }
 
   onMove(ev) {

@@ -77,8 +77,6 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
     await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
     
     await dispatch(menuAction("deselect"));
-    layerCanvas.selection.width = width;
-    layerCanvas.selection.height = height;
     layerCanvas.staging.width = width;
     layerCanvas.staging.height = height;
     layerCanvas.placeholder.width = width;
@@ -145,7 +143,7 @@ export default function menuAction(action) {
       return switchColors();
     case "deselect":
       return (dispatch) => {
-        dispatch(updateSelectionPath(null));
+        dispatch(updateSelectionPath("clear"));
         dispatch(render());
       };
     case "duplicate":
@@ -284,7 +282,6 @@ export default function menuAction(action) {
         const { activeLayer, layerCanvas, layerSettings, selectionPath } = getState().main.present;
         if (!activeLayer) return
         const activeCtx = layerCanvas[activeLayer].getContext("2d"),
-          selectionCtx = layerCanvas.selection.getContext("2d"),
           placeholderCtx = layerCanvas.placeholder.getContext("2d");
         manipulate(placeholderCtx, {
           action: "paste",
@@ -308,7 +305,7 @@ export default function menuAction(action) {
           activeLayer,
           {startEvent: null, resizable: true, rotatable: true}
         ));
-        dispatch(updateSelectionPath(null));
+        dispatch(updateSelectionPath("clear"));
         dispatch(render());
         return;
       }

@@ -11,7 +11,7 @@
  */
 const MarchingSquaresOpt = {};
 
-MarchingSquaresOpt.getBlobOutlinePoints = function(source_array, width, height=0) {
+MarchingSquaresOpt.getBlobOutlinePoints = function(source_array, width, height=0, startingPoint=null) {
   // Note: object should not be on the border of the array, since there is
   //       no padding of 1 pixel to handle points which touch edges
 
@@ -30,9 +30,11 @@ MarchingSquaresOpt.getBlobOutlinePoints = function(source_array, width, height=0
   }
 
   // find the starting point
-  const startingPoint = MarchingSquaresOpt.getFirstNonTransparentPixelTopDown(source_array, width, height);
-  if (null === startingPoint) {
-    console.log('[Warning] Marching Squares could not find an object in the given array');
+  if (!startingPoint) {
+    startingPoint = MarchingSquaresOpt.getFirstNonTransparentPixelTopDown(source_array, width, height);
+  }
+  if (startingPoint === "none") {
+    // console.log('[Warning] Marching Squares could not find an object in the given array');
     return [];
   }
 
@@ -51,7 +53,7 @@ MarchingSquaresOpt.getFirstNonTransparentPixelTopDown = function(source_array, w
       ++idx;
     }
   }
-  return null;
+  return "none";
 };
 
 MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w, start_h) {

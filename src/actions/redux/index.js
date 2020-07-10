@@ -257,10 +257,10 @@ export const updateCanvas = (id, changes, ignoreHistory=true) => {
   };
 };
 
-export const updateSelectionPath = path => {
+export const updateSelectionPath = (operation, path) => {
   return {
     type: UPDATE_SELECTION_PATH,
-    payload: {path, ignoreHistory: false}
+    payload: {path, operation, ignoreHistory: false}
   };
 };
 
