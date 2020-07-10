@@ -29,7 +29,7 @@ export default function(path, { action, params }) {
       return path;
 
     case "drawEllipse":
-      const center = midpoint(Math.floor(params.orig), Math.floor(params.dest));
+      const center = midpoint(params.orig, params.dest);
       const radiusX = Math.abs(Math.floor(params.dest.x) - center.x);
       const radiusY = Math.abs(Math.floor(params.dest.y) - center.y);
       path.ellipse(center.x, center.y, radiusX, radiusY, 0, 0, Math.PI * 2);

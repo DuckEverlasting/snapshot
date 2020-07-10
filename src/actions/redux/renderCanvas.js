@@ -59,6 +59,14 @@ export default function renderCanvas(start, end, params={}) {
       ctx.lineDashOffset = 7;
       ctx.stroke(selectionPath);
       ctx.restore();
+
+      // manipulate(ctx, {
+      //   action: "paste",
+      //   params: {
+      //     sourceCtx: layerCanvas.selection.getContext("2d"),
+      //     dest: {x: 0, y: 0}
+      //   }
+      // })
     }
       
     if (stagingPinnedTo === "selection") {

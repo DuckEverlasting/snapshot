@@ -239,9 +239,11 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         
           for (let i=0; i<data.length; i+=4) {
             if (isEdge(i+3)) {
-
+              const x = (i / 4) % width, y = Math.floor(i / width);
+              pointList.push(x, y);
             };
           }
+          return pointList;
         }
 
         const pointList = MarchingSquaresOpt.getBlobOutlinePoints(maskCanvas);
