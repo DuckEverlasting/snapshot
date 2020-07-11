@@ -31,7 +31,8 @@ const PrimaryColorSC = styled.div`
   width: 40px;
   height: 28px;
   background: ${props => props.color};
-  border: 1px solid black;
+  border: 1px solid #e3e3e3;
+  box-shadow: 0 0 0 1px black;
   display: block;
   cursor: pointer;
 `
@@ -43,7 +44,8 @@ const SecondaryColorSC = styled.div`
   width: 40px;
   height: 28px;
   background: ${props => props.color};
-  border: 1px solid black;
+  border: 1px solid #e3e3e3;
+  box-shadow: 0 0 0 1px black;
   display: block;
   cursor: pointer;
 `
