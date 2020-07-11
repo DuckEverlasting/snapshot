@@ -63,7 +63,7 @@ export const getInitMainState = () => ({
   },
   selectionPath: initSelectionPath,
   selectionActive: false,
-  selectionOriginPoints: [],
+  previousSelection: null,
   stagingPinnedTo: 1,
   renderOrder: [1],
   layerCounter: 2,

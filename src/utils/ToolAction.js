@@ -157,7 +157,9 @@ export class FreeDrawAction extends ToolActionBase {
   }
 
   move(ev, ...args) {
-    this._setLockedAxis(ev);
+    if (!this.isSelectionTool) {
+      this._setLockedAxis(ev);
+    }
     let {x, y} = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
     if (this.lockedAxis === "x") {
       x = this.origin.x;
@@ -203,7 +205,7 @@ export class PencilAction extends FreeDrawAction {
     if (this.isSelectionTool) {
       this._selectionStart(ev);
     }
-    if (this.lastEndpoint && ev.shiftKey && this.targetLayer !== "selection") {
+    if (this.lastEndpoint && ev.shiftKey && !this.isSelectionTool) {
       this.destArray = [this.lastEndpoint, this.origin];
     } else {
       this.destArray = [this.origin];

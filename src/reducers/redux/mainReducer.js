@@ -19,7 +19,7 @@ import {
 } from "../../actions/redux";
 
 import { getInitMainState } from "./initState";
-import { MarchingSquaresOpt } from "../../utils/marchingSquares";
+import { MarchingSquaresAllPaths } from "../../utils/marchingSquaresAllPaths";
 
 const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
@@ -104,7 +104,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
       };
 
     case UPDATE_SELECTION_PATH:
-      let newPath, selectionIsActive;
+      let newPath, selectionIsActive, newPreviousSelection;
 
       function getDefaultPath() {
         const defaultPath = new Path2D();
@@ -125,7 +125,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         const newCtx = newCanvas.getContext("2d");
         newCtx.save();
         newCtx.clip(changes);
-        newCtx.fillStyle = "rgba(0,255,0,1)";
+        newCtx.fillStyle = "rgba(0,0,0,1)";
         newCtx.rect(0, 0, width, height);
         newCtx.fill();
         newCtx.restore();
@@ -133,7 +133,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         if (path) {
           oldCtx.save();
           oldCtx.clip(path);
-          oldCtx.fillStyle = "rgba(0,255,0,1)";
+          oldCtx.fillStyle = "rgba(0,0,0,1)";
           oldCtx.rect(0, 0, width, height);
           oldCtx.fill();
           oldCtx.restore();
@@ -145,48 +145,12 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         } else {
           return newCanvas;
         }
-        // oldCtx.save();
-        // oldCtx.fillStyle = "rgba(255,0,0,1)";
-        // oldCtx.beginPath();
-        // oldCtx.rect(0, 0, width, height);
-        // if (path) {
-        //   ctx.save();
-        //   ctx.fillStyle = "rgba(0,255,0,1)";
-        //   ctx.clip(path);
-        //   ctx.fill();
-        //   ctx.restore();
-        // }
-        // ctx.clip(changes);
-        // ctx.globalCompositeOperation = operationList[operation];
-        // ctx.fill();
-        // ctx.restore();
-        // return canvas;
-      }
-
-      function findOutline(canvas, pointList, prevLength=null, finalPath=null) {
-        if (!finalPath) {
-          finalPath = new Path2D();
-        }
-        const ctx = canvas.getContext("2d");
-        let path = MarchingSquaresOpt.getPathFromPointList(pointList);
-        finalPath.addPath(path);
-        ctx.save();
-        ctx.clip(path);
-        ctx.clearRect(0, 0, state.documentSettings.documentWidth, state.documentSettings.documentHeight);
-        ctx.restore();
-        const nextPointList = MarchingSquaresOpt.getBlobOutlinePoints(ctx.canvas);
-        if (nextPointList.length && nextPointList.length !== prevLength) {
-          const nextPrevLength = nextPointList.length;
-          return findOutline(canvas, nextPointList, nextPrevLength, finalPath);
-        } else {
-          canvas = null;
-          return finalPath;
-        }
       }
       
       if (payload.operation === "clear") {
         newPath = getDefaultPath();
         selectionIsActive = false;
+        newPreviousSelection = state.selectionPath;
       } else {
         const maskCanvas = getMaskCanvas(
           state.layerCanvas.main.width, 
@@ -195,71 +159,28 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
           state.selectionActive ? new Path2D(state.selectionPath) : null,
           new Path2D(payload.path)
         );
-        // state.layerCanvas.selection.getContext("2d").clearRect(0, 0, state.layerCanvas.main.width, state.layerCanvas.main.height);
-        // state.layerCanvas.selection.getContext("2d").drawImage(maskCanvas, 0, 0);
 
-        function convolve(data, width) {
-          const matrixPattern = [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]];
-          const pointList = [];
-        
-          function getMatrixAt(data, width, index) {
-            const matrix = new Array(3);
-            const row = new Array(3);
-            const originX = (index / 4) % width;
-            for (let i = 0; i < 3; i++) {
-              matrix[i] = [...row];
-              const y = i - 1;
-              for (let j = 0; j < 3; j++) {
-                const x = j - 1;
-                const newIndex = index + x * width * 4 + y * 4;
-                if (
-                  data[newIndex] !== undefined &&
-                  originX + x >= 0 &&
-                  originX + x < width
-                ) {
-                  matrix[i][j] = data[newIndex];
-                } else {
-                  matrix[i][j] = data[index];
-                }
-              }
-            }
-            return matrix;
-          }
+        const paths = MarchingSquaresAllPaths.getAllOutlinePaths(maskCanvas);
 
-          function isEdge(index) {
-            const dataMatrix = getMatrixAt(data, width, index);
-            let result = 0;
-            dataMatrix.forEach((row, rowIndex) => {
-              row.forEach((num, colIndex) => {
-                result += num * matrixPattern[rowIndex][colIndex]
-              });
-            });
-            return result === 0;
-          }
-        
-          for (let i=0; i<data.length; i+=4) {
-            if (isEdge(i+3)) {
-              const x = (i / 4) % width, y = Math.floor(i / width);
-              pointList.push(x, y);
-            };
-          }
-          return pointList;
-        }
-
-        const pointList = MarchingSquaresOpt.getBlobOutlinePoints(maskCanvas);
-        if (!pointList.length) {
+        if (!paths.length) {
           newPath = getDefaultPath();
           selectionIsActive = false;
+          newPreviousSelection = state.selectionPath;
         } else {
-          newPath = findOutline(maskCanvas, pointList);
+          newPath = new Path2D();
+          paths.forEach(path => {
+            newPath.addPath(path)
+          });
           selectionIsActive = true;
+          newPreviousSelection = null;
         }
       }
 
       return {
         ...state,
         selectionPath: newPath,
-        selectionActive: selectionIsActive
+        selectionActive: selectionIsActive,
+        previousSelection: newPreviousSelection
       }
 
     case UPDATE_LAYER_OPACITY:

@@ -43,6 +43,8 @@ const TitleSC = styled.h1`
 export default function TopBar() {
   const activeLayer = useSelector(state => state.main.present.activeLayer);
   const selectionPath = useSelector(state => state.main.present.selectionPath);
+  const selectionActive = useSelector(state => state.main.present.selectionActive);
+  const previousSelection = useSelector(state => state.main.present.previousSelection);
   const pastLength = useSelector(state => state.main.past.length);
   const futureLength = useSelector(state => state.main.future.length);
   const clipboardIsUsed = useSelector(
@@ -208,7 +210,13 @@ export default function TopBar() {
             label="Deselect"
             hotkey={`${mod}+D`}
             onClick={() => dispatch(menuAction("deselect"))}
-            disabled={!selectionPath}
+            disabled={!selectionActive}
+          />
+          <MenuItem
+            label="Reselect"
+            hotkey={`${mod}+Shift+D`}
+            onClick={() => dispatch(menuAction("reselect"))}
+            disabled={!previousSelection}
           />
         </Menu>
         <Menu id="help" label="Help">

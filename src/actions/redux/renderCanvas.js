@@ -53,20 +53,12 @@ export default function renderCanvas(start, end, params={}) {
       ctx.save();
       ctx.strokeStyle = "rgba(0, 0, 0, 1)";
       ctx.setLineDash([7, 7]);
-      ctx.lineWidth = 1 / zoom;
+      ctx.lineWidth = Math.ceil(1 / zoom);
       ctx.stroke(selectionPath);
       ctx.strokeStyle = "rgba(255, 255, 255, 1)";
       ctx.lineDashOffset = 7;
       ctx.stroke(selectionPath);
       ctx.restore();
-
-      // manipulate(ctx, {
-      //   action: "paste",
-      //   params: {
-      //     sourceCtx: layerCanvas.selection.getContext("2d"),
-      //     dest: {x: 0, y: 0}
-      //   }
-      // })
     }
       
     if (stagingPinnedTo === "selection") {

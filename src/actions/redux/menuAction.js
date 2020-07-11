@@ -146,6 +146,14 @@ export default function menuAction(action) {
         dispatch(updateSelectionPath("clear"));
         dispatch(render());
       };
+    case "reselect":
+      return (dispatch, getState) => {
+        const prevSelection = getState().main.present.previousSelection;
+        if (prevSelection) {
+          dispatch(updateSelectionPath("new", prevSelection));
+          dispatch(render());
+        }
+      }
     case "duplicate":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
