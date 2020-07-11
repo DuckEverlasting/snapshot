@@ -18,7 +18,6 @@ export const getInitMainState = () => ({
   layerCanvas: {
     main: null,
     1: new OffscreenCanvas(initWidth, initHeight),
-    selection: new OffscreenCanvas(initWidth, initHeight),
     clipboard: new OffscreenCanvas(initWidth, initHeight),
     placeholder: new OffscreenCanvas(initWidth, initHeight),
     staging: new OffscreenCanvas(initWidth, initHeight)
@@ -39,16 +38,6 @@ export const getInitMainState = () => ({
       hidden: false,
       opacity: 100,
       blend: "source-over"
-    },
-    "selection": {
-      size: {
-        w: initWidth,
-        h: initHeight
-      },
-      offset: {
-        x: 0,
-        y: 0
-      }
     },
     "clipboard": {
       size: {
@@ -107,7 +96,7 @@ export const getInitUiState = () => ({
     burn: { name: "Burn", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
     sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 },
-    TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 },
+    // TEST: { name: "TEST" },
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",

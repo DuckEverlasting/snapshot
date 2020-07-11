@@ -68,7 +68,7 @@ function ToolBox() {
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom (Z)" name="zoom" faIcon={faSearch}/>
-      <ToolButton title="TEST" name="TEST" icon="TEST"/>
+      {/* <ToolButton title="TEST" name="TEST" icon="TEST"/> */}
     </ToolboxSC>
   );
 }

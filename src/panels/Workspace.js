@@ -390,41 +390,8 @@ export default function Workspace() {
         return new CropAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           clip: selectionPath
         });
-      case "TEST":
-        dispatch(putHistoryData(activeLayer, layerCanvas[activeLayer].getContext("2d"), () => {
-          const tempCanvas = new OffscreenCanvas(layerCanvas[activeLayer].width, layerCanvas[activeLayer].height);
-          tempCanvas.getContext("2d").drawImage(layerCanvas[activeLayer], 0, 0);
-          let pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
-          const ctx = tempCanvas.getContext("2d");
-          const finalPath = new Path2D();
-          function doTheThing(pointList) {
-            let path = MarchingSquaresOpt.getPathFromPointList(pointList);
-            finalPath.addPath(path);
-            ctx.save();
-            ctx.clip(path);
-            ctx.clearRect(0, 0, documentWidth, documentHeight);
-            ctx.restore();
-            return 1;
-          }
-          let prevLength = null;
-          while (true) {
-            const one = doTheThing(pointList);
-            if (one === 1) {
-              pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
-            }
-            if (!pointList.length || pointList.length === prevLength) break;
-            prevLength = pointList.length;
-          }
-
-          const finalCtx = layerCanvas[activeLayer].getContext("2d")
-          finalCtx.clearRect(0, 0, documentWidth, documentHeight);
-          finalCtx.save();
-          finalCtx.strokeStyle = "rgb(255,0,0)"
-          finalCtx.stroke(finalPath);
-          finalCtx.restore();
-        }))
-        dispatch(render());
-        return null;
+      // case "TEST":
+      //   break;
       default:
         break;
     }
