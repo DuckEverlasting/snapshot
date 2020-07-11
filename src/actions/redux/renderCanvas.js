@@ -54,7 +54,7 @@ export default function renderCanvas(start, end, params={}) {
       ctx.translate(.5, .5);
       ctx.strokeStyle = "rgba(0, 0, 0, 1)";
       ctx.setLineDash([7, 7]);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = Math.ceil(1 / zoom);
       ctx.stroke(selectionPath);
       ctx.strokeStyle = "rgba(255, 255, 255, 1)";
       ctx.lineDashOffset = 7;

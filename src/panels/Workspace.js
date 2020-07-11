@@ -403,8 +403,6 @@ export default function Workspace() {
     );
   };
 
-  useEffect(() => console.log(zoomPct), [zoomPct]);
-
   const zoomTool = (ev, zoomOut) => {
     let steps;
     if (!zoomOut) {
@@ -422,6 +420,7 @@ export default function Workspace() {
         dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
       }
     }
+    dispatch(render());
   };
 
   const translate = (deltaX, deltaY) => {
@@ -440,7 +439,7 @@ export default function Workspace() {
       ? ev.metaKey
       : ev.ctrlKey;
     if (ev.deltaX && ev.deltaY) {
-      // FIGURE THIS OUT LATER
+      // FIGURE THIS OUT LATER(?)
       return;
     } else if (ev.deltaX) {
       dir = ev.deltaX > 0 ? -1 : 1;
