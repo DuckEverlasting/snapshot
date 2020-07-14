@@ -44,18 +44,14 @@ MarchingSquaresAllPaths.getAllPaths = function(source_array, width, height) {
   for (let h = 0 | 0; h < height; ++h) {
     idx = (h * width) | 0;
     for (let w = 0 | 0; w < width; ++w) {
+      const firstPoint = (h - 1) * width + (w - 1);
       if (
         source_array[idx] > 0 &&
-        !in_paths.has(idx) &&
-        isEdge(idx)
+        !in_paths.has(firstPoint) &&
+        isEdge(firstPoint)
       ) {
         const point_list = MarchingSquaresAllPaths.walkPerimeter(source_array, width, height, w, h, in_paths);
-        // This is a quick fix. If there is a better solution here 
-        // (perhaps an additional test to see if the walkPerimeter is necessary)
-        // that should probably replace this.
-        if (point_list.length > 4) {
-          paths.push(MarchingSquaresAllPaths.getPathFromPointList(point_list));
-        }
+        paths.push(MarchingSquaresAllPaths.getPathFromPointList(point_list));
       }
       ++idx;
     }
