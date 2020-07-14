@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
@@ -8,7 +8,7 @@ import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
 import SliderInput from "../components/SliderInput";
 import SelectBlendMode from "../components/SelectBlendMode";
-import { createLayer, updateRenderOrder, updateLayerOpacity, undo } from "../actions/redux";
+import { createLayer, updateRenderOrder, updateLayerOpacity } from "../actions/redux";
 
 import render from "../actions/redux/renderCanvas";
 

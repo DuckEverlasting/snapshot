@@ -21,7 +21,7 @@ const rootReducer = combineReducers({
 export default rootReducer;
 
 function lastActionReducer(state=null, {type, payload}) {
-  console.log(type, payload);
+  // console.log(type, payload);
   if (type === RESET_STATE) {
     return null;
   } else {

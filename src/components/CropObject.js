@@ -141,10 +141,10 @@ export default function CropObject() {
   useEffect(() => {
     dispatch(setMenuIsDisabled(true));
     return () => dispatch(setMenuIsDisabled(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    console.log("START DIMENSIONS: ", startDimensions)
     setOffset({
       x: startDimensions ? startDimensions.x : 0,
       y: startDimensions ? startDimensions.y : 0,

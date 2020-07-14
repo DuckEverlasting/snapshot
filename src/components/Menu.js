@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import styled from "styled-components";
 
 const MenuGroupSC = styled.div`
@@ -192,6 +192,7 @@ function MenuGroup({ children, disabled }) {
 
   useEffect(() => {
     setMenuIsDisabled(disabled);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [disabled])
 
   function handleClickInside(ev) {
@@ -244,7 +245,7 @@ export function MenuBranch({ id, label, children }) {
     if (isOpen && activeMenuBranch !== id) {
       setIsOpen(false);
     }
-  }, [activeMenuBranch])
+  }, [id, isOpen, activeMenuBranch])
 
   function handleMouseEnter() {
     delay = setTimeout(() => {
@@ -304,8 +305,6 @@ export function MenuItem({
   children,
 }) {
   const { menuIsDisabled, colors, size, resetMenu } = useContext(MenuSettings);
-
-  const menuItemRef = useRef(null);
 
   const clickHandler = (ev) => {
     if (disabled || menuIsDisabled) {

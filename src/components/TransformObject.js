@@ -218,11 +218,11 @@ export default function TransformObject({
     dispatch(setMenuIsDisabled(true));
     dispatch(setHistoryIsDisabled(true));
     setInitialized(true);
-    console.log("TRANSFORM INITIALIZED")
     return () => {
       dispatch(setMenuIsDisabled(false))
       dispatch(setHistoryIsDisabled(false))
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -299,7 +299,8 @@ export default function TransformObject({
     if (activeTool !== "move" || activeLayer !== initLayer) {
       apply();
     }
-  }, [activeTool, activeLayer]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTool, activeLayer, initLayer, initialized]);
 
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;

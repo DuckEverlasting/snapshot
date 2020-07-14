@@ -9,7 +9,6 @@ import {
   redo,
   setClipboardIsUsed,
   putHistoryData,
-  putHistoryDataMultiple,
   setImportImageFile,
   setTransformTarget,
   setTransformParams,

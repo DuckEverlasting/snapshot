@@ -5,7 +5,6 @@ import styled from "styled-components";
 
 import TransformObject from "../components/TransformObject";
 import CropObject from "../components/CropObject";
-import { MarchingSquaresOpt } from "../utils/marchingSquares";
 
 import {
   PencilAction,
@@ -30,8 +29,7 @@ import createTransformObject from "../actions/redux/createTransformObject";
 import {
   updateWorkspaceSettings,
   setImportImageFile,
-  createLayer,
-  putHistoryData
+  createLayer
 } from "../actions/redux";
 
 import DropZone from "../components/DropZone";
