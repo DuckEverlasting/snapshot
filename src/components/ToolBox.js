@@ -13,7 +13,8 @@ import {
   faFillDrip,
   faPalette,
   faTint,
-  faStamp
+  faStamp,
+  faMagic
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faHandPaper
@@ -64,6 +65,7 @@ function ToolBox() {
       <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img alt="Select Rectangle" src={dashedSquareIcon} />}/>
       <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img alt="Select Ellipse" src={dashedCircleIcon} />}/>
+      <ToolButton title="Fill Select" name="selectionFill" faIcon={faMagic}/>
       <ToolButton title="Crop" name="crop" icon="CROP"/>
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>

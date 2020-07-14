@@ -85,6 +85,7 @@ export const getInitUiState = () => ({
     selectRect: { name: "Select Rectangle" },
     selectEllipse: { name: "Select Ellipse" },
     lasso: { name: "Lasso" },
+    selectionFill: { name: "Fill Select", tolerance: 0, targetAll: false },
     crop: { name: "Crop" },
     move: { name: "Move" },
     hand: { name: "Hand" },

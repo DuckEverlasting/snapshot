@@ -278,14 +278,12 @@ export default function Workspace() {
       case "selectRect":
         return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
           drawActionType: "drawRect",
-          regularOnShift: true,
-          clip: selectionPath,
+          regularOnShift: true
         });
       case "selectEllipse":
         return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
           drawActionType: "drawEllipse",
-          regularOnShift: true,
-          clip: selectionPath,
+          regularOnShift: true
         });
       case "lasso":
         return new PencilAction("selection", layerCanvas, dispatch, getTranslateData(true), {
@@ -318,6 +316,12 @@ export default function Workspace() {
           ),
           tolerance: toolSettings.bucketFill.tolerance,
           clip: selectionPath,
+        });
+      case "selectionFill":
+        if (!activeLayer) {return}
+        return new FillAction("selection", layerCanvas, dispatch, getTranslateData(), {
+          tolerance: toolSettings.selectionFill.tolerance,
+          selectionTarget: toolSettings.selectionFill.targetAll ? "all" : activeLayer
         });
       case "saturate":
         if (!activeLayer) {return}

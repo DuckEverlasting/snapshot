@@ -22,6 +22,7 @@ import manipulate from "../reducers/custom/manipulateReducer";
 import selection from "../reducers/custom/selectionReducer";
 
 import render from "../actions/redux/renderCanvas";
+import { getFillContent } from "../actions/custom/ctxActions";
 
 class ToolActionBase {
   constructor(targetLayer, layerCanvas, dispatch, translateData) {
@@ -968,20 +969,33 @@ export class FillAction extends ToolActionBase {
   onStart(ev) {
     if (this.isSelectionTool) {
       this._selectionStart(ev);
-      const tempLayer = new OffscreenCanvas(this.layerCanvas[this.selectionTarget].width, this.layerCanvas[this.selectionTarget].height);
-      const clipPath = new Path2D();
-      clipPath.rect(0, 0, this.translateData.documentWidth, this.translateData.documentHeight);
-      manipulate(tempLayer.getContext("2d"), {
-        action: "fill",
-        params: {
-          orig: this._getCoordinates(ev),
-          colorArray: [0, 0, 0, 255],
-          tolerance: this.tolerance,
-          clip: clipPath,
-          clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
-        }
+      let dataCanvas;
+      if (this.selectionTarget === "all") {
+        dataCanvas = this.layerCanvas.main;
+      } else {
+        dataCanvas = new OffscreenCanvas(this.translateData.documentWidth, this.translateData.documentHeight);
+        manipulate(dataCanvas.getContext("2d"), {
+          action: "paste",
+          params: {
+            sourceCtx: this.layerCanvas[this.selectionTarget].getContext("2d"),
+            dest: {x: this.translateData.offX, y: this.translateData.offY}
+          }
+        });
+      }
+      const orig = this._getCoordinates(ev);
+      orig.x -= this.translateData.offX;
+      orig.y -= this.translateData.offY;
+      const clip = new Path2D();
+      clip.rect(1, 1, this.translateData.documentWidth-2, this.translateData.documentHeight-1);
+      const maskCanvas = getFillContent(dataCanvas.getContext("2d"), {
+        orig,
+        colorArray: [0, 0, 0, 255],
+        tolerance: this.tolerance,
+        clip
       })
-      // "SELECTION OPERATION" MASK TO SELECTION
+
+      this.dispatch(updateSelectionPath(this.selectionOperation, maskCanvas))
+          
     } else {
       this.dispatch(putHistoryData(
         this.targetLayer,

@@ -121,14 +121,19 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         }
         const oldCanvas = new OffscreenCanvas(width, height);
         const oldCtx = oldCanvas.getContext("2d");
-        const newCanvas = new OffscreenCanvas(width, height);
-        const newCtx = newCanvas.getContext("2d");
-        newCtx.save();
-        newCtx.clip(changes);
-        newCtx.fillStyle = "rgba(0,0,0,1)";
-        newCtx.rect(0, 0, width, height);
-        newCtx.fill();
-        newCtx.restore();
+        let newCanvas;
+        if (changes instanceof OffscreenCanvas) {
+          newCanvas = changes;
+        } else if (changes instanceof Path2D) {
+          newCanvas = new OffscreenCanvas(width, height);
+          const newCtx = newCanvas.getContext("2d");
+          newCtx.save();
+          newCtx.clip(changes);
+          newCtx.fillStyle = "rgba(0,0,0,1)";
+          newCtx.rect(0, 0, width, height);
+          newCtx.fill();
+          newCtx.restore();
+        }
 
         if (path) {
           oldCtx.save();
@@ -157,7 +162,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
           state.layerCanvas.main.height, 
           payload.operation,
           state.selectionActive ? new Path2D(state.selectionPath) : null,
-          new Path2D(payload.path)
+          payload.changes
         );
 
         const paths = MarchingSquaresAllPaths.getAllOutlinePaths(maskCanvas);
