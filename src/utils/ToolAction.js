@@ -951,57 +951,6 @@ export class MoveAction extends ToolActionBase {
   }
 }
 
-// export class MagicFillAction extends ToolActionBase {
-//   constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-//     super(targetLayer, layerCanvas, dispatch, translateData);
-//     this.colorArray = params.colorArray;
-//     this.tolerance = params.tolerance;
-//     this.clip = params.clip;
-//     this.usesStaging = false;
-//     this.renderOnStart = true;
-//     this.renderOnMove = false;
-//     this.renderOnEnd = false;
-//   }
-
-//   onStart(ev) {
-//     dispatch(putHistoryData(activeLayer, layerCanvas[activeLayer].getContext("2d"), () => {
-//       const tempCanvas = new OffscreenCanvas(layerCanvas[activeLayer].width, layerCanvas[activeLayer].height);
-//       tempCanvas.getContext("2d").drawImage(layerCanvas[activeLayer], 0, 0);
-//       let pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
-//       const ctx = tempCanvas.getContext("2d");
-//       const finalPath = new Path2D();
-//       function doTheThing(pointList) {
-//         let path = MarchingSquaresOpt.getPathFromPointList(pointList);
-//         finalPath.addPath(path);
-//         ctx.save();
-//         ctx.translate(2, 0);
-//         ctx.clip(path);
-//         ctx.translate(-2, 0);
-//         ctx.clearRect(0, 0, documentWidth, documentHeight);
-//         ctx.restore();
-//         return 1;
-//       }
-//       let prevLength = null;
-//       while (true) {
-//         const one = doTheThing(pointList);
-//         if (one === 1) {
-//           pointList = MarchingSquaresOpt.getBlobOutlinePoints(tempCanvas);
-//         }
-//         if (!pointList.length || pointList.length === prevLength) break;
-//         prevLength = pointList.length;
-//       }
-
-//       const finalCtx = layerCanvas[activeLayer].getContext("2d")
-//       finalCtx.clearRect(0, 0, documentWidth, documentHeight);
-//       finalCtx.save();
-//       finalCtx.translate(2, 0);
-//       finalCtx.strokeStyle = "rgb(255,0,0)"
-//       finalCtx.stroke(finalPath);
-//       finalCtx.restore();
-//     }))
-//   }
-// }
-
 export class FillAction extends ToolActionBase {
   constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
     super(targetLayer, layerCanvas, dispatch, translateData);
@@ -1012,23 +961,43 @@ export class FillAction extends ToolActionBase {
     this.renderOnStart = true;
     this.renderOnMove = false;
     this.renderOnEnd = false;
+    this.isSelectionTool = this.targetLayer === "selection";
+    this.selectionTarget = params.selectionTarget;
   }
 
   onStart(ev) {
-    this.dispatch(putHistoryData(
-      this.targetLayer,
-      this.layerCanvas[this.targetLayer].getContext("2d"),
-      () => manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
+    if (this.isSelectionTool) {
+      this._selectionStart(ev);
+      const tempLayer = new OffscreenCanvas(this.layerCanvas[this.selectionTarget].width, this.layerCanvas[this.selectionTarget].height);
+      const clipPath = new Path2D();
+      clipPath.rect(0, 0, this.translateData.documentWidth, this.translateData.documentHeight);
+      manipulate(tempLayer.getContext("2d"), {
         action: "fill",
         params: {
           orig: this._getCoordinates(ev),
-          colorArray: this.colorArray,
+          colorArray: [0, 0, 0, 255],
           tolerance: this.tolerance,
-          clip: this.clip,
+          clip: clipPath,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       })
-    ));
+      // "SELECTION OPERATION" MASK TO SELECTION
+    } else {
+      this.dispatch(putHistoryData(
+        this.targetLayer,
+        this.layerCanvas[this.targetLayer].getContext("2d"),
+        () => manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
+          action: "fill",
+          params: {
+            orig: this._getCoordinates(ev),
+            colorArray: this.colorArray,
+            tolerance: this.tolerance,
+            clip: this.clip,
+            clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+          }
+        })
+      ));
+    }
   }
 }
 
