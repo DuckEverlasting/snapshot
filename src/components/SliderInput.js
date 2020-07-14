@@ -1,6 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 
+import { TextInputSC } from "../styles/shared";
+
 const SliderSC = styled.input`
   -webkit-appearance: none;
   background: #bbbbbb;
@@ -48,20 +50,7 @@ const SliderSC = styled.input`
   }
 `;
 
-const NumberInputSC = styled.input`
-  margin: 1px 0 0;
-  border-radius: 3px;
-  border: 1px solid #222222;
-  padding: 3px;
-
-  &::-webkit-inner-spin-button,
-  ::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`;
-
-const PickerSC = styled(NumberInputSC)`
+const PickerSC = styled(TextInputSC)`
   margin-left: 5px;
   width: 25px;
 `;
@@ -86,12 +75,14 @@ const LabelSC = styled.label`
   }
 `;
 
-export default function SliderInput({onChange, value, name, min=1, max=100, step=1, disabled}) {
-  const keydownHandler = ev => {
-    ev.stopPropagation();
+export default function SliderInput({onChange, value, name, min=1, max=100, step=1, disabled=false, stopKeydown=true}) {
+  const handleKeyDown = ev => {
+    if (stopKeydown) {
+      ev.stopPropagation();
+    }
   };
 
-  const inputHandler = ev => {
+  const handleInput = ev => {
     let newValue = Number(ev.target.value);
     if (ev.target.value === "-" || ev.target.value === "") {
       newValue = ev.target.value;
@@ -105,7 +96,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
     onChange(newValue)
   };
 
-  const blurHandler = () => {
+  const handleBlur = () => {
     if (value === "")
     onChange(min)
   }
@@ -116,9 +107,9 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
         <span>{name}</span>
         <PickerSC
           value={!value && value !== 0 ? min : value}
-          onKeyDown={keydownHandler}
-          onChange={inputHandler}
-          onBlur={blurHandler}
+          onKeyDown={handleKeyDown}
+          onChange={handleInput}
+          onBlur={handleBlur}
           type="text"
           min={min}
           max={min}
@@ -127,7 +118,7 @@ export default function SliderInput({onChange, value, name, min=1, max=100, step
       </div>
       <SliderSC
         value={!value && value !== 0 ? min : value}
-        onChange={inputHandler}
+        onChange={handleInput}
         type="range"
         min={min}
         max={max}

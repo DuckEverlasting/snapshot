@@ -2,61 +2,64 @@
 /**
  * Created by @sakri on 25-3-14.
  * Edited and optimized by @mamrehn on 08-09-16
- * Modified for use in SnapShot Image Editor by Matt Klein
+ * Modified for use in SnapShot Image Editor by @duckeverlasting
  *
- * Javascript port of :
+ * Javascript modification of :
  * http://devblog.phillipspiess.com/2010/02/23/better-know-an-algorithm-1-marching-squares/
- * returns an Array of x and y positions defining the perimeter of a blob of non-transparent pixels on a canvas
+ * returns Arrays of x and y positions defining all perimeters of non-transparent pixels on a canvas.
  *
  */
-const MarchingSquaresOpt = {};
+const MarchingSquaresAllPaths = {};
 
-MarchingSquaresOpt.getBlobOutlinePoints = function(source_array, width, height=0, startingPoint=null) {
+MarchingSquaresAllPaths.getAllOutlinePaths = function(source_array) {
   // Note: object should not be on the border of the array, since there is
-  //       no padding of 1 pixel to handle points which touch edges
+  //       no padding of 1 pixel to handle points which touch edges. Hmm... gotta find a way around that one.
+  let width, height;
 
   if (source_array instanceof HTMLCanvasElement || source_array instanceof OffscreenCanvas) {
-    width = source_array.width;
-    height = source_array.height;
-    const data4 = source_array.getContext('2d').getImageData(0, 0, width, height).data,  // Uint8ClampedArray
+  width = source_array.width;
+  height = source_array.height;
+  const data4 = source_array.getContext('2d').getImageData(0, 0, width, height).data,  // Uint8ClampedArray
       len = width * height,
       data = new Uint8Array(len);
     for (let i = 0; i < len; ++i) {
       data[i] = data4[i * 4 + 3];
     }
     source_array = data;
-  } else if (0 == height) {
-    height = (source_array.length / width)|0;
-  }
-
-  // find the starting point
-  if (!startingPoint) {
-    startingPoint = MarchingSquaresOpt.getFirstNonTransparentPixelTopDown(source_array, width, height);
-  }
-  if (startingPoint === "none") {
-    // console.log('[Warning] Marching Squares could not find an object in the given array');
+  } else {
+    console.log('[Warning] Marching Squares expects an HTMLCanvasElement or an OffscreenCanvas');
     return [];
   }
 
   // return list of w and h positions
-  return MarchingSquaresOpt.walkPerimeter(source_array, width, height, startingPoint.w, startingPoint.h);
+  return MarchingSquaresAllPaths.getAllPaths(source_array, width, height);
 };
 
-MarchingSquaresOpt.getFirstNonTransparentPixelTopDown = function(source_array, width, height) {
+MarchingSquaresAllPaths.getAllPaths = function(source_array, width, height) {
   let idx;
+  const isEdge = idx => !!MarchingSquaresAllPaths.step(idx, source_array, width),
+    in_paths = new Set(),
+    paths = [];
+  // loop through all pixels (need to check all or we won't find any paths contained within other paths)
   for (let h = 0 | 0; h < height; ++h) {
     idx = (h * width) | 0;
     for (let w = 0 | 0; w < width; ++w) {
-      if (source_array[idx] > 0) {
-        return { w, h };
+      const firstPoint = (h - 1) * width + (w - 1);
+      if (
+        source_array[idx] > 0 &&
+        !in_paths.has(firstPoint) &&
+        isEdge(firstPoint)
+      ) {
+        const point_list = MarchingSquaresAllPaths.walkPerimeter(source_array, width, height, w, h, in_paths);
+        paths.push(MarchingSquaresAllPaths.getPathFromPointList(point_list));
       }
       ++idx;
     }
   }
-  return "none";
+  return paths;
 };
 
-MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w, start_h) {
+MarchingSquaresAllPaths.walkPerimeter = function(source_array, width, height, start_w, start_h, in_paths) {
 
   width = width|0;
   height = height|0;
@@ -64,7 +67,7 @@ MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w
   // Set up our return list
   const point_list = [],
     up = 1|0, left = 2|0, down = 3|0, right = 4|0,
-    step_func = MarchingSquaresOpt.step;
+    step_func = MarchingSquaresAllPaths.step;
 
   let idx = 0|0,  // Note: initialize it with an integer, so the JS interpreter optimizes for this type.
 
@@ -79,6 +82,7 @@ MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w
   do {
     // evaluate our state, and set up our next direction
     idx = (h - 1) * width + (w - 1);
+    in_paths.add(idx);
     next_step = step_func(idx, source_array, width);
 
     // if our current point is within our image
@@ -103,7 +107,7 @@ MarchingSquaresOpt.walkPerimeter = function(source_array, width, height, start_w
   return point_list;
 };
 
-MarchingSquaresOpt.getPathFromPointList = function(point_list) {
+MarchingSquaresAllPaths.getPathFromPointList = function(point_list) {
   const path = new Path2D();
   path.moveTo(point_list[0], point_list[1]);
   for (let i = 2; i < point_list.length; i+=2) {
@@ -117,10 +121,10 @@ MarchingSquaresOpt.getPathFromPointList = function(point_list) {
 // represent our current state, and sets our current and
 // previous directions
 
-MarchingSquaresOpt.step = function(idx, source_array, width) {
-  //console.log('Sakri.MarchingSquaresOpt.step()');
+MarchingSquaresAllPaths.step = function(idx, source_array, width) {
+  //console.log('Sakri.MarchingSquaresAllPaths.step()');
   // Scan our 4 pixel area
-  //Sakri.imageData = Sakri.MarchingSquaresOpt.sourceContext.getImageData(x-1, y-1, 2, 2).data;
+  //Sakri.imageData = Sakri.MarchingSquaresAllPaths.sourceContext.getImageData(x-1, y-1, 2, 2).data;
 
   const up_left = 0 < source_array[idx + 1],
     up_right = 0 < source_array[idx + 2],
@@ -158,37 +162,38 @@ MarchingSquaresOpt.step = function(idx, source_array, width) {
   // So we can use a switch statement to determine our
   // next direction based on
   switch (state) {
-    case 1: MarchingSquaresOpt.next_step = up; break;
-    case 2: MarchingSquaresOpt.next_step = right; break;
-    case 3: MarchingSquaresOpt.next_step = right; break;
-    case 4: MarchingSquaresOpt.next_step = left; break;
-    case 5: MarchingSquaresOpt.next_step = up; break;
+    case 15: MarchingSquaresAllPaths.next_step = none; break; // not an edge
+    case 1: MarchingSquaresAllPaths.next_step = up; break;
+    case 2: MarchingSquaresAllPaths.next_step = right; break;
+    case 3: MarchingSquaresAllPaths.next_step = right; break;
+    case 4: MarchingSquaresAllPaths.next_step = left; break;
+    case 5: MarchingSquaresAllPaths.next_step = up; break;
     case 6:
-      if (MarchingSquaresOpt.next_step == up) {  // info from previous_step
-        MarchingSquaresOpt.next_step = left;
+      if (MarchingSquaresAllPaths.next_step == up) {  // info from previous_step
+        MarchingSquaresAllPaths.next_step = left;
       } else {
-        MarchingSquaresOpt.next_step = right;
+        MarchingSquaresAllPaths.next_step = right;
       }
       break;
-    case 7: MarchingSquaresOpt.next_step = right; break;
-    case 8: MarchingSquaresOpt.next_step = down; break;
+    case 7: MarchingSquaresAllPaths.next_step = right; break;
+    case 8: MarchingSquaresAllPaths.next_step = down; break;
     case 9:
-      if (MarchingSquaresOpt.next_step == right) {  // info from previous_step
-        MarchingSquaresOpt.next_step = up;
+      if (MarchingSquaresAllPaths.next_step == right) {  // info from previous_step
+        MarchingSquaresAllPaths.next_step = up;
       } else {
-        MarchingSquaresOpt.next_step = down;
+        MarchingSquaresAllPaths.next_step = down;
       }
       break;
-    case 10: MarchingSquaresOpt.next_step = down; break;
-    case 11: MarchingSquaresOpt.next_step = down; break;
-    case 12: MarchingSquaresOpt.next_step = left; break;
-    case 13: MarchingSquaresOpt.next_step = up; break;
-    case 14: MarchingSquaresOpt.next_step = left; break;
+    case 10: MarchingSquaresAllPaths.next_step = down; break;
+    case 11: MarchingSquaresAllPaths.next_step = down; break;
+    case 12: MarchingSquaresAllPaths.next_step = left; break;
+    case 13: MarchingSquaresAllPaths.next_step = up; break;
+    case 14: MarchingSquaresAllPaths.next_step = left; break;
     default:
-      MarchingSquaresOpt.next_step = none;  // this should never happen
+      MarchingSquaresAllPaths.next_step = none;  // this should never happen
       break;
   }
-  return MarchingSquaresOpt.next_step;
+  return MarchingSquaresAllPaths.next_step;
 };
 
-export { MarchingSquaresOpt };
+export { MarchingSquaresAllPaths };

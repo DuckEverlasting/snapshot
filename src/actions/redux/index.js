@@ -12,11 +12,13 @@ export const [
   HIDE_LAYER,
   UPDATE_CANVAS,
   UPDATE_SELECTION_PATH,
-  SET_TRANSFORM_SELECTION,
+  SET_TRANSFORM_TARGET,
   SET_TRANSFORM_PARAMS,
+  SET_CROP_IS_ACTIVE,
+  SET_CROP_PARAMS,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
-  UPDATE_LAYER_ORDER,
+  UPDATE_RENDER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
   ENABLE_LAYER_RENAME,
@@ -24,20 +26,23 @@ export const [
   DRAG_LAYERCARD,
   END_DRAG_LAYERCARD,
   MAKE_ACTIVE_LAYER,
-  MAKE_ACTIVE_TOOL,
+  SET_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_COLOR,
   SWITCH_COLORS,
   UPDATE_WORKSPACE_SETTINGS,
-  TOGGLE_MENU,
-  SET_ACTIVE_MENU_LIST,
+  UPDATE_DOCUMENT_SETTINGS,
+  MOVE_ALL_LAYERS,
   SET_CLIPBOARD_IS_USED,
-  TOGGLE_OVERLAY,
+  SET_OVERLAY,
+  SET_MENU_IS_DISABLED,
+  SET_HISTORY_IS_DISABLED,
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
   SET_EXPORT_OPTIONS,
   SET_STAMP_DATA,
-  SET_APP_IS_WAITING
+  SET_APP_IS_WAITING,
+  RESET_STATE
 ] = [
   "UNDO",
   "REDO",
@@ -49,11 +54,13 @@ export const [
   "HIDE_LAYER",
   "UPDATE_CANVAS",
   "UPDATE_SELECTION_PATH",
-  "SET_TRANSFORM_SELECTION",
+  "SET_TRANSFORM_TARGET",
   "SET_TRANSFORM_PARAMS",
+  "SET_CROP_IS_ACTIVE",
+  "SET_CROP_PARAMS",
   "UPDATE_LAYER_OPACITY",
   "UPDATE_LAYER_BLEND_MODE",
-  "UPDATE_LAYER_ORDER",
+  "UPDATE_RENDER_ORDER",
   "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
   "ENABLE_LAYER_RENAME",
@@ -61,20 +68,23 @@ export const [
   "DRAG_LAYERCARD",
   "END_DRAG_LAYERCARD",
   "MAKE_ACTIVE_LAYER",
-  "MAKE_ACTIVE_TOOL",
+  "SET_ACTIVE_TOOL",
   "UPDATE_TOOL_SETTINGS",
   "UPDATE_COLOR",
   "SWITCH_COLORS",
   "UPDATE_WORKSPACE_SETTINGS",
-  "TOGGLE_MENU",
-  "SET_ACTIVE_MENU_LIST",
+  "UPDATE_DOCUMENT_SETTINGS",
+  "MOVE_ALL_LAYERS",
   "SET_CLIPBOARD_IS_USED",
-  "TOGGLE_OVERLAY",
+  "SET_OVERLAY",
+  "SET_MENU_IS_DISABLED",
+  "SET_HISTORY_IS_DISABLED",
   "SET_HELP_TOPIC",
   "SET_IMPORT_IMAGE_FILE",
   "SET_EXPORT_OPTIONS",
   "SET_STAMP_DATA",
-  "SET_APP_IS_WAITING"
+  "SET_APP_IS_WAITING",
+  "RESET_STATE"
 ];
 
 export const undo = () => {
@@ -87,9 +97,9 @@ export const undo = () => {
         executeUndo(prevState.onUndo);
       }
 
-      function executeUndo(onUndo) {
+      async function executeUndo(onUndo) {
         if (onUndo.move) {
-          dispatch(moveLayer(onUndo.id, onUndo.move));
+          await dispatch(moveLayer(onUndo.id, onUndo.move));
         } else {
           const ctx = prevState.layerCanvas[onUndo.id].getContext("2d")
           const changeData = onUndo.data
@@ -189,13 +199,12 @@ export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[],
     differences[i] = {
       id: ids[i],
       ...getDiff(ctxs[i], {prevImgData: prevImgDatas[i]}),
-      params
     }
   }
   
   return {
     type: PUT_HISTORY_DATA_MULTIPLE,
-    payload: differences
+    payload: {array: differences, params}
   }
 }
 
@@ -248,10 +257,10 @@ export const updateCanvas = (id, changes, ignoreHistory=true) => {
   };
 };
 
-export const updateSelectionPath = path => {
+export const updateSelectionPath = (operation, changes) => {
   return {
     type: UPDATE_SELECTION_PATH,
-    payload: {path, ignoreHistory: true}
+    payload: {changes, operation, ignoreHistory: false}
   };
 };
 
@@ -261,24 +270,36 @@ const defaultTransformParams = {
   resizable: null
 }
 
-export const setTransformSelection = (target, params=defaultTransformParams, ignoreHistory=true) => {
+export const setTransformTarget = (target, params=defaultTransformParams) => {
   return {
-    type: SET_TRANSFORM_SELECTION,
+    type: SET_TRANSFORM_TARGET,
     payload: {
       params: params ? params : defaultTransformParams,
-      target,
-      ignoreHistory
+      target
     }
   };
 };
 
-export const setTransformParams = (params=defaultTransformParams, ignoreHistory=true) => {
+export const setTransformParams = (params=defaultTransformParams) => {
   return {
     type: SET_TRANSFORM_PARAMS,
     payload: {
-      params: params ? params : defaultTransformParams,
-      ignoreHistory
+      params: params ? params : defaultTransformParams
     }
+  };
+};
+
+export const setCropIsActive = (bool, params={}) => {
+  return {
+    type: SET_CROP_IS_ACTIVE,
+    payload: {bool, params}
+  };
+};
+
+export const setCropParams = (params) => {
+  return {
+    type: SET_CROP_PARAMS,
+    payload: params
   };
 };
 
@@ -296,9 +317,9 @@ export const updateLayerBlendMode = (id, blend, ignoreHistory=false) => {
   };
 };
 
-export const updateLayerOrder = (from, to, ignoreHistory=false) => {
+export const updateRenderOrder = (from, to, ignoreHistory=false) => {
   return {
-    type: UPDATE_LAYER_ORDER,
+    type: UPDATE_RENDER_ORDER,
     payload: {from, to, ignoreHistory}
   };
 };
@@ -351,9 +372,9 @@ export const makeActiveLayer = layerId => {
   };
 };
 
-export const makeActiveTool = slug => {
+export const setActiveTool = slug => {
   return {
-    type: MAKE_ACTIVE_TOOL,
+    type: SET_ACTIVE_TOOL,
     payload: slug
   };
 };
@@ -385,16 +406,17 @@ export const updateWorkspaceSettings = (changes) => {
   }
 }
 
-export const toggleMenu = () => {
+export const updateDocumentSettings = (changes, ignoreHistory=false) => {
   return {
-    type: TOGGLE_MENU
+    type: UPDATE_DOCUMENT_SETTINGS,
+    payload: {changes, ignoreHistory}
   }
 }
 
-export const setActiveMenuList = (id) => {
+export const moveAllLayers = (offsetDelta, ignoreHistory=true) => {
   return {
-    type: SET_ACTIVE_MENU_LIST,
-    payload: id
+    type: MOVE_ALL_LAYERS,
+    payload: {offsetDelta, ignoreHistory}
   }
 }
 
@@ -405,10 +427,24 @@ export const setClipboardIsUsed = bool => {
   }
 }
 
-export const toggleOverlay = (overlay, params={}) => {
+export const setOverlay = (overlay, params={}) => {
   return {
-    type: TOGGLE_OVERLAY,
+    type: SET_OVERLAY,
     payload: {overlay, params}
+  }
+}
+
+export const setMenuIsDisabled = bool => {
+  return {
+    type: SET_MENU_IS_DISABLED,
+    payload: bool
+  }
+}
+
+export const setHistoryIsDisabled = bool => {
+  return {
+    type: SET_HISTORY_IS_DISABLED,
+    payload: {bool, ignoreHistory: true}
   }
 }
 
@@ -444,5 +480,11 @@ export const setAppIsWaiting = bool => {
   return {
     type: SET_APP_IS_WAITING,
     payload: bool
+  }
+}
+
+export const resetState = () => {
+  return {
+    type: RESET_STATE
   }
 }

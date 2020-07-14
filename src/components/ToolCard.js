@@ -49,7 +49,7 @@ export default function ToolCard() {
 
   const toolName = toolSettings[activeTool].name;
 
-  const inputHandler = (value, property) => {
+  const handleInput = (value, property) => {
     dispatch(
       updateToolSettings(activeTool, {
         ...toolSettings[activeTool],
@@ -63,31 +63,31 @@ export default function ToolCard() {
       <TitleSC>{toolName}</TitleSC>
       <ToolCardInnerSC>
         {width !== undefined && <SliderInput
-          onChange={value => inputHandler(value, "width")}
+          onChange={value => handleInput(value, "width")}
           value={width}
           name={"Width"}
           max={255}
         />}
         {amount !== undefined && <SliderInput
-          onChange={value => inputHandler(value, "amount")}
+          onChange={value => handleInput(value, "amount")}
           value={amount}
           name={"Amount"}
           min={activeTool === "saturate" ? -100 : 0}
           max={100}
         />}
         {opacity !== undefined && <SliderInput
-          onChange={value => inputHandler(value, "opacity")}
+          onChange={value => handleInput(value, "opacity")}
           value={opacity}
           name={"Opacity"}
         />}
         {hardness !== undefined && <SliderInput
-          onChange={value => inputHandler(value, "hardness")}
+          onChange={value => handleInput(value, "hardness")}
           value={hardness}
           name={"Hardness"}
           min={0}
         />}
         {tolerance !== undefined && <SliderInput
-          onChange={value => inputHandler(value, "tolerance")}
+          onChange={value => handleInput(value, "tolerance")}
           value={tolerance}
           name={"Tolerance"}
           min={0}
@@ -96,7 +96,7 @@ export default function ToolCard() {
         {range !== undefined && <RadioInput
           name={""}
           selected={range}
-          onChange={value => inputHandler(value, "range")}
+          onChange={value => handleInput(value, "range")}
           options={["Shadows", "Midtones", "Highlights"]}
           vertical
         />}

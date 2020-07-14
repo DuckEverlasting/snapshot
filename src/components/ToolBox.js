@@ -13,7 +13,9 @@ import {
   faFillDrip,
   faPalette,
   faTint,
-  faStamp
+  faStamp,
+  faCrop,
+  faMagic
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faHandPaper
@@ -28,7 +30,7 @@ import styled from "styled-components";
 
 import Button from "./Button";
 
-import { makeActiveTool } from "../actions/redux";
+import { setActiveTool } from "../actions/redux";
 
 const ToolboxSC = styled.div`
   display: flex;
@@ -61,9 +63,11 @@ function ToolBox() {
       <ToolButton title="Burn" name="burn" icon={<img alt="Burn" src={burnIcon} />}/>
       <ToolButton title="Saturate" name="saturate" faIcon={faPalette}/>
       <ToolButton title="Stamp" name="stamp" faIcon={faStamp}/>
-      <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
       <ToolButton title="Select Rectangle (M)" name="selectRect" icon={<img alt="Select Rectangle" src={dashedSquareIcon} />}/>
       <ToolButton title="Select Ellipse (Shift + M)" name="selectEllipse" icon={<img alt="Select Ellipse" src={dashedCircleIcon} />}/>
+      <ToolButton title="Lasso (L)" name="lasso" icon={<img alt="Lasso" src={lassoIcon} />}/>
+      <ToolButton title="Fill Select (W)" name="selectionFill" faIcon={faMagic}/>
+      <ToolButton title="Crop" name="crop" faIcon={faCrop}/>
       <ToolButton title="Move (V)" name="move" faIcon={faArrowsAlt}/>
       <ToolButton title="Hand (H)" name="hand" faIcon={faHandPaper}/>
       <ToolButton title="Zoom (Z)" name="zoom" faIcon={faSearch}/>
@@ -77,7 +81,7 @@ function ToolButton({ title, name, faIcon, icon }) {
   const dispatch = useDispatch();
   const changeToolHandler = ev => {
     ev.preventDefault();
-    dispatch(makeActiveTool(ev.target.name));
+    dispatch(setActiveTool(ev.target.name));
   };
 
   return (

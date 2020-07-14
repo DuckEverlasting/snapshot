@@ -8,7 +8,7 @@ import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
 import SliderInput from "../components/SliderInput";
 import SelectBlendMode from "../components/SelectBlendMode";
-import { createLayer, updateLayerOrder, updateLayerOpacity, undo } from "../actions/redux";
+import { createLayer, updateRenderOrder, updateLayerOpacity } from "../actions/redux";
 
 import render from "../actions/redux/renderCanvas";
 
@@ -66,7 +66,7 @@ const LayerPanelButtonSC = styled(Button)`
 
 export default function LayerPanel() {
   const layerSettings = useSelector(state => state.main.present.layerSettings);
-  const layerOrder = useSelector(state => state.main.present.layerOrder);
+  const renderOrder = useSelector(state => state.main.present.renderOrder);
   const activeLayer = useSelector(state => state.main.present.activeLayer);
   const lastAction = useSelector(state => state.lastAction);
   const opacity = activeLayer ? layerSettings[activeLayer].opacity : null;
@@ -82,20 +82,22 @@ export default function LayerPanel() {
       destination.index === source.index
     ) return;
 
-    const src = layerOrder.length - source.index - 1
-    const dest = layerOrder.length - destination.index - 1
+    const src = renderOrder.length - source.index - 1
+    const dest = renderOrder.length - destination.index - 1
 
-    dispatch(updateLayerOrder(src, dest))
+    dispatch(updateRenderOrder(src, dest))
   }
 
   const inputHandler = value => {
+    let ignoreHistory = false;
     if (
+      lastAction &&
       lastAction.type === "UPDATE_LAYER_OPACITY" &&
       Date.now() - lastAction.time < 1000
     ) {
-      dispatch(undo());
+      ignoreHistory = true;
     }
-    dispatch(updateLayerOpacity(activeLayer, value));
+    dispatch(updateLayerOpacity(activeLayer, value, ignoreHistory));
     dispatch(render());
   };
 
@@ -109,8 +111,8 @@ export default function LayerPanel() {
               ref={provided.innerRef}
               {...provided.droppableProps}
             >
-              {layerOrder && layerOrder.length !== 0 &&
-                layerOrder
+              {renderOrder && renderOrder.length !== 0 &&
+                renderOrder
                   .slice()
                   .reverse()
                   .map((layerId, i) => {

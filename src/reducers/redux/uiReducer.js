@@ -1,23 +1,27 @@
 import {
   DRAG_LAYERCARD,
   END_DRAG_LAYERCARD,
-  MAKE_ACTIVE_TOOL,
+  SET_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_COLOR,
   SWITCH_COLORS,
-  TOGGLE_MENU,
-  SET_ACTIVE_MENU_LIST,
-  TOGGLE_OVERLAY,
+  SET_MENU_IS_DISABLED,
+  SET_OVERLAY,
   SET_HELP_TOPIC,
   SET_IMPORT_IMAGE_FILE,
+  SET_TRANSFORM_TARGET,
+  SET_TRANSFORM_PARAMS,
+  SET_CROP_IS_ACTIVE,
+  SET_CROP_PARAMS,
   SET_EXPORT_OPTIONS,
-  SET_APP_IS_WAITING
+  SET_APP_IS_WAITING,
+  RESET_STATE
 } from "../../actions/redux";
 
-import { initUiState } from "./initState";
+import { getInitUiState } from "./initState";
 
-const uiReducer = (state = initUiState, {type, payload}) => {
+const uiReducer = (state = getInitUiState(), {type, payload}) => {
   switch (type) {
     case DRAG_LAYERCARD:
       return {
@@ -31,7 +35,7 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         draggedLayercard: null,
       }
 
-    case MAKE_ACTIVE_TOOL:
+    case SET_ACTIVE_TOOL:
       return {
         ...state,
         activeTool: payload
@@ -48,13 +52,6 @@ const uiReducer = (state = initUiState, {type, payload}) => {
       };
 
     case UPDATE_WORKSPACE_SETTINGS:
-      if (payload.zoomPct) {
-        if (payload.zoomPct < 12.5) {
-          payload.zoomPct = 12.5;
-        } else if (payload.zoomPct > 600) {
-          payload.zoomPct = 600;
-        }
-      }
       return {
         ...state,
         workspaceSettings: {
@@ -80,17 +77,12 @@ const uiReducer = (state = initUiState, {type, payload}) => {
           secondary: state.colorSettings.primary,
         },
       };
-    case TOGGLE_MENU:
+    case SET_MENU_IS_DISABLED:
       return {
         ...state,
-        menuIsActive: !state.menuIsActive
+        menuIsDisabled: payload
       }
-    case SET_ACTIVE_MENU_LIST:
-      return {
-        ...state,
-        activeMenuList: payload
-      }
-    case TOGGLE_OVERLAY:
+    case SET_OVERLAY:
       return {
         ...state,
         overlay: state.overlay === payload.overlay ? null : payload.overlay,
@@ -107,6 +99,40 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         ...state,
         importImageFile: payload
       }
+    case SET_TRANSFORM_TARGET:
+      return {
+        ...state,
+        transformTarget: payload.target,
+        transformParams: {
+          ...state.transformParams,
+          ...payload.params
+        }
+      }
+    case SET_TRANSFORM_PARAMS:
+      return {
+        ...state,
+        transformParams: {
+          ...state.transformParams,
+          ...payload.params
+        }
+      }
+    case SET_CROP_IS_ACTIVE:
+      return {
+        ...state,
+        cropIsActive: payload.bool,
+        cropParams: {
+          ...state.cropParams,
+          ...payload.params
+        }
+      }
+    case SET_CROP_PARAMS:
+      return {
+        ...state,
+        cropParams: {
+          ...state.cropParams,
+          ...payload
+        }
+      }  
     case SET_EXPORT_OPTIONS:
       return {
         ...state,
@@ -117,6 +143,8 @@ const uiReducer = (state = initUiState, {type, payload}) => {
         ...state,
         appIsWaiting: payload
       }
+    case RESET_STATE:
+      return getInitUiState();
     default:
       return state;
   }

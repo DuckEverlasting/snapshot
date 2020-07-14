@@ -11,7 +11,8 @@ const RadioButtonsSC = styled.div`
   flex-direction: ${props => props.vertical ? "column" : "row"};
 
   & label {
-    padding: 2px 10px;
+    padding: 10px;
+    white-space: nowrap;
   }
 `
 

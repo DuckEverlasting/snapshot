@@ -126,35 +126,73 @@ export function undelete(ctx, { source }) {
   ctx.putImageData(source, 0, 0);
 }
 
-export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
-  const viewWidth = Math.floor(ctx.canvas.width);
-  const viewHeight = Math.floor(ctx.canvas.height);
+export function getFillContent(ctx, { orig, colorArray, tolerance, clip, clipOffset }) {
+  const canvasWidth = Math.floor(ctx.canvas.width),
+    canvasHeight = Math.floor(ctx.canvas.height);
+  let pathTest;
+  const fillContentCanvas = new OffscreenCanvas(canvasWidth, canvasHeight),
+    fillContentCtx = fillContentCanvas.getContext("2d");
+  
   orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
-  const imgData = ctx.getImageData(
+  
+  if (clip) {
+    let pathCanvas = new OffscreenCanvas(canvasWidth, canvasHeight),
+      pathCtx = pathCanvas.getContext("2d");
+    
+    if (clipOffset) {
+      pathCtx.translate(Math.floor(-clipOffset.x), Math.floor(-clipOffset.y))
+    }
+    pathCtx.clip(clip);
+    if (clipOffset) {
+      pathCtx.translate(Math.floor(clipOffset.x), Math.floor(clipOffset.y))
+    }
+    pathCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+    pathTest = pathCtx.getImageData(0,
+      0,
+      canvasWidth,
+      canvasHeight
+    ).data;
+    pathCanvas = null;
+  } else {
+    pathTest = null;
+  }
+
+  const sourceImgData = ctx.getImageData(
     0,
     0,
-    viewWidth,
-    viewHeight
-  );
-  const { data } = imgData;
-  const originIndex = getPixelAt(orig);
+    canvasWidth,
+    canvasHeight
+  ),
+    sourceData = sourceImgData.data,
+    destImgData = fillContentCtx.getImageData(0, 0, canvasWidth, canvasHeight),
+    destData = destImgData.data,
+    originIndex = (orig.x + orig.y * canvasWidth) * 4;
+  
+  fillOperation(sourceData, destData, canvasWidth, pathTest, originIndex, colorArray, tolerance);
+
+  fillContentCtx.putImageData(destImgData, 0, 0);
+
+  return fillContentCanvas
+}
+
+function fillOperation(sourceData, destData, canvasWidth, pathTest, originIndex, colorArray, tolerance) {
+  let current,
+    visited = new Set();
   const originColor = [
-    data[originIndex],
-    data[originIndex + 1],
-    data[originIndex + 2],
-    data[originIndex + 3]
-  ];
-  const stack = [originIndex];
-  let current;
-  let visited = new Set();
+    sourceData[originIndex],
+    sourceData[originIndex + 1],
+    sourceData[originIndex + 2],
+    sourceData[originIndex + 3]
+  ],
+    stack = [originIndex];
+  
   visited.add(originIndex);
 
   while (stack.length) {
     current = stack.pop();
-    const { x, y } = getCoordsOf(current);
-    if (colorMatch(current) && (ctx.isPointInPath(clip, x, y))) {
+    if (colorMatch(current) && (!pathTest || pathTest[current+3])) {
       for (let i = 0; i < 4; i++) {
-        data[current + i] = colorArray[i];
+        destData[current + i] = colorArray[i];
       }
       getSurrounding(current).forEach(el => {
         if (!visited.has(el)) {
@@ -165,40 +203,30 @@ export function fill(ctx, { orig, colorArray, tolerance = 100, clip }) {
     }
   }
 
-  ctx.clearRect(0, 0, viewWidth, viewHeight);
-  ctx.putImageData(imgData, 0, 0);
-
   function getSurrounding(origin) {
     return [
       origin + 4,
       origin - 4,
-      origin - viewWidth * 4,
-      origin + viewWidth * 4
+      origin - canvasWidth * 4,
+      origin + canvasWidth * 4
     ];
   }
 
-  function getPixelAt(origin) {
-    return (origin.x + origin.y * viewWidth) * 4;
-  }
-
-  function getCoordsOf(num) {
-    num /= 4;
-    return {
-      x: num % viewWidth,
-      y: Math.floor(num / viewWidth)
-    }
-  }
-
   function colorMatch(pixel) {
-    if (pixel < 0 || pixel + 4 - 1 > data.length) {
+    if (pixel < 0 || pixel + 4 - 1 > sourceData.length) {
       return false;
     }
     let diff = 0;
     for (let i = 0; i < 4; i++) {
-      diff += Math.abs(data[pixel + i] - originColor[i]);
+      diff += Math.abs(sourceData[pixel + i] - originColor[i]);
     }
     return diff <= tolerance;
   }
+}
+
+export function fill(ctx, { orig, colorArray, tolerance = 100, clip, clipOffset }) {
+  const fillContentCanvas = getFillContent(ctx, { orig, colorArray, tolerance, clip, clipOffset });
+  ctx.drawImage(fillContentCanvas, 0, 0);
 }
 
 export function blend(ctx, { source }) {

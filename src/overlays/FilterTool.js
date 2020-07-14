@@ -3,15 +3,15 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import useWait from "../hooks/useWait";
 
-import { toggleOverlay, setAppIsWaiting } from "../actions/redux";
+import { setOverlay, setAppIsWaiting } from "../actions/redux";
 import render from "../actions/redux/renderCanvas";
 import filterAction from "../utils/filterAction";
 
-import DraggableWindow from "./DraggableWindow";
-import SliderInput from "./SliderInput";
-import RadioInput from "./RadioInput";
-import CheckboxInput from "./CheckboxInput";
-import Button from "./Button";
+import DraggableWindow from "../components/DraggableWindow";
+import SliderInput from "../components/SliderInput";
+import RadioInput from "../components/RadioInput";
+import CheckboxInput from "../components/CheckboxInput";
+import Button from "../components/Button";
 
 const FilterToolSC = styled.div`
   display: flex;
@@ -102,27 +102,20 @@ export default function FilterTool() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
 
-  const handleKeyDown = ev => {
-    if (ev.key === "Escape") {
-      handleCancel();
-    }
-    ev.stopPropagation();
-  }
-
   const handleApply = () => {
     withWaiting(() => {
       dispatch(filterAction(
         filter.apply,
         {...input, width: stagingCanvas.width}
       ));
-      dispatch(toggleOverlay("filter"));
+      dispatch(setOverlay("filter"));
     }, true);
   }
 
   const handleCancel = () => {
     stagingCanvas.getContext("2d").clearRect(0, 0, stagingCanvas.width, stagingCanvas.height);
     dispatch(render());
-    dispatch(toggleOverlay("filter"));
+    dispatch(setOverlay("filter"));
   }
 
   const checkRequirementsMet = () => {
@@ -137,7 +130,7 @@ export default function FilterTool() {
   }
 
   return (
-    <DraggableWindow name={filter.name} onKeyDown={handleKeyDown} resizable={false}>
+    <DraggableWindow name={filter.name} onEscape={handleCancel} onEnter={handleApply} resizable={true}>
       <FilterToolSC>
         {
           Object.keys(filter.inputInfo).map((key, i) => {

@@ -9,6 +9,7 @@ export const hotkey = {
   "h": {type: "activeTool", payload: "hand"},
   "z": {type: "activeTool", payload: "zoom"},
   "x": {type: "special", payload: "switchColors"},
+  "w": {type: "activeTool", payload: "selectionFill"},
   "Delete": {type: "special", payload: "clear"},
   "Backspace": {type: "special", payload: "clear"}
 }
@@ -21,6 +22,7 @@ export const hotkeyCtrl = {
   "z": {type: "special", payload: "undo"},
   "Z": {type: "special", payload: "redo"},
   "d": {type: "special", payload: "deselect"},
+  "D": {type: "special", payload: "reselect"},
   "L": {type: "special", payload: "newLayer"},
   "l": {type: "special", payload: "newLayer"},
   "M": {type: "activeTool", payload: "selectEllipse"},

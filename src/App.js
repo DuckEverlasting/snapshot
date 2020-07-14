@@ -9,7 +9,7 @@ import Workspace from "./panels/Workspace.js";
 import ToolPanel from "./panels/ToolPanel.js";
 import LayerPanel from "./panels/LayerPanel.js";
 
-import { makeActiveTool } from "./actions/redux";
+import { setActiveTool } from "./actions/redux";
 import menuAction from "./actions/redux/menuAction";
 
 import { hotkey, hotkeyCtrl } from "./constants/hotkeys";
@@ -40,7 +40,7 @@ const AppContainerSC = styled.div`
 
 function App() {
   const overlay = useSelector(state => state.ui.overlay);
-  const transformSelectionTarget = useSelector(state => state.main.present.transformSelectionTarget);
+  const transformTarget = useSelector(state => state.ui.transformTarget);
   const importImageFile = useSelector(state => state.ui.importImageFile);
   const appIsWaiting = useSelector(state =>state.ui.appIsWaiting);
 
@@ -49,7 +49,7 @@ function App() {
   useEffect(() => {
     const handleKeyDown = ev => {
       ev.preventDefault();
-      if (overlay || transformSelectionTarget || importImageFile) {return}
+      if (overlay || transformTarget || importImageFile) {return}
       let keyCombo;
       let modifier = window.navigator.platform.includes("Mac")
         ? ev.metaKey
@@ -61,7 +61,7 @@ function App() {
       }
       if (keyCombo === undefined) return;
       if (keyCombo.type === "activeTool") {
-        dispatch(makeActiveTool(keyCombo.payload));
+        dispatch(setActiveTool(keyCombo.payload));
       } else {
         dispatch(menuAction(keyCombo.payload));
       }
@@ -71,7 +71,7 @@ function App() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overlay, transformSelectionTarget, importImageFile]);
+  }, [overlay, transformTarget, importImageFile]);
 
   return (
     <AppSC id="App">

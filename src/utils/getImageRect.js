@@ -1,4 +1,4 @@
-export default function getImageRect(canvas, selectionPath) {
+export default function getImageRect(canvas, selectionPath = null, countEmpty = false) {
   const ctx = canvas.getContext("2d");
   const w = canvas.width;
   const h = canvas.height;
@@ -6,15 +6,19 @@ export default function getImageRect(canvas, selectionPath) {
   let x, y, i;
   let left, right, top, bottom;
 
-  function inPath(x, y) {
-    return selectionPath ? ctx.isPointInPath(selectionPath, x, y) : true;
-  }
+  const inPath = selectionPath ?
+    (x, y) => ctx.isPointInPath(selectionPath, x, y) :
+    () => true;
+  
+  const hasData = countEmpty ?
+    () => true :
+    (i) => imageData.data[i+3] > 0;
 
   for (y = 0; y < h; y++) {
     let isBlank = true;
     for (x = 0; x < w; x++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0 && inPath(x, y)) {
+      if (hasData(i) && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -33,7 +37,7 @@ export default function getImageRect(canvas, selectionPath) {
     let isBlank = true;
     for (y = 0; y < h; y++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0 && inPath(x, y)) {
+      if (hasData(i) && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -48,7 +52,7 @@ export default function getImageRect(canvas, selectionPath) {
     let isBlank = true;
     for (x = 0; x < w; x++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0 && inPath(x, y)) {
+      if (hasData(i) && inPath(x, y)) {
         isBlank = false;
         break;
       }
@@ -63,7 +67,7 @@ export default function getImageRect(canvas, selectionPath) {
     let isBlank = true;
     for (y = 0; y < h; y++) {
       i = (y * w + x) * 4;
-      if (imageData.data[i+3] > 0 && inPath(x, y)) {
+      if (hasData(i) && inPath(x, y)) {
         isBlank = false;
         break;
       }

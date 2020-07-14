@@ -9,12 +9,14 @@ import {
   redo,
   setClipboardIsUsed,
   putHistoryData,
-  putHistoryDataMultiple,
   setImportImageFile,
-  setTransformSelection,
+  setTransformTarget,
   setTransformParams,
-  updateLayerPosition
+  updateLayerPosition,
+  updateDocumentSettings,
 } from "./index";
+
+import { MoveAction } from "../../utils/ToolAction";
 
 import { filter } from "../../utils/filters";
 
@@ -26,28 +28,111 @@ import render from "./renderCanvas";
 
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
-    const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
-      placeholderCtx = layerCanvas.placeholder.getContext("2d"),
-      fileName = getState().main.present.documentSettings.documentName
-  
-    layerOrder.forEach(id => {
-      if (!layerSettings[id].hidden) {
-        const sourceCtx = layerCanvas[id].getContext("2d"); 
-        manipulate(placeholderCtx, {
-          action: "paste",
-          params: {
-            sourceCtx,
-            dest: {x: 0, y: 0}
-          }
-        })
-      }
-    })
+    const mainCanvas = getState().main.present.layerCanvas.main,
+      fileName = getState().main.present.documentSettings.documentName;
 
-    const href = placeholderCtx.canvas.toDataURL(type, compression);
+    const href = mainCanvas.toDataURL(type, compression);
   
     saveAs(href, fileName);
 
     window.URL.revokeObjectURL(href);
+  }
+}
+
+export function resizeDocument(width, height, offset=null, rescale=false) {
+  if (!width || !height) {
+    throw new Error("Resize must specify both height and width.");
+  }
+  if (!rescale && !offset) {
+    throw new Error("Resize must specify either parameter 'rescale' or parameter 'offset'");
+  }
+  if (offset && (
+    !typeof offset === "string" ||
+    !offset.x ||
+    typeof offset.x !== "number" ||
+    !offset.y ||
+    typeof offset.y !== "number"
+  )) {
+    throw new TypeError("Invalid type in function resizeDocument: 'offset' must be a string or an object containing numbers 'x' and 'y'");
+  }
+
+  return async (dispatch, getState) => {
+    const { documentWidth, documentHeight } = getState().main.present.documentSettings;
+    const layerSettings = getState().main.present.layerSettings;
+    const layerCanvas = getState().main.present.layerCanvas;
+
+    const offsetConversion = {
+      "top-left": {x: 0, y: 0},
+      "top-center": {x: -(documentWidth - width) / 2, y: 0},
+      "top-right": {x: -(documentWidth - width), y: 0},
+      "center-left": {x: 0, y: -(documentHeight - height) / 2},
+      "center-center": {x: -(documentWidth - width) / 2, y: -(documentHeight - height) / 2},
+      "center-right": {x: -(documentWidth - width), y: -(documentHeight - height) / 2},
+      "bottom-left": {x: 0, y: -(documentHeight - height)},
+      "bottom-center": {x: -(documentWidth - width) / 2, y: -(documentHeight - height)},
+      "bottom-right": {x: -(documentWidth - width), y: -(documentHeight - height)}
+    }
+
+    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
+    
+    await dispatch(menuAction("deselect"));
+    layerCanvas.staging.width = width;
+    layerCanvas.staging.height = height;
+    layerCanvas.placeholder.width = width;
+    layerCanvas.placeholder.height = height;
+    const temp = new OffscreenCanvas(documentWidth, documentHeight);
+    temp.getContext("2d").drawImage(layerCanvas.clipboard, 0, 0);
+    layerCanvas.clipboard.width = width;
+    layerCanvas.clipboard.height = height;
+    layerCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
+
+    if (offset) {
+      const parsedOffset = typeof offset === "string" ? offsetConversion[offset] : offset;
+      await getState().main.present.renderOrder.forEach(targetLayer => {
+        const translateData = {
+          offX: layerSettings[targetLayer].offset.x,
+          offY: layerSettings[targetLayer].offset.y,
+          documentWidth: width,
+          documentHeight: height,
+        }
+        const action = new MoveAction(targetLayer, layerCanvas, dispatch, translateData);
+        action.manualStart();
+        action.manualEnd(parsedOffset, true);
+      })
+    } else {
+      await getState().main.present.renderOrder.forEach(targetLayer => {
+        const widthFactor = width / documentWidth;
+        const heightFactor = height / documentHeight;
+        temp.width = layerCanvas[targetLayer].width * widthFactor;
+        temp.height = layerCanvas[targetLayer].height * heightFactor;
+        manipulate(temp.getContext("2d"), {
+          action: "paste",
+          params: {
+            sourceCtx: layerCanvas[targetLayer].getContext("2d"),
+            dest: {x: 0, y: 0},
+            size: {w: temp.width, h: temp.height},
+            clearFirst: true
+          }
+        });
+        layerCanvas[targetLayer].width = temp.width;
+        layerCanvas[targetLayer].height = temp.height;
+        manipulate(layerCanvas[targetLayer].getContext("2d"), {
+          action: "paste",
+          params: {
+            sourceCtx: temp.getContext("2d"),
+            dest: {x: 0, y: 0},
+            clearFirst: true
+          }
+        });
+        const newOffset = {
+          x: layerSettings[targetLayer].offset.x * widthFactor,
+          y: layerSettings[targetLayer].offset.y * heightFactor
+        }
+        dispatch(updateLayerPosition(targetLayer, null, newOffset, true));
+      });
+    }
+
+    dispatch(render());
   }
 }
 
@@ -56,19 +141,18 @@ export default function menuAction(action) {
     case "switchColors":
       return switchColors();
     case "deselect":
-      return (dispatch, getState) => {
-        const ctx = getState().main.present.layerCanvas.selection.getContext("2d");
-        dispatch(
-          putHistoryData("selection", ctx, () =>
-            manipulate(ctx, {
-              action: "clear",
-              params: { selectionPath: null }
-            })
-          )
-        );
-        dispatch(updateSelectionPath(null));
+      return (dispatch) => {
+        dispatch(updateSelectionPath("clear"));
         dispatch(render());
       };
+    case "reselect":
+      return (dispatch, getState) => {
+        const prevSelection = getState().main.present.previousSelection;
+        if (prevSelection) {
+          dispatch(updateSelectionPath("new", prevSelection));
+          dispatch(render());
+        }
+      }
     case "duplicate":
       return (dispatch, getState) => {
         const { activeLayer } = getState().main.present;
@@ -117,22 +201,22 @@ export default function menuAction(action) {
         dispatch(render());
       };
     case "undo":
-      return dispatch => {
-        dispatch(undo());
+      return async dispatch => {
+        await dispatch(undo());
         return dispatch(render());
       }
     case "redo":
-      return dispatch => {
-        dispatch(redo());
+      return async dispatch => {
+        await dispatch(redo());
         return dispatch(render());
       }
     case "newLayer":
       return (dispatch, getState) => {
-        const { activeLayer, layerOrder } = getState().main.present;
+        const { activeLayer, renderOrder } = getState().main.present;
         if (activeLayer) {
           dispatch(createLayer(activeLayer));
         } else {
-          dispatch(createLayer(layerOrder.length));
+          dispatch(createLayer(renderOrder.length));
         }
       };
     case "deleteLayer":
@@ -181,34 +265,20 @@ export default function menuAction(action) {
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
           dispatch(setTransformParams({resizable: true, rotatable: true}))
-          dispatch(createLayer(getState().main.present.layerOrder.length, false, {name}));
+          dispatch(createLayer(getState().main.present.renderOrder.length, false, {name}));
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }
       }
     case "export":
       return (dispatch, getState) => {
-        const { layerCanvas, layerSettings, layerOrder } = getState().main.present,
-          placeholderCtx = layerCanvas.placeholder.getContext("2d"),
+        const mainCanvas = getState().main.present.layerCanvas.main,
           { type, compression } = getState().ui.exportOptions,
           fileName = getState().main.present.documentSettings.documentName;
 
         if (!type) return;
-      
-        layerOrder.forEach(id => {
-          if (!layerSettings[id].hidden) {
-            const sourceCtx = layerCanvas[id].getContext("2d"); 
-            manipulate(placeholderCtx, {
-              action: "paste",
-              params: {
-                sourceCtx,
-                dest: {x: 0, y: 0}
-              }
-            })
-          }
-        })
 
-        const href = placeholderCtx.canvas.toDataURL(type, compression);
+        const href = mainCanvas.toDataURL(type, compression);
       
         saveAs(href, fileName);
 
@@ -219,7 +289,6 @@ export default function menuAction(action) {
         const { activeLayer, layerCanvas, layerSettings, selectionPath } = getState().main.present;
         if (!activeLayer) return
         const activeCtx = layerCanvas[activeLayer].getContext("2d"),
-          selectionCtx = layerCanvas.selection.getContext("2d"),
           placeholderCtx = layerCanvas.placeholder.getContext("2d");
         manipulate(placeholderCtx, {
           action: "paste",
@@ -230,8 +299,7 @@ export default function menuAction(action) {
             clearFirst: true
           }
         })
-        await dispatch(putHistoryDataMultiple([activeLayer, "selection"], [activeCtx, selectionCtx], [
-          () => {
+        await dispatch(putHistoryData(activeLayer, activeCtx, () => {
           manipulate(activeCtx, {
             action: "clear",
             params: {
@@ -239,19 +307,13 @@ export default function menuAction(action) {
               clipOffset: layerSettings[activeLayer].offset
             }
           })
-        }, () => {
-          manipulate(selectionCtx, {
-            action: "clear",
-            params: { selectionPath: null }
-          })
-        }]));
-        dispatch(setTransformSelection(
+        }));
+        dispatch(setTransformTarget(
           activeLayer,
-          {startEvent: null, resizable: true, rotatable: true},
-          true
+          {startEvent: null, resizable: true, rotatable: true}
         ));
+        dispatch(updateSelectionPath("clear"));
         dispatch(render());
-        dispatch(updateSelectionPath(null, true));
         return;
       }
     case "desaturate":

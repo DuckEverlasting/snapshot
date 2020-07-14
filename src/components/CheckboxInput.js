@@ -6,12 +6,13 @@ const CheckboxSC = styled.div`
 
   & label {
     padding: 2px 10px;
+    white-space: ${props => props.noWrap ? "nowrap" : "normal"};
   }
 `
 
-export default function RadioInput({name, selected, onChange}) {
+export default function RadioInput({name, selected, onChange, noWrap=false}) {
   return (
-    <CheckboxSC>
+    <CheckboxSC noWrap>
         <label>
           {name}
           <input

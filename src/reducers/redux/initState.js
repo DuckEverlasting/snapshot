@@ -7,18 +7,17 @@ initSelectionPath.rect(0, 0, initWidth, initHeight);
 // This is so the number input component won't get confused.
 // Opacity is converted to 0 - 1 format when drawn.
 
-export const initMainState = {
+export const getInitMainState = () => ({
   onUndo: null,
   onRedo: null,
   documentSettings: {
     documentWidth: initWidth,
     documentHeight: initHeight,
-    documentName: "Untitled_1"
+    documentName: "My Great Document"
   },
   layerCanvas: {
     main: null,
     1: new OffscreenCanvas(initWidth, initHeight),
-    selection: new OffscreenCanvas(initWidth, initHeight),
     clipboard: new OffscreenCanvas(initWidth, initHeight),
     placeholder: new OffscreenCanvas(initWidth, initHeight),
     staging: new OffscreenCanvas(initWidth, initHeight)
@@ -26,6 +25,7 @@ export const initMainState = {
   layerSettings: {
     1: {
       name: "Layer 1",
+      type: "raster",
       nameEditable: false,
       size: {
         w: initWidth,
@@ -38,16 +38,6 @@ export const initMainState = {
       hidden: false,
       opacity: 100,
       blend: "source-over"
-    },
-    "selection": {
-      size: {
-        w: initWidth,
-        h: initHeight
-      },
-      offset: {
-        x: 0,
-        y: 0
-      }
     },
     "clipboard": {
       size: {
@@ -62,14 +52,9 @@ export const initMainState = {
   },
   selectionPath: initSelectionPath,
   selectionActive: false,
-  transformSelectionTarget: null,
-  transformParams: {
-    startEvent: null,
-    resizable: false,
-    rotatable: false
-  },
+  previousSelection: null,
   stagingPinnedTo: 1,
-  layerOrder: [1],
+  renderOrder: [1],
   layerCounter: 2,
   activeLayer: 1,
   clipboardUsed: false,
@@ -77,10 +62,11 @@ export const initMainState = {
     canvas: null,
     origin: null,
     destination: null
-  }
-};
+  },
+  historyIsDisabled: false
+});
 
-export const initUiState = {
+export const getInitUiState = () => ({
   workspaceSettings: {
     translateX: 0,
     translateY: 0,
@@ -99,6 +85,8 @@ export const initUiState = {
     selectRect: { name: "Select Rectangle" },
     selectEllipse: { name: "Select Ellipse" },
     lasso: { name: "Lasso" },
+    selectionFill: { name: "Fill Select", tolerance: 0, targetAll: false },
+    crop: { name: "Crop" },
     move: { name: "Move" },
     hand: { name: "Hand" },
     zoom: { name: "Zoom" },
@@ -108,8 +96,8 @@ export const initUiState = {
     dodge: { name: "Dodge", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     burn: { name: "Burn", width: 20, hardness: 0, amount: 50, range: "Midtones" },
     blur: { name: "Blur", width: 20, hardness: 0, amount: 50 },
-    sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 }
-    // TEST: { name: "TEST", width: 20, hardness: 50, amount: 50 }
+    sharpen: { name: "Sharpen", width: 20, hardness: 0, amount: 50 },
+    // TEST: { name: "TEST" },
   },
   colorSettings: {
     primary: "rgba(0, 0, 0, 1)",
@@ -117,11 +105,20 @@ export const initUiState = {
   },
   draggedLayercard: null,
   activeTool: "pencil",
-  menuIsActive: false,
-  activeMenuList: null,
   overlay: null,
+  menuIsDisabled: false,
   currentHelpTopic: "tools",
   currentFilter: null,
   importImageFile: null,
-  appIsWaiting: false,
-}
+  transformTarget: null,
+  transformParams: {
+    startEvent: null,
+    resizable: false,
+    rotatable: false
+  },
+  cropIsActive: false,
+  cropParams: {
+    startDimensions: null 
+  },
+  appIsWaiting: false
+})

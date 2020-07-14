@@ -5,9 +5,13 @@ export default function renderCanvas(start, end, params={}) {
     const {
       layerCanvas,
       layerSettings,
-      layerOrder,
-      stagingPinnedTo
+      renderOrder,
+      stagingPinnedTo,
+      selectionPath,
+      selectionActive
     } = getState().main.present;
+
+    const zoom = getState().ui.workspaceSettings.zoomPct / 100;
 
     const ctx = params.ctx ? params.ctx : layerCanvas.main.getContext("2d");
     
@@ -16,10 +20,10 @@ export default function renderCanvas(start, end, params={}) {
     }
 
     if (start === undefined) start = 0;
-    if (end === undefined) end = layerOrder.length;
+    if (end === undefined) end = renderOrder.length;
 
     for (let i = start; i < end; i++) {
-      const current = layerOrder[i]
+      const current = renderOrder[i]
       const { offset, blend, opacity } = layerSettings[current];
       
       if (layerSettings[current].hidden || opacity === 0) continue;
@@ -44,13 +48,20 @@ export default function renderCanvas(start, end, params={}) {
         })
       }
     }
-    manipulate(ctx, {
-      action: "paste",
-      params: {
-        sourceCtx: layerCanvas.selection.getContext("2d"),
-        dest: {x: 0, y: 0}
-      }
-    })
+    
+    if (selectionActive) {  
+      ctx.save();
+      ctx.translate(.5, .5);
+      ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+      ctx.setLineDash([7, 7]);
+      ctx.lineWidth = Math.ceil(1 / zoom);
+      ctx.stroke(selectionPath);
+      ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+      ctx.lineDashOffset = 7;
+      ctx.stroke(selectionPath);
+      ctx.restore();
+    }
+      
     if (stagingPinnedTo === "selection") {
       manipulate(ctx, {
         action: "paste",

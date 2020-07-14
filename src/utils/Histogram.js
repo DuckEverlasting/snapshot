@@ -3,7 +3,6 @@ import { getAllHistogram } from "../utils/helpers";
 export default class Histogram {
   constructor(sourceCtx) {
     this.data = getAllHistogram(sourceCtx);
-    console.log(this.data);
     this.colorRef = {
       red: {index: 0, hex: "#FF0000"},
       green: {index: 1, hex: "#00FF00"},
@@ -19,12 +18,6 @@ export default class Histogram {
 
   getMax(color) {
     if (!color) {
-      console.log(Math.max(...this.data[0]));
-      
-      console.log(Math.max(...this.data[1]));
-      
-      console.log(Math.max(...this.data[2]));
-      
       return Math.max(Math.max(...this.data[0]), Math.max(...this.data[1]), Math.max(...this.data[0]));
     } else {
       Math.max(...this.data[this.colorRef[color].index]);
@@ -76,7 +69,6 @@ export default class Histogram {
   
   drawAll(ctx, max=null) {
     if (max === null) max = this.getMax();
-    console.log(max);
     this.drawRGB(ctx, max);
     this.draw(ctx, "average", max);
   }

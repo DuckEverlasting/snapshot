@@ -3,7 +3,15 @@ import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
-import { setImportImageFile, setTransformSelection, putHistoryData, setTransformParams } from "../actions/redux/index";
+import {
+  setImportImageFile,
+  setTransformTarget,
+  putHistoryData,
+  setTransformParams,
+  setMenuIsDisabled,
+  setActiveTool,
+  setHistoryIsDisabled,
+} from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping } from "../utils/helpers";
@@ -183,7 +191,7 @@ export default function TransformObject({
     x: 0,
     y: 0,
   });
-  const { startEvent, rotatable, resizable } = useSelector(state => state.main.present.transformParams);
+  const { startEvent, rotatable, resizable } = useSelector(state => state.ui.transformParams);
 
   const { workspaceOffset, zoom } = useSelector((state) => {
     let settings = state.ui.workspaceSettings;
@@ -192,15 +200,30 @@ export default function TransformObject({
       zoom: settings.zoomPct / 100,
     };
   });
-  const { documentWidth, documentHeight } = useSelector(
-    (state) => state.main.present.documentSettings
-  );
+  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
+  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const activeTool = useSelector(state => state.ui.activeTool);
+
+  const [initLayer, ] = useState(activeLayer);
+  const [initialized, setInitialized] = useState(false);
 
   const dispatch = useDispatch();
 
   const canvasRef = useRef();
   const boundingBoxRef = useRef();
   const anchorRef = useRef();
+
+  useEffect(() => {
+    dispatch(setActiveTool("move"));
+    dispatch(setMenuIsDisabled(true));
+    dispatch(setHistoryIsDisabled(true));
+    setInitialized(true);
+    return () => {
+      dispatch(setMenuIsDisabled(false))
+      dispatch(setHistoryIsDisabled(false))
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
@@ -230,7 +253,7 @@ export default function TransformObject({
       const imageRect = getImageRect(source);
       if (!imageRect) {
         dispatch(setImportImageFile(null));
-        dispatch(setTransformSelection(null, null, true));
+        dispatch(setTransformTarget(null, null));
         return;
       }
       setImage({ctx: source.getContext("2d"), rect: imageRect});
@@ -271,22 +294,32 @@ export default function TransformObject({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, transformCanvasSize]);
 
+  useEffect(() => {
+    if (!initialized) return;
+    if (activeTool !== "move" || activeLayer !== initLayer) {
+      apply();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTool, activeLayer, initLayer, initialized]);
+
   function handleMouseDown(ev, actionType) {
     if (ev.button !== 0) return;
     ev.stopPropagation && ev.stopPropagation();
     if (!actionType) return;
     currentTransformAction = transformActionFactory(
       ev,
-      size,
-      setSize,
-      offset,
-      setOffset,
-      anchorPoint,
-      setAnchorPoint,
-      rotation,
-      setRotation,
-      zoom,
-      anchorRef,
+      { 
+        size,
+        setSize,
+        offset,
+        setOffset,
+        anchorPoint,
+        setAnchorPoint,
+        rotation,
+        setRotation,
+        zoom,
+        anchorRef
+      },
       { actionType }
     );
     currentTransformAction.start(ev);
@@ -324,28 +357,9 @@ export default function TransformObject({
         ? ev.metaKey
         : ev.ctrlKey;
       if (ev.key === "Escape") {
-        dispatch(menuAction("undo"));
-        dispatch(setImportImageFile(null));
-        dispatch(setTransformSelection(null, null, true));
+        cancel();
       } else if (ev.key === "Enter") {
-        dispatch(putHistoryData(target, targetCtx, () => {
-          manipulate(targetCtx, {
-            action: "paste",
-            params: {
-              sourceCtx: canvasRef.current.getContext("2d"),
-              dest: {
-                x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth - targetOffset.x),
-                y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight - targetOffset.y),
-              },
-              size,
-              anchorPoint,
-              rotation
-            },
-          });
-          dispatch(render());
-        }, null, {groupWithPrevious: true}));
-        dispatch(setImportImageFile(null));
-        dispatch(setTransformSelection(null, null, true));
+        apply();
       } else if (modifier && ev.key === "r") {
         dispatch(setTransformParams({resizable: true, rotatable: true}))
       }
@@ -353,6 +367,33 @@ export default function TransformObject({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
   );
+
+  async function apply() {
+    dispatch(putHistoryData(target, targetCtx, () => {
+      manipulate(targetCtx, {
+        action: "paste",
+        params: {
+          sourceCtx: canvasRef.current.getContext("2d"),
+          dest: {
+            x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth - targetOffset.x),
+            y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight - targetOffset.y),
+          },
+          size,
+          anchorPoint,
+          rotation
+        },
+      });
+      dispatch(render());
+    }, null, { groupWithPrevious: true }));
+    dispatch(setImportImageFile(null));
+    dispatch(setTransformTarget(null, null));
+  }
+
+  function cancel() {
+    dispatch(menuAction("undo"));
+    dispatch(setImportImageFile(null));
+    dispatch(setTransformTarget(null, null));
+  }
 
   useEventListener("keydown", handleKeyDown);
 

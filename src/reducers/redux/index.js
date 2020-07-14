@@ -5,32 +5,38 @@ import {
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
-  PUT_HISTORY_DATA_MULTIPLE
+  PUT_HISTORY_DATA_MULTIPLE,
+  RESET_STATE
 } from "../../actions/redux/index";
 
 const rootReducer = combineReducers({
-  lastAction,
+  lastAction: lastActionReducer,
   ui: uiReducer,
   main: undoable(mainReducer, {
-    filter: action => !action.payload.ignoreHistory,
+    filter: (action, state) => !action.payload.ignoreHistory && !state.present.historyIsDisabled,
     limit: 20
   })
 });
 
 export default rootReducer;
 
-function lastAction(state, {type}) {
-  return {type, time: Date.now()}
+function lastActionReducer(state=null, {type, payload}) {
+  // console.log(type, payload);
+  if (type === RESET_STATE) {
+    return null;
+  } else {
+    return {type, time: Date.now()}
+  }
 }
 
 function undoable(reducer, { filter = () => true, limit = undefined }) {
-  const initialState = {
+  const getInitState = () => ({
     past: [],
     present: reducer(undefined, {}),
     future: []
-  };
+  });
 
-  return function(state = initialState, { type, payload }) {
+  return function(state = getInitState(), { type, payload }) {
     const { past, present, future } = state;
     let newPresent;
 
@@ -51,10 +57,10 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           present: { ...present }
         };
       case PUT_HISTORY_DATA_MULTIPLE:
-        const onUndoArray = payload.map(el => {
+        const onUndoArray = payload.array.map(el => {
           return {id: el.id, data: el.old, move: payload.oldMove}
         });
-        const onRedoArray = payload.map(el => {
+        const onRedoArray = payload.array.map(el => {
           return {id: el.id, data: el.new, move: payload.newMove}
         });
         return {
@@ -92,11 +98,14 @@ function undoable(reducer, { filter = () => true, limit = undefined }) {
           present: next,
           future: newFuture
         };
+      case RESET_STATE: {
+        return getInitState();
+      }
       default:
         newPresent = reducer(present, { type, payload });
         if (present === newPresent) {
           return state;
-        } else if (!filter({ type, payload })) {
+        } else if (!filter({ type, payload }, state)) {
           return {
             ...state,
             present: newPresent

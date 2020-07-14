@@ -75,6 +75,10 @@ export default function LayerCard(props) {
   const activeLayer = useSelector(state => state.main.present.activeLayer);
   const dispatch = useDispatch();
 
+  const handleKeyDown = ev => {
+    ev.stopPropagation();
+  }
+
   const clickHandler = () => {
     if (props.hidden) return;
     dispatch(makeActiveLayer(props.id));
@@ -126,7 +130,10 @@ export default function LayerCard(props) {
             <FontAwesomeIcon icon={faTrashAlt} />
           </DeleteButtonSC>
           {!props.nameEditable && <NameSC onDoubleClick={enableRenameHandler}>{props.name}</NameSC>}
-          {props.nameEditable && <RenameSC defaultValue={props.name} ref={nameBox}></RenameSC>}
+          {props.nameEditable && <RenameSC
+            onKeyDown={handleKeyDown}
+            defaultValue={props.name} ref={nameBox}
+          />}
         </LayerCardSC>
       )}
     </Draggable>

@@ -4,7 +4,6 @@ import { updateLayerPosition } from "../redux/index";
 
 export default function moveLayer(id, moveData) {
   return (dispatch, getState) => {
-    console.log(moveData)
     const ctx = getState().main.present.layerCanvas[id].getContext("2d");
     const canvasRect = getImageRect(ctx.canvas);
     const redrawData = ctx.getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);

@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { toggleOverlay, setExportOptions } from "../actions/redux/index";
+import { setOverlay, setExportOptions } from "../actions/redux/index";
 
 import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";
@@ -43,12 +43,15 @@ const TitleSC = styled.h1`
 export default function TopBar() {
   const activeLayer = useSelector(state => state.main.present.activeLayer);
   const selectionPath = useSelector(state => state.main.present.selectionPath);
+  const selectionActive = useSelector(state => state.main.present.selectionActive);
+  const previousSelection = useSelector(state => state.main.present.previousSelection);
   const pastLength = useSelector(state => state.main.past.length);
   const futureLength = useSelector(state => state.main.future.length);
   const clipboardIsUsed = useSelector(
     state => state.main.present.clipboardIsUsed
-  );
+    );
   const overlay = useSelector(state => state.ui.overlay);
+  const menuIsDisabled = useSelector(state => state.ui.menuIsDisabled);
   const dispatch = useDispatch();
   const mod = window.navigator.platform.includes("Mac") ? "Cmd" : "Ctrl";
 
@@ -62,12 +65,15 @@ export default function TopBar() {
 
   return (
     <TopBarSC overlay={overlay}>
-      <MenuBar>
+      <MenuBar disabled={menuIsDisabled}>
         <Menu id="File" label="File">
-          <MenuItem disabled>New</MenuItem>
+          <MenuItem 
+            label="New"
+            onClick={() => dispatch(setOverlay("newDocument"))}
+          />
           <MenuItem disabled>Save</MenuItem>
           <MenuItem onClick={() => dispatch(menuAction("import"))}>Import</MenuItem>
-          <MenuBranch label="Export As">
+          <MenuBranch id="exportAs" label="Export As">
             <MenuItem disabled>PDF</MenuItem>
             <MenuItem onClick={() => dispatch(exportAs("image/jpeg"))}>JPG</MenuItem>
             <MenuItem onClick={() => dispatch(exportAs("image/png"))}>PNG</MenuItem>
@@ -114,54 +120,60 @@ export default function TopBar() {
           />
         </Menu>
         <Menu id="image" label="Image">
-          <MenuItem 
-            label="Brightness / Contrast"
-            onClick={() => dispatch(toggleOverlay("filter", {filter: filter.brightnessContrast}))}
-          />
+          <MenuBranch id="adjust" label="Adjust">
+            <MenuItem 
+              label="Brightness / Contrast"
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.brightnessContrast}))}
+            />
+            <MenuItem
+              label="Hue / Saturation"
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.hueSaturation}))}
+            />
+            <MenuItem 
+              label="Desaturate"
+              onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
+            />
+            <MenuItem 
+              label="Invert"
+              onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
+            />
+          </MenuBranch>
           <MenuItem
-            label="Hue / Saturation"
-            onClick={() => dispatch(toggleOverlay("filter", {filter: filter.hueSaturation}))}
-          />
-          <MenuItem 
-            label="Desaturate"
-            onClick={() => dispatch(filterAction(filter.saturation.apply, {amount: -100}))}
-          />
-          <MenuItem 
-            label="Invert"
-            onClick={() => dispatch(filterAction(filter.invert.apply, {}))}
+            label="Resize"
+            onClick={() => dispatch(setOverlay("resize"))}
           />
           <MenuItem
             label="Histogram"
-            onClick={() => dispatch(toggleOverlay("histogram"))}
+            onClick={() => dispatch(setOverlay("histogram"))}
           />
-          <MenuBranch label="Filter">
+          <MenuBranch id="filter" label="Filter">
             <MenuItem 
               label="Blur"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.blur}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.blur}))}
             />
             <MenuItem 
               label="Sharpen"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.sharpen}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.sharpen}))}
             />
             <MenuItem 
               label="Find Edges"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.findEdges}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.findEdges}))}
             />
             <MenuItem 
               label="Emboss"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.emboss}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.emboss}))}
             />
             <MenuItem 
               label="Dodge"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.dodge}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.dodge}))}
             />
             <MenuItem 
               label="Burn"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.burn}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.burn}))}
             />
             <MenuItem 
               label="Posterize"
-              onClick={() => dispatch(toggleOverlay("filter", {filter: filter.posterize}))}
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.posterize}))}
             />
           </MenuBranch>
         </Menu>
@@ -198,17 +210,23 @@ export default function TopBar() {
             label="Deselect"
             hotkey={`${mod}+D`}
             onClick={() => dispatch(menuAction("deselect"))}
-            disabled={!selectionPath}
+            disabled={!selectionActive}
+          />
+          <MenuItem
+            label="Reselect"
+            hotkey={`${mod}+Shift+D`}
+            onClick={() => dispatch(menuAction("reselect"))}
+            disabled={!previousSelection}
           />
         </Menu>
         <Menu id="help" label="Help">
           <MenuItem
             label="About SnapShot"
-            onClick={() => dispatch(toggleOverlay("about"))}
+            onClick={() => dispatch(setOverlay("about"))}
           />
           <MenuItem
             label="SnapShot Help"
-            onClick={() => dispatch(toggleOverlay("help"))}
+            onClick={() => dispatch(setOverlay("help"))}
             disabled
           />
         </Menu>

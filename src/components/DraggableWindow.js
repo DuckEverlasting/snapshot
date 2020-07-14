@@ -6,6 +6,7 @@ const BoundingBoxSC = styled.div`
   width: 100%;
   height: 100%;
   overflow: hidden;
+  outline: none;
 `;
 
 const TransparentOverlaySC = styled.div`
@@ -79,10 +80,13 @@ const SEResizeSC = styled.div`
 export default function DraggableWindow({
   name,
   children,
-  initPosition,
-  initSize,
-  minimumSize,
+  initPosition=null,
+  initSize=null,
+  minimumSize=null,
   resizable = true,
+  stopKeydown = true,
+  onEscape=null,
+  onEnter=null
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState("");
@@ -126,6 +130,10 @@ export default function DraggableWindow({
       }
     );
   }, [initPosition, initSize, minimumSize]);
+
+  useEffect(() => {
+    boundingBoxRef.current.focus();
+  }, [])
 
   function handleMouseDown(ev, resizeType = "") {
     if (ev.button !== 0) return;
@@ -201,8 +209,20 @@ export default function DraggableWindow({
     ev.stopPropagation();
   }
 
+  function handleKeyDown(ev) {
+    if (onEscape && ev.key === "Escape") {
+      onEscape(ev);
+    }
+    if (onEnter && ev.key === "Enter") {
+      onEscape(ev);
+    }
+    if (stopKeydown) {
+      ev.stopPropagation();
+    }
+  }
+
   return (
-    <BoundingBoxSC ref={boundingBoxRef}>
+    <BoundingBoxSC tabIndex={0} onKeyDown={handleKeyDown} ref={boundingBoxRef}>
       <TransparentOverlaySC
         onMouseDown={handleClickOutside}
         tabIndex={1}
