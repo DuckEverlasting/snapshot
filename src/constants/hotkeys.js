@@ -9,6 +9,7 @@ export const hotkey = {
   "h": {type: "activeTool", payload: "hand"},
   "z": {type: "activeTool", payload: "zoom"},
   "x": {type: "special", payload: "switchColors"},
+  "w": {type: "activeTool", payload: "selectionFill"},
   "Delete": {type: "special", payload: "clear"},
   "Backspace": {type: "special", payload: "clear"}
 }
