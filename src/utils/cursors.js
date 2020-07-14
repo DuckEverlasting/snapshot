@@ -33,6 +33,8 @@ export default function getCursor(cursorName, keys) {
       return `url(${getSelectionArrow()}) 0 0, auto`;
     case "lasso":
       return `url(${getSelectionArrow()}) 0 0, auto`;
+    case "selectionFill":
+      return `url(${getSelectionArrow()}) 0 0, auto`;
     case "stamp":
       return keys.alt ? `url(${crosshairsImg}) 10 10, auto` : "crosshair";
     case "eyeDropper":
