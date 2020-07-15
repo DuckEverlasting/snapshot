@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setMenuIsDisabled } from "../actions/redux";
+import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
 import useEventListener from "../hooks/useEventListener";
 import transformActionFactory from "../utils/TransformAction";
 import { calculateClipping } from "../utils/helpers";
 // import render from "../actions/redux/renderCanvas";
 
 import styled from "styled-components";
+import { resizeDocument } from "../actions/redux/menuAction";
 
 const BoundingBoxSC = styled.div.attrs((props) => ({
   style: {
@@ -199,13 +200,22 @@ export default function CropObject() {
     };
   }
 
+  function cancel() {
+    dispatch(setCropIsActive(false));
+  }
+
+  function apply() {
+    dispatch(resizeDocument(size.w, size.h, offset));
+    return dispatch(setCropIsActive(false));
+  }
+
   const handleKeyDown = useCallback(
     (ev) => {
       ev.preventDefault();
       if (ev.key === "Escape") {
-        // CANCEL
+        cancel();
       } else if (ev.key === "Enter") {
-        // APPLY
+        apply();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
