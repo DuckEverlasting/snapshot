@@ -134,6 +134,7 @@ export default function CropObject() {
   });
   const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
   const { startDimensions } = useSelector(state => state.ui.cropParams);
+  console.log("START DIMENSIONS: ", startDimensions);
 
   const dispatch = useDispatch();
 
@@ -190,13 +191,13 @@ export default function CropObject() {
     if (!boundingBoxRef.current) {
       return { x: 0, y: 0 };
     }
-    const xFromCenter =
-      (boundingBoxRef.current.clientWidth - size.w * zoom) / 2;
-    const yFromCenter =
-      (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
+    const xFromBorder =
+      (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
+    const yFromBorder =
+      (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromCenter + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromCenter + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -205,6 +206,7 @@ export default function CropObject() {
   }
 
   function apply() {
+    console.log(size.w, size.h, offset)
     dispatch(resizeDocument(size.w, size.h, offset));
     return dispatch(setCropIsActive(false));
   }

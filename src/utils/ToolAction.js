@@ -1057,12 +1057,14 @@ export class CropAction extends ToolActionBase {
 
   onEnd() {
     if (this.dest) {
+      const orig = {x: Math.min(this.origin.x, this.dest.x), y: Math.min(this.origin.y, this.dest.y)}
+      const dest = {x: Math.max(this.origin.x, this.dest.x), y: Math.max(this.origin.y, this.dest.y)}
       this.dispatch(setCropIsActive(true, {
         startDimensions: {
-          x: this.origin.x,
-          y: this.origin.y,
-          w: this.dest.x - this.origin.x,
-          h: this.dest.y - this.origin.y
+          x: Math.min(this.origin.x, this.dest.x),
+          y: Math.min(this.origin.y, this.dest.y),
+          w: Math.abs(this.dest.x - this.origin.x),
+          h: Math.abs(this.dest.y - this.origin.y)
         }
       }))
     } else {

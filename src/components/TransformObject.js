@@ -237,8 +237,8 @@ export default function TransformObject({
         let initWidth = image.width;
         let initHeight = image.height;
         setOffset({
-          x: 0,
-          y: 0,
+          x: (documentWidth - initWidth) / 2,
+          y: (documentHeight - initHeight) / 2,
         });
         setSize({
           w: initWidth,
@@ -258,8 +258,8 @@ export default function TransformObject({
       }
       setImage({ctx: source.getContext("2d"), rect: imageRect});
       setOffset({
-        x: Math.floor(imageRect.x + (imageRect.w - documentWidth) / 2),
-        y: Math.floor(imageRect.y + (imageRect.h - documentHeight) / 2),
+        x: Math.floor(imageRect.x),
+        y: Math.floor(imageRect.y),
       });
       setSize({
         w: imageRect.w,
@@ -340,13 +340,13 @@ export default function TransformObject({
     if (!boundingBoxRef.current) {
       return { x: 0, y: 0 };
     }
-    const xFromCenter =
-      (boundingBoxRef.current.clientWidth - size.w * zoom) / 2;
-    const yFromCenter =
-      (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
+    const xFromBorder =
+      (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
+    const yFromBorder =
+      (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromCenter + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromCenter + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -368,6 +368,8 @@ export default function TransformObject({
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
   );
 
+  useEffect(() => console.log("ROTATABLE: ", rotatable), [rotatable])
+
   async function apply() {
     dispatch(putHistoryData(target, targetCtx, () => {
       manipulate(targetCtx, {
@@ -375,8 +377,8 @@ export default function TransformObject({
         params: {
           sourceCtx: canvasRef.current.getContext("2d"),
           dest: {
-            x: Math.ceil(offset.x - 0.5 * size.w + 0.5 * documentWidth - targetOffset.x),
-            y: Math.ceil(offset.y - 0.5 * size.h + 0.5 * documentHeight - targetOffset.y),
+            x: Math.ceil(offset.x),
+            y: Math.ceil(offset.y),
           },
           size,
           anchorPoint,
