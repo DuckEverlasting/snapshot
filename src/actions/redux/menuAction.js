@@ -63,14 +63,14 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
 
     const offsetConversion = {
       "top-left": {x: 0, y: 0},
-      "top-center": {x: -(documentWidth - width) / 2, y: 0},
-      "top-right": {x: -(documentWidth - width), y: 0},
-      "center-left": {x: 0, y: -(documentHeight - height) / 2},
-      "center-center": {x: -(documentWidth - width) / 2, y: -(documentHeight - height) / 2},
-      "center-right": {x: -(documentWidth - width), y: -(documentHeight - height) / 2},
-      "bottom-left": {x: 0, y: -(documentHeight - height)},
-      "bottom-center": {x: -(documentWidth - width) / 2, y: -(documentHeight - height)},
-      "bottom-right": {x: -(documentWidth - width), y: -(documentHeight - height)}
+      "top-center": {x: (documentWidth - width) / 2, y: 0},
+      "top-right": {x: documentWidth - width, y: 0},
+      "center-left": {x: 0, y: documentHeight - height / 2},
+      "center-center": {x: (documentWidth - width) / 2, y: (documentHeight - height) / 2},
+      "center-right": {x: documentWidth - width, y: (documentHeight - height) / 2},
+      "bottom-left": {x: 0, y: documentHeight - height},
+      "bottom-center": {x: (documentWidth - width) / 2, y: documentHeight - height},
+      "bottom-right": {x: documentWidth - width, y: documentHeight - height}
     }
 
     await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
@@ -97,7 +97,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
         }
         const action = new MoveAction(targetLayer, layerCanvas, dispatch, translateData);
         action.manualStart();
-        action.manualEnd(parsedOffset, true);
+        action.manualEnd({x: -parsedOffset.x, y: -parsedOffset.y}, true);
       })
     } else {
       await getState().main.present.renderOrder.forEach(targetLayer => {

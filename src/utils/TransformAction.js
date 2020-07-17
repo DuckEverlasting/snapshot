@@ -77,25 +77,19 @@ class ResizeTransformAction extends TransformActionBase {
     if (this.params.direction.includes("n")) {
       calculatedHeight = this.origin.h - (y - this.origin.y) / this.zoom;
       if (calculatedHeight > 1) {
-        calculatedOffsetY = this.origin.offY + .5 * (y - this.origin.y) / this.zoom;
+        calculatedOffsetY = this.origin.offY + (y - this.origin.y) / this.zoom;
       }
     }
     if (this.params.direction.includes("s")) {
       calculatedHeight = this.origin.h + (y - this.origin.y) / this.zoom;
-      if (calculatedHeight > 1) {
-        calculatedOffsetY = this.origin.offY + .5 * (y - this.origin.y) / this.zoom;
-      }
     }
     if (this.params.direction.includes("e")) {
       calculatedWidth = this.origin.w + (x - this.origin.x) / this.zoom;
-      if (calculatedWidth > 1) {
-        calculatedOffsetX = this.origin.offX + .5 * (x - this.origin.x) / this.zoom;
-      }
     }
     if (this.params.direction.includes("w")) {
       calculatedWidth = this.origin.w - (x - this.origin.x) / this.zoom;
       if (calculatedWidth > 1) {
-        calculatedOffsetX = this.origin.offX + .5 * (x - this.origin.x) / this.zoom;
+        calculatedOffsetX = this.origin.offX + (x - this.origin.x) / this.zoom;
       }
     }
 

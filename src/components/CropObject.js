@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setMenuIsDisabled } from "../actions/redux";
+import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
 import useEventListener from "../hooks/useEventListener";
 import transformActionFactory from "../utils/TransformAction";
 import { calculateClipping } from "../utils/helpers";
 // import render from "../actions/redux/renderCanvas";
 
 import styled from "styled-components";
+import { resizeDocument } from "../actions/redux/menuAction";
 
 const BoundingBoxSC = styled.div.attrs((props) => ({
   style: {
@@ -133,6 +134,7 @@ export default function CropObject() {
   });
   const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
   const { startDimensions } = useSelector(state => state.ui.cropParams);
+  console.log("START DIMENSIONS: ", startDimensions);
 
   const dispatch = useDispatch();
 
@@ -189,23 +191,33 @@ export default function CropObject() {
     if (!boundingBoxRef.current) {
       return { x: 0, y: 0 };
     }
-    const xFromCenter =
-      (boundingBoxRef.current.clientWidth - size.w * zoom) / 2;
-    const yFromCenter =
-      (boundingBoxRef.current.clientHeight - size.h * zoom) / 2;
+    const xFromBorder =
+      (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
+    const yFromBorder =
+      (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromCenter + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromCenter + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
     };
+  }
+
+  function cancel() {
+    dispatch(setCropIsActive(false));
+  }
+
+  function apply() {
+    console.log(size.w, size.h, offset)
+    dispatch(resizeDocument(size.w, size.h, offset));
+    return dispatch(setCropIsActive(false));
   }
 
   const handleKeyDown = useCallback(
     (ev) => {
       ev.preventDefault();
       if (ev.key === "Escape") {
-        // CANCEL
+        cancel();
       } else if (ev.key === "Enter") {
-        // APPLY
+        apply();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,4 +1,5 @@
 import pencilImg from "../cursors/pencil.png";
+import brushImg from "../cursors/brush.png";
 import dropperImg from "../cursors/dropper.png";
 import crosshairsImg from "../cursors/crosshairs.png";
 import smallArrowImg from "../cursors/small_arrow.png";
@@ -21,6 +22,8 @@ export default function getCursor(cursorName, keys) {
   switch (cursorName) {
     case "pencil":
       return `url(${pencilImg}) -22 22, auto`;
+    case "brush":
+      return `url(${brushImg}) -22 22, auto`;
     case "line":
       return `url(${smallArrowImg}) 0 0, auto`;
     case "fillRect":
