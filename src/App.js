@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import useEventListener from "./hooks/useEventListener";
 import styled from "styled-components";
 
 import OverlayHandler from "./components/OverlayHandler.js";
@@ -46,32 +47,27 @@ function App() {
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const handleKeyDown = ev => {
-      ev.preventDefault();
-      if (overlay || transformTarget || importImageFile) {return}
-      let keyCombo;
-      let modifier = window.navigator.platform.includes("Mac")
-        ? ev.metaKey
-        : ev.ctrlKey;
-      if (modifier) {
-        keyCombo = hotkeyCtrl[ev.key];
-      } else {
-        keyCombo = hotkey[ev.key];
-      }
-      if (keyCombo === undefined) return;
-      if (keyCombo.type === "activeTool") {
-        dispatch(setActiveTool(keyCombo.payload));
-      } else {
-        dispatch(menuAction(keyCombo.payload));
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleKeyDown = useCallback(ev => {
+    ev.preventDefault();
+    if (overlay || transformTarget || importImageFile) {return}
+    let keyCombo;
+    let modifier = window.navigator.platform.includes("Mac")
+      ? ev.metaKey
+      : ev.ctrlKey;
+    if (modifier) {
+      keyCombo = hotkeyCtrl[ev.key];
+    } else {
+      keyCombo = hotkey[ev.key];
+    }
+    if (keyCombo === undefined) return;
+    if (keyCombo.type === "activeTool") {
+      dispatch(setActiveTool(keyCombo.payload));
+    } else {
+      dispatch(menuAction(keyCombo.payload));
+    }
   }, [overlay, transformTarget, importImageFile]);
+
+  useEventListener("keydown", handleKeyDown)
 
   return (
     <AppSC id="App">

@@ -55,7 +55,6 @@ const ClipCheckSC = styled.div.attrs((props) => ({
   position: absolute;
   width: 100%;
   height: 100%;
-  background: blue;
 `;
 
 const CanvasSC = styled.canvas.attrs((props) => ({
@@ -343,12 +342,6 @@ export default function TransformObject({
       (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
     const yFromBorder =
       (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
-      console.log("OFFSET: ", {
-        x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
-        y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
-      })
-      console.log("SIZE: ", {w: size.w * zoom, h: size.w * zoom})
-      console.log("DOCSIZE: ", {documentWidth,documentHeight})
     return {
       x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
       y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
@@ -372,8 +365,6 @@ export default function TransformObject({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
   );
-
-  useEffect(() => console.log("ROTATABLE: ", rotatable), [rotatable])
 
   async function apply() {
     dispatch(putHistoryData(target, targetCtx, () => {

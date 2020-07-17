@@ -135,7 +135,6 @@ export default function CropObject() {
   });
   const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
   const { startDimensions } = useSelector(state => state.ui.cropParams);
-  console.log("START DIMENSIONS: ", startDimensions);
 
   const dispatch = useDispatch();
 
@@ -207,7 +206,6 @@ export default function CropObject() {
   }
 
   function apply() {
-    console.log(size.w, size.h, offset)
     dispatch(resizeDocument(size.w, size.h, offset));
     return dispatch(setCropIsActive(false));
   }

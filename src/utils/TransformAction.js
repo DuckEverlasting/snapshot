@@ -124,8 +124,8 @@ class MoveTransformAction extends TransformActionBase {
 }
 
 class RotateTransformAction extends TransformActionBase {
-  constructor(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params) {
-    super(ev, size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params);
+  constructor(ev, {size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params}) {
+    super(ev, {size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params});
     const anchorRect = anchorRef.current.getBoundingClientRect();
     this.origin.anchorPos = {
       x: anchorRect.x + .5 * anchorRect.width,

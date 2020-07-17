@@ -967,6 +967,15 @@ export class FillAction extends ToolActionBase {
   }
 
   onStart(ev) {
+    const orig = this._getCoordinates(ev);
+    if (
+      orig.x < 0 ||
+      orig.x > this.translateData.documentWidth ||
+      orig.y < 0 ||
+      orig.y > this.translateData.documentHeight
+    ) {
+      return;
+    }
     if (this.isSelectionTool) {
       this._selectionStart(ev);
       let dataCanvas;
@@ -982,7 +991,6 @@ export class FillAction extends ToolActionBase {
           }
         });
       }
-      const orig = this._getCoordinates(ev);
       orig.x -= this.translateData.offX;
       orig.y -= this.translateData.offY;
       const clip = new Path2D();
