@@ -23,8 +23,8 @@ const ContainerSC = styled.div.attrs((props) => ({
   style: {
     transform: `translateX(${props.offset.x}px)
                 translateY(${props.offset.y}px)`,
-    width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
-    height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
+    width: props.size ? (Math.floor(props.size.w * props.zoom)) + "px" : "auto",
+    height: props.size ? (Math.floor(props.size.h * props.zoom)) + "px" : "auto",
     cursor: props.overrideCursor || "move",
     border: props.borderStyle || "2px solid " + props.theme.colors.highlight,
   },
@@ -41,6 +41,7 @@ const ClipCheckSC = styled.div.attrs((props) => ({
   }
 }))`
   position: absolute;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 255, 0.2);
   width: 100%;
   height: 100%;
 `;

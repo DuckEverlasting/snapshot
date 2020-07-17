@@ -35,14 +35,12 @@ const ContainerSC = styled.div.attrs((props) => ({
                 translateY(${props.offset.y}px)
                 rotate(${props.rotation}rad)`,
     transformOrigin: `${props.anchorPoint.x * 100}% ${props.anchorPoint.y * 100}%`,
-    width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
-    height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
+    width: props.size ? (props.size.w * props.zoom) + "px" : "auto",
+    height: props.size ? (props.size.h * props.zoom) + "px" : "auto",
     cursor: props.overrideCursor || "move",
     border: props.borderStyle || "2px solid " + props.theme.colors.highlight,
   },
 }))`
-  flex-grow: 0;
-  flex-shrink: 0;
   position: relative;
   box-sizing: content-box;
 `;
@@ -57,6 +55,7 @@ const ClipCheckSC = styled.div.attrs((props) => ({
   position: absolute;
   width: 100%;
   height: 100%;
+  background: blue;
 `;
 
 const CanvasSC = styled.canvas.attrs((props) => ({
@@ -344,6 +343,12 @@ export default function TransformObject({
       (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
     const yFromBorder =
       (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
+      console.log("OFFSET: ", {
+        x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
+        y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
+      })
+      console.log("SIZE: ", {w: size.w * zoom, h: size.w * zoom})
+      console.log("DOCSIZE: ", {documentWidth,documentHeight})
     return {
       x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
       y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),

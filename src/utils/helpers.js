@@ -131,11 +131,17 @@ export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
 }
 
 export function calculateClipping(size, offset, docSize, zoom) {
+  console.log("CLIPPING: ", {
+    up: Math.floor(-offset.y * zoom - 2),
+    down: Math.floor((size.h + offset.y - docSize.h) * zoom + 2),
+    left: Math.floor(-offset.x * zoom - 2),
+    right: Math.floor((size.w + offset.x - docSize.w) * zoom + 2),
+  })
   return {
-    up: Math.floor(-offset.y * zoom - 1),
-    down: Math.floor((size.h + offset.y - docSize.h) * zoom + 1),
-    left: Math.floor(-offset.x * zoom - 1),
-    right: Math.floor((size.w + offset.x - docSize.w) * zoom + 1),
+    up: Math.floor(-offset.y * zoom - 2),
+    down: Math.floor((size.h + offset.y - docSize.h) * zoom + 2),
+    left: Math.floor(-offset.x * zoom - 2),
+    right: Math.floor((size.w + offset.x - docSize.w) * zoom + 2),
   };
 }
 

@@ -77,12 +77,11 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
   style: {
     width: props.width,
     height: props.height,
-    transform: `translateX(${props.translateX}px)
-      translateY(${props.translateY}px)
-      translateZ(-.001px)
+    transform: `translateX(${Math.floor(props.translateX)}px)
+      translateY(${Math.floor(props.translateY)}px)
       scale(${props.zoomPct / 100})`,
-    marginTop: `-${.5 * props.height}px`,
-    marginLeft: `-${.5 * props.width}px`,
+    marginTop: `-${Math.floor(.5 * props.height)}px`,
+    marginLeft: `-${Math.floor(.5 * props.width)}px`,
     backgroundSize: `${1000 / props.zoomPct}px ${1000 / props.zoomPct}px`,
     backgroundPosition: `0 0, ${500 / props.zoomPct}px ${500 / props.zoomPct}px`
   },
@@ -95,6 +94,7 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
   linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
   flex: none;
   pointer-events: none;
+  overflow: hidden;
 `;
 
 let animationFrame = 0;
