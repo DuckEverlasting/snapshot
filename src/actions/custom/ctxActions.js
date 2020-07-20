@@ -56,24 +56,51 @@ export function quadratic(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
+// export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100, density = .25, translation }) {
+//   // density in this case = percentage of width between each point
+//   ctx.lineCap = "round";
+//   ctx.lineJoin = "round";
+//   if (translation) ctx.translate(translation, translation);
+//   const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
+//   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
+//     ctx.beginPath();
+//     let grad = ctx.createRadialGradient(Math.floor(point.x), Math.floor(point.y), 0, Math.floor(point.x), Math.floor(point.y), width * (2 - hardness / 100) / 2);
+//     gradient.forEach(data => {
+//       grad.addColorStop(data[0], data[1]);
+//     })
+//     ctx.fillStyle = grad;
+//     ctx.arc(Math.floor(point.x), Math.floor(point.y), (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
+//     ctx.fill();
+//   })
+//   if (translation) ctx.translate(-translation, -translation);
+// }
+
 export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100, density = .25, translation }) {
   // density in this case = percentage of width between each point
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
   const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
+  const brushHead = getRadialGradient(gradient, width, hardness, density);
   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
-    ctx.beginPath();
-    let grad = ctx.createRadialGradient(Math.floor(point.x), Math.floor(point.y), 0, Math.floor(point.x), Math.floor(point.y), width * (2 - hardness / 100) / 2);
-    gradient.forEach(data => {
-      grad.addColorStop(data[0], data[1]);
-    })
-    ctx.fillStyle = grad;
-    ctx.arc(Math.floor(point.x), Math.floor(point.y), (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
-    ctx.fill();
+    ctx.drawImage(brushHead, point.x - .5 * width, point.y - .5 * width);
   })
   if (translation) ctx.translate(-translation, -translation);
 }
+
+function getRadialGradient(gradient, width, hardness=100, density=.25) {
+  const canvas = new OffscreenCanvas(width, width),
+    ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  let grad = ctx.createRadialGradient(Math.floor(width / 2), Math.floor(width / 2), 0, Math.floor(width / 2), Math.floor(width / 2), width * (2 - hardness / 100) / 2);
+  gradient.forEach(data => {
+    grad.addColorStop(data[0], data[1]);
+  })
+  ctx.fillStyle = grad;
+  ctx.arc(Math.floor(width / 2), Math.floor(width / 2), (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
+  ctx.fill();
+}
+
 
 export function rectangle(ctx, { orig, dest, translation }) {
   if (translation) ctx.translate(translation, translation);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import useUpdateOnResize from "../hooks/useUpdateOnResize";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
@@ -181,7 +182,7 @@ export default function TransformObject({
   source
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ h: 0, w: 0 });
+  const [size, setSize] = useState({ w: 0, h: 0 });
   const [anchorPoint, setAnchorPoint] = useState({x: .5, y: .5});
   const [rotation, setRotation] = useState(0);
   const [image, setImage] = useState(null);
@@ -210,6 +211,8 @@ export default function TransformObject({
   const canvasRef = useRef();
   const boundingBoxRef = useRef();
   const anchorRef = useRef();
+
+  const [boxSize, setBoxSize] = useUpdateOnResize(boundingBoxRef);
 
   useEffect(() => {
     dispatch(setActiveTool("move"));

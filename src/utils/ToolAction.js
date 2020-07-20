@@ -290,6 +290,7 @@ export class BrushAction extends FreeDrawAction {
     this.opacity = params.opacity;
     this.hardness = params.hardness;
     this.clip = params.clip;
+    this.density = params.density || 0.25;
     this.gradient = getGradient(params.color, params.hardness);
     this.processing = document.createElement('canvas');
   }
@@ -307,7 +308,7 @@ export class BrushAction extends FreeDrawAction {
           gradient: this.gradient,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
@@ -346,7 +347,7 @@ export class BrushAction extends FreeDrawAction {
         gradient: this.gradient,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
@@ -385,6 +386,7 @@ export class FilterBrushAction extends FreeDrawAction {
     this.filter = params.filter;
     this.filterInput = params.filterInput;
     this.hardness = params.hardness;
+    this.density = params.density || 0.25;
     this.clip = params.clip;
     this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
     this.processing = document.createElement('canvas');
@@ -409,7 +411,7 @@ export class FilterBrushAction extends FreeDrawAction {
           gradient: this.gradient,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
@@ -454,7 +456,7 @@ export class FilterBrushAction extends FreeDrawAction {
         gradient: this.gradient,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
@@ -500,6 +502,7 @@ export class StampAction extends FreeDrawAction {
     this.hardness = params.hardness;
     this.clip = params.clip;
     this.opacity = params.opacity;
+    this.density = params.density || 0.25;
     this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
     this.processing = document.createElement('canvas');
     this.stampCanvas = params.stampData.canvas;
@@ -543,7 +546,7 @@ export class StampAction extends FreeDrawAction {
           gradient: this.gradient,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
@@ -591,7 +594,7 @@ export class StampAction extends FreeDrawAction {
         gradient: this.gradient,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
@@ -638,6 +641,7 @@ export class EraserAction extends FreeDrawAction {
     this.composite = params.composite;
     this.width = params.width;
     this.clip = params.clip;
+    this.density = params.density || 0.25;
     this.gradient = getGradient("rgba(0, 0, 0, 1)", 100, params.hardness);
     this.usesStaging = false;
   }
@@ -656,7 +660,7 @@ export class EraserAction extends FreeDrawAction {
           gradient: this.gradient,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           composite: this.composite,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
@@ -688,7 +692,7 @@ export class EraserAction extends FreeDrawAction {
         gradient: this.gradient,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         composite: this.composite,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}

@@ -195,11 +195,23 @@ export default function Workspace() {
 
   function buildAction() {
     switch (activeTool) {
+      // case "pencil":
+      //   if (!activeLayer) {return}
+      //   return new PencilAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+      //     width: toolSettings.pencil.width,
+      //     color: addOpacity(primary, toolSettings.pencil.opacity / 100),
+      //     clip: selectionPath,
+      //     lastEndpoint,
+      //     setLastEndpoint
+      //   });
       case "pencil":
         if (!activeLayer) {return}
-        return new PencilAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
           width: toolSettings.pencil.width,
-          color: addOpacity(primary, toolSettings.pencil.opacity / 100),
+          color: primary,
+          opacity: toolSettings.pencil.opacity,
+          hardness: 100,
+          density: 0.1,
           clip: selectionPath,
           lastEndpoint,
           setLastEndpoint
