@@ -79,27 +79,6 @@ export function getAllHistogram(ctx) {
   return result;
 }
 
-export function getGradient(color, hardness) {         
-  const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
-  const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
-  const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` .1`
-  const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` .05`
-  const colorStep4 = color.substring(0, color.lastIndexOf(",") + 1) + ` .025`
-  const colorStep5 = color.substring(0, color.lastIndexOf(",") + 1) + ` .001`
-  const colorStep6 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
-
-  return [
-    [0 + hardness * .01, colorStep0],
-    [.1 + hardness * .009, colorStep0],
-    [.4 + hardness * .006, colorStep1],
-    [.45 + hardness * .0055, colorStep2],
-    [.49 + hardness * .0051, colorStep3],
-    [.5 + hardness * .005, colorStep4],
-    [.6 + hardness * .004, colorStep5],
-    [1, colorStep6]
-  ];
-}
-
 // export function getGradient(color, hardness) {         
 //   const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
 //   const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
@@ -120,6 +99,22 @@ export function getGradient(color, hardness) {
 //     [1, colorStep6]
 //   ];
 // }
+
+export function getGradient(color) {         
+  const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`,
+    colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .5`,
+    colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` .33`,
+    colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`,
+    colorStep4 = color.substring(0, color.lastIndexOf(",") + 1) + ` .0`
+
+  return [
+    [0, colorStep0],
+    [.25, colorStep1],
+    [.5, colorStep2],
+    [.75, colorStep3],
+    [1, colorStep4]
+  ];
+}
 
 export function convertDestToRegularShape({x: origX, y: origY}, {x, y}) {
   const distX = x - origX;

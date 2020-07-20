@@ -88,17 +88,19 @@ export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100,
   if (translation) ctx.translate(-translation, -translation);
 }
 
-function getRadialGradient(gradient, width, hardness=100, density=.25) {
-  const canvas = new OffscreenCanvas(width, width),
+function getRadialGradient(gradient, width, hardness=100) {
+  const newWidth = width * (2 - hardness / 100) / 2;
+  const canvas = new OffscreenCanvas(newWidth, newWidth),
     ctx = canvas.getContext('2d');
   ctx.beginPath();
-  let grad = ctx.createRadialGradient(Math.floor(width / 2), Math.floor(width / 2), 0, Math.floor(width / 2), Math.floor(width / 2), width * (2 - hardness / 100) / 2);
+  let grad = ctx.createRadialGradient(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth * hardness / 100, Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth);
   gradient.forEach(data => {
     grad.addColorStop(data[0], data[1]);
   })
   ctx.fillStyle = grad;
-  ctx.arc(Math.floor(width / 2), Math.floor(width / 2), (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
+  ctx.arc(Math.floor(newWidth / 2), Math.floor(newWidth / 2), (newWidth * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
   ctx.fill();
+  return canvas;
 }
 
 
