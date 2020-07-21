@@ -86,6 +86,7 @@ export default function LayerPanel() {
     const dest = renderOrder.length - destination.index - 1
 
     dispatch(updateRenderOrder(src, dest))
+    dispatch(render());
   }
 
   const inputHandler = value => {
