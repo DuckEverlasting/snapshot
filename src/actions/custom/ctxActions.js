@@ -89,20 +89,28 @@ export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100,
 }
 
 function getRadialGradient(gradient, width, hardness=100) {
-  const newWidth = width * (2 - hardness / 100) / 2;
+  const newWidth = width * (2 - hardness / 100);
   const canvas = new OffscreenCanvas(newWidth, newWidth),
     ctx = canvas.getContext('2d');
-  ctx.beginPath();
-  let grad = ctx.createRadialGradient(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth * hardness / 100, Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth);
-  gradient.forEach(data => {
-    grad.addColorStop(data[0], data[1]);
-  })
-  ctx.fillStyle = grad;
-  ctx.arc(Math.floor(newWidth / 2), Math.floor(newWidth / 2), (newWidth * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
-  ctx.fill();
+  const imageData = ctx.createImageData(newWidth, newWidth);
+  // ctx.beginPath();
+  // let grad = ctx.createRadialGradient(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth * hardness / 200, Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth / 2);
+  // gradient.forEach(data => {
+  //   grad.addColorStop(data[0], data[1]);
+  // })
+  // ctx.fillStyle = grad;
+  // ctx.arc(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth / 2, 0,Math.PI * 2);
+  // ctx.fill();
   return canvas;
 }
 
+function getPixelsAtDistance(origin, width, distance) {
+  const surrounding = [];
+  for (let i = 0; i < distance; i++) {
+    surrounding.push({x: i, y: distance - i}, {x: i, y: -(distance - i)}, {x: distance - i, y: -i}, {x: -(distance - i), y: -i});
+  }
+  return surrounding;
+}
 
 export function rectangle(ctx, { orig, dest, translation }) {
   if (translation) ctx.translate(translation, translation);
