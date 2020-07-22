@@ -89,10 +89,27 @@ export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100,
 }
 
 function getRadialGradient(gradient, width, hardness=100) {
-  const newWidth = width * (2 - hardness / 100);
-  const canvas = new OffscreenCanvas(newWidth, newWidth),
-    ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(newWidth, newWidth);
+  const newWidth = width * (2 - hardness / 100),
+    innerWidth = newWidth * hardness / 100,
+    canvas = new OffscreenCanvas(newWidth, newWidth),
+    ctx = canvas.getContext('2d'),
+    imageData = ctx.createImageData(newWidth, newWidth),
+    dataArray = imageData.data;
+  
+  let origin;
+  if (width % 2) {
+    origin = 0
+    // hmm. gonna need to do round innerWidth?
+    for (let i = 1; i < innerWidth / 2; i++) {
+      
+    }
+  } else {
+    origin = 0
+    for (let i = 1; i < Math.ceil(innerWidth / 2); i++) {
+
+    }
+  }
+
   // ctx.beginPath();
   // let grad = ctx.createRadialGradient(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth * hardness / 200, Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth / 2);
   // gradient.forEach(data => {
@@ -104,10 +121,36 @@ function getRadialGradient(gradient, width, hardness=100) {
   return canvas;
 }
 
-function getPixelsAtDistance(origin, width, distance) {
+function getPixelsAtDistanceOdd(origin, width, distance) {
   const surrounding = [];
   for (let i = 0; i < distance; i++) {
-    surrounding.push({x: i, y: distance - i}, {x: i, y: -(distance - i)}, {x: distance - i, y: -i}, {x: -(distance - i), y: -i});
+    surrounding.push(
+      origin + (x + (distance - i) * width) * 4,
+      origin + (-x + (distance - i) * width) * 4,
+      origin + (x - (distance - i) * width) * 4,
+      origin + (-x - (distance - i) * width) * 4
+    );
+  }
+  return surrounding;
+}
+
+function getPixelsAtDistanceEven(origin, width, distance) {
+  const surrounding = [];
+  const origin1 = origin,
+    origin2 = origin + 4,
+    origin3 = origin + (width + 1) * 4,
+    origin4 = origin + width * 4;
+
+  let x = 0, y = distance;
+  while (x <= distance) {
+    surrounding.push(
+      origin1 + (-x + y * width) * 4,
+      origin2 + (x + y * width) * 4,
+      origin3 + (-x + y * width) * 4,
+      origin4 + (-x + y * width) * 4,
+    )
+    x++
+    y--
   }
   return surrounding;
 }
