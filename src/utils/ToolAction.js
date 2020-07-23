@@ -22,7 +22,7 @@ import manipulate from "../reducers/custom/manipulateReducer";
 import selection from "../reducers/custom/selectionReducer";
 
 import render from "../actions/redux/renderCanvas";
-import { getFillContent } from "../actions/custom/ctxActions";
+import { getFillContent, getRadialGradient } from "../actions/custom/ctxActions";
 
 class ToolActionBase {
   constructor(targetLayer, layerCanvas, dispatch, translateData) {
@@ -290,8 +290,9 @@ export class BrushAction extends FreeDrawAction {
     this.opacity = params.opacity;
     this.hardness = params.hardness;
     this.clip = params.clip;
-    this.density = params.density || 0.25;
+    this.density = params.density || 0.2;
     this.gradient = getGradient(params.color, params.hardness);
+    this.brushHead = getRadialGradient(this.width, this.hardness);
     this.processing = document.createElement('canvas');
   }
 
@@ -306,6 +307,7 @@ export class BrushAction extends FreeDrawAction {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
           gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
           density: this.density,
@@ -345,6 +347,7 @@ export class BrushAction extends FreeDrawAction {
         orig: this.lastMid || this.lastDest,
         destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
         gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
         density: this.density,

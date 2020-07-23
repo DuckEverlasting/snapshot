@@ -1,4 +1,4 @@
-import { midpoint, getQuadLength } from "../../utils/helpers";
+import { midpoint, getQuadLength, getDistance } from "../../utils/helpers";
 
 function floor(vector) {
   return {
@@ -75,98 +75,44 @@ export function quadratic(ctx, { destArray, translation }) {
 //   if (translation) ctx.translate(-translation, -translation);
 // }
 
-export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100, density = .25, translation }) {
+export function quadraticPoints(ctx, { destArray, width, brushHead, hardness=100, density = .2, translation }) {
   // density in this case = percentage of width between each point
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
   const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
-  const brushHead = getRadialGradient(gradient, width, hardness, density);
+  console.log(numOfPoints);
+  ctx.fillStyle = "rgba(255, 0, 0, 1)";
   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
-    ctx.drawImage(brushHead, point.x - .5 * width, point.y - .5 * width);
+    ctx.drawImage(brushHead, point.x - .5 * brushHead.width, point.y - .5 * brushHead.height);
+    ctx.fillRect(point.x + 100, point.y, 2, 2);
   })
   if (translation) ctx.translate(-translation, -translation);
 }
 
-function getRadialGradient(gradient, width, hardness=100) {
+export function getRadialGradient(width, hardness=100) {
   const newWidth = Math.ceil(width * (2 - hardness / 100)),
-    innerWidth = Math.ceil(newWidth * hardness / 100),
-    outerWidth = newWidth - innerWidth,
+    innerRadius = newWidth / 2 * hardness / 100,
+    outerRadius = newWidth / 2 - innerRadius,
     canvas = new OffscreenCanvas(newWidth, newWidth),
     ctx = canvas.getContext('2d'),
     imageData = ctx.getImageData(0, 0, newWidth, newWidth),
     dataArray = imageData.data;
-    
-  function getPixelsAtDistanceOdd(origin, width, distance) {
-    if (distance === 0) {
-      return [origin];
-    }
-    const surrounding = [];
-    for (let i = 0; i < distance; i++) {
-      surrounding.push(
-        origin + (i + (distance - i) * width) * 4,
-        origin + (-i + (distance - i) * width) * 4,
-        origin + (i - (distance - i) * width) * 4,
-        origin + (-i - (distance - i) * width) * 4
-      );
-    }
-    return surrounding;
-  }
 
-  function getPixelsAtDistanceEven(origin, width, distance) {
-    const surrounding = [];
-    const origin1 = origin,
-      origin2 = origin + 4,
-      origin3 = origin + (width + 1) * 4,
-      origin4 = origin + width * 4;
-
-    let x = 0, y = distance;
-    while (x <= distance) {
-      surrounding.push(
-        origin1 + (-x + y * width) * 4,
-        origin2 + (x + y * width) * 4,
-        origin3 + (-x + y * width) * 4,
-        origin4 + (-x + y * width) * 4,
-      )
-      x++
-      y--
-    }
-    return surrounding;
-  }
+  const origin = {x: (newWidth + 1) / 2, y: (newWidth + 1) / 2};
   
-  let origin;
-  if (newWidth % 2) {
-    origin = Math.floor(newWidth / 2) + newWidth * Math.floor(newWidth / 2);
-    for (let i = 0; i < newWidth / 2; i++) {
-      let value;
-      if (i <= innerWidth) {
-        value = 255;
-      } else {
-        const pct = (i - innerWidth) / outerWidth;
-        value = 255 * (pct * pct - 2 * pct + 1);
-      }
-      const points = getPixelsAtDistanceOdd(origin, newWidth, i);
-      points.forEach(point => {
-        dataArray[point + 3] = value;
-      })
-    }
-  } else {
-    origin = Math.floor((newWidth - 1) / 2) + newWidth * Math.floor((newWidth - 1) / 2);
-    for (let i = 0; i < newWidth / 2; i++) {
-      let value;
-      if (i <= innerWidth) {
-        value = 255;
-      } else {
-        const pct = (i - innerWidth) / outerWidth;
-        value = 255 * (pct * pct - 2 * pct + 1);
-      }
-      const points = getPixelsAtDistanceEven(origin, newWidth, i);
-      points.forEach(point => {
-        dataArray[point + 3] = value;
-      })
+  for (let i=3; i<dataArray.length; i+=4) {
+    const distance = getDistance({x: (i/4) % newWidth, y: Math.floor((i/4) / newWidth)}, origin);
+    if (distance < innerRadius) {
+      dataArray[i] = 255;
+    } else if (distance < innerRadius + outerRadius) {
+      const pct = (distance - innerRadius) / outerRadius;
+      dataArray[i] = 255 * (pct * pct - 2 * pct + 1);
     }
   }
+
   ctx.putImageData(imageData, 0, 0);
+  // console.log(imageData);
   return canvas;
 }
 
