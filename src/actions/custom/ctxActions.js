@@ -94,75 +94,80 @@ function getRadialGradient(gradient, width, hardness=100) {
     outerWidth = newWidth - innerWidth,
     canvas = new OffscreenCanvas(newWidth, newWidth),
     ctx = canvas.getContext('2d'),
-    imageData = ctx.createImageData(newWidth, newWidth),
+    imageData = ctx.getImageData(0, 0, newWidth, newWidth),
     dataArray = imageData.data;
+    
+  function getPixelsAtDistanceOdd(origin, width, distance) {
+    if (distance === 0) {
+      return [origin];
+    }
+    const surrounding = [];
+    for (let i = 0; i < distance; i++) {
+      surrounding.push(
+        origin + (i + (distance - i) * width) * 4,
+        origin + (-i + (distance - i) * width) * 4,
+        origin + (i - (distance - i) * width) * 4,
+        origin + (-i - (distance - i) * width) * 4
+      );
+    }
+    return surrounding;
+  }
+
+  function getPixelsAtDistanceEven(origin, width, distance) {
+    const surrounding = [];
+    const origin1 = origin,
+      origin2 = origin + 4,
+      origin3 = origin + (width + 1) * 4,
+      origin4 = origin + width * 4;
+
+    let x = 0, y = distance;
+    while (x <= distance) {
+      surrounding.push(
+        origin1 + (-x + y * width) * 4,
+        origin2 + (x + y * width) * 4,
+        origin3 + (-x + y * width) * 4,
+        origin4 + (-x + y * width) * 4,
+      )
+      x++
+      y--
+    }
+    return surrounding;
+  }
   
   let origin;
-  if (width % 2) {
-    origin = Math.floor(width / 2) + width * Math.floor(width / 2);
-    // hmm. gonna need to round innerWidth?
+  if (newWidth % 2) {
+    origin = Math.floor(newWidth / 2) + newWidth * Math.floor(newWidth / 2);
     for (let i = 0; i < newWidth / 2; i++) {
       let value;
       if (i <= innerWidth) {
         value = 255;
       } else {
         const pct = (i - innerWidth) / outerWidth;
-        value = pct * pct - 2 * pct + 1
+        value = 255 * (pct * pct - 2 * pct + 1);
       }
+      const points = getPixelsAtDistanceOdd(origin, newWidth, i);
+      points.forEach(point => {
+        dataArray[point + 3] = value;
+      })
     }
   } else {
-    origin = Math.floor((width - 1) / 2) + width * Math.floor((width - 1) / 2);
+    origin = Math.floor((newWidth - 1) / 2) + newWidth * Math.floor((newWidth - 1) / 2);
     for (let i = 0; i < newWidth / 2; i++) {
-      const value = i < innerWidth ? 255 : getValue();
+      let value;
+      if (i <= innerWidth) {
+        value = 255;
+      } else {
+        const pct = (i - innerWidth) / outerWidth;
+        value = 255 * (pct * pct - 2 * pct + 1);
+      }
+      const points = getPixelsAtDistanceEven(origin, newWidth, i);
+      points.forEach(point => {
+        dataArray[point + 3] = value;
+      })
     }
   }
-
-  // ctx.beginPath();
-  // let grad = ctx.createRadialGradient(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth * hardness / 200, Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth / 2);
-  // gradient.forEach(data => {
-  //   grad.addColorStop(data[0], data[1]);
-  // })
-  // ctx.fillStyle = grad;
-  // ctx.arc(Math.floor(newWidth / 2), Math.floor(newWidth / 2), newWidth / 2, 0,Math.PI * 2);
-  // ctx.fill();
+  ctx.putImageData(imageData, 0, 0);
   return canvas;
-}
-
-function getPixelsAtDistanceOdd(origin, width, distance) {
-  if (distance === 0) {
-    return [origin];
-  }
-  const surrounding = [];
-  for (let i = 0; i < distance; i++) {
-    surrounding.push(
-      origin + (x + (distance - i) * width) * 4,
-      origin + (-x + (distance - i) * width) * 4,
-      origin + (x - (distance - i) * width) * 4,
-      origin + (-x - (distance - i) * width) * 4
-    );
-  }
-  return surrounding;
-}
-
-function getPixelsAtDistanceEven(origin, width, distance) {
-  const surrounding = [];
-  const origin1 = origin,
-    origin2 = origin + 4,
-    origin3 = origin + (width + 1) * 4,
-    origin4 = origin + width * 4;
-
-  let x = 0, y = distance;
-  while (x <= distance) {
-    surrounding.push(
-      origin1 + (-x + y * width) * 4,
-      origin2 + (x + y * width) * 4,
-      origin3 + (-x + y * width) * 4,
-      origin4 + (-x + y * width) * 4,
-    )
-    x++
-    y--
-  }
-  return surrounding;
 }
 
 export function rectangle(ctx, { orig, dest, translation }) {
