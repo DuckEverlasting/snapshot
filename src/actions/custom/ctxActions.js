@@ -89,8 +89,9 @@ export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100,
 }
 
 function getRadialGradient(gradient, width, hardness=100) {
-  const newWidth = width * (2 - hardness / 100),
-    innerWidth = newWidth * hardness / 100,
+  const newWidth = Math.ceil(width * (2 - hardness / 100)),
+    innerWidth = Math.ceil(newWidth * hardness / 100),
+    outerWidth = newWidth - innerWidth,
     canvas = new OffscreenCanvas(newWidth, newWidth),
     ctx = canvas.getContext('2d'),
     imageData = ctx.createImageData(newWidth, newWidth),
@@ -98,15 +99,21 @@ function getRadialGradient(gradient, width, hardness=100) {
   
   let origin;
   if (width % 2) {
-    origin = 0
-    // hmm. gonna need to do round innerWidth?
-    for (let i = 1; i < innerWidth / 2; i++) {
-      
+    origin = Math.floor(width / 2) + width * Math.floor(width / 2);
+    // hmm. gonna need to round innerWidth?
+    for (let i = 0; i < newWidth / 2; i++) {
+      let value;
+      if (i <= innerWidth) {
+        value = 255;
+      } else {
+        const pct = (i - innerWidth) / outerWidth;
+        value = pct * pct - 2 * pct + 1
+      }
     }
   } else {
-    origin = 0
-    for (let i = 1; i < Math.ceil(innerWidth / 2); i++) {
-
+    origin = Math.floor((width - 1) / 2) + width * Math.floor((width - 1) / 2);
+    for (let i = 0; i < newWidth / 2; i++) {
+      const value = i < innerWidth ? 255 : getValue();
     }
   }
 
@@ -122,6 +129,9 @@ function getRadialGradient(gradient, width, hardness=100) {
 }
 
 function getPixelsAtDistanceOdd(origin, width, distance) {
+  if (distance === 0) {
+    return [origin];
+  }
   const surrounding = [];
   for (let i = 0; i < distance; i++) {
     surrounding.push(
