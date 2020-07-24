@@ -22,6 +22,7 @@ export function midpoint(orig, dest) {
   };
 }
 
+// This is just for approximating.
 export function getQuadLength(p1, p2, p3) {
   const distA = Math.sqrt(
     Math.pow(p1.y - p2.y, 2) + Math.pow(p1.x - p2.x, 2)
