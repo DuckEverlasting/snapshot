@@ -1,4 +1,5 @@
 import { zoomSteps } from "../constants/constants";
+import { toArrayFromRgba } from "./colorConversion";
 
 export function getZoomAmount(steps, zoomPct) {
   let amount;
@@ -49,6 +50,38 @@ export function getQuadEquation(p1, p2, p3) {
   return function(x) {
     return a * x * x + b * x + c;
   }
+}
+
+export function getRadialGradient(color, width, hardness=100) {
+  const newWidth = Math.ceil(width * (2 - hardness / 100)),
+    innerRadius = newWidth / 2 * hardness / 100,
+    outerRadius = newWidth / 2 - innerRadius,
+    canvas = new OffscreenCanvas(newWidth, newWidth),
+    ctx = canvas.getContext('2d'),
+    imageData = ctx.getImageData(0, 0, newWidth, newWidth),
+    dataArray = imageData.data;
+
+  const origin = {x: (newWidth + 1) / 2, y: (newWidth + 1) / 2};
+  const colorArray = toArrayFromRgba(color);
+  
+  for (let i=0; i<dataArray.length; i+=4) {
+    const distance = getDistance({x: (i/4) % newWidth, y: Math.floor((i/4) / newWidth)}, origin);
+    if (distance < innerRadius) {
+      dataArray[i] = colorArray[0];
+      dataArray[i + 1] = colorArray[1];
+      dataArray[i + 2] = colorArray[2];
+      dataArray[i + 3] = 255;
+    } else if (distance < innerRadius + outerRadius) {
+      const pct = (distance - innerRadius) / outerRadius;
+      dataArray[i] = colorArray[0];
+      dataArray[i + 1] = colorArray[1];
+      dataArray[i + 2] = colorArray[2];
+      dataArray[i + 3] = 255 * (pct * pct - 2 * pct + 1);
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
 }
 
 export function getHistogram(ctx, channel) {

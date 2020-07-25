@@ -92,37 +92,10 @@ export function quadraticPoints(ctx, { destArray, width, brushHead, hardness=100
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (translation) ctx.translate(translation, translation);
-  ctx.fillStyle = "rgba(255, 0, 0, 1)";
-  let lastPoint;
   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], density * width).forEach(point => {
     ctx.drawImage(brushHead, point.x - .5 * brushHead.width, point.y - .5 * brushHead.height);
   })
   if (translation) ctx.translate(-translation, -translation);
-}
-
-export function getRadialGradient(width, hardness=100) {
-  const newWidth = Math.ceil(width * (2 - hardness / 100)),
-    innerRadius = newWidth / 2 * hardness / 100,
-    outerRadius = newWidth / 2 - innerRadius,
-    canvas = new OffscreenCanvas(newWidth, newWidth),
-    ctx = canvas.getContext('2d'),
-    imageData = ctx.getImageData(0, 0, newWidth, newWidth),
-    dataArray = imageData.data;
-
-  const origin = {x: (newWidth + 1) / 2, y: (newWidth + 1) / 2};
-  
-  for (let i=3; i<dataArray.length; i+=4) {
-    const distance = getDistance({x: (i/4) % newWidth, y: Math.floor((i/4) / newWidth)}, origin);
-    if (distance < innerRadius) {
-      dataArray[i] = 255;
-    } else if (distance < innerRadius + outerRadius) {
-      const pct = (distance - innerRadius) / outerRadius;
-      dataArray[i] = 255 * (pct * pct - 2 * pct + 1);
-    }
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-  return canvas;
 }
 
 export function rectangle(ctx, { orig, dest, translation }) {

@@ -2,6 +2,7 @@ import {
   midpoint,
   getQuadLength,
   getGradient,
+  getRadialGradient,
   convertDestToRegularShape
 } from "../utils/helpers";
 
@@ -22,7 +23,7 @@ import manipulate from "../reducers/custom/manipulateReducer";
 import selection from "../reducers/custom/selectionReducer";
 
 import render from "../actions/redux/renderCanvas";
-import { getFillContent, getRadialGradient } from "../actions/custom/ctxActions";
+import { getFillContent } from "../actions/custom/ctxActions";
 
 class ToolActionBase {
   constructor(targetLayer, layerCanvas, dispatch, translateData) {
@@ -291,8 +292,7 @@ export class BrushAction extends FreeDrawAction {
     this.hardness = params.hardness;
     this.clip = params.clip;
     this.density = params.density || 0.2;
-    this.gradient = getGradient(params.color, params.hardness);
-    this.brushHead = getRadialGradient(this.width, this.hardness);
+    this.brushHead = getRadialGradient(params.color, this.width, this.hardness);
     this.processing = document.createElement('canvas');
   }
 
@@ -306,7 +306,6 @@ export class BrushAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
           brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
@@ -346,7 +345,6 @@ export class BrushAction extends FreeDrawAction {
       params: {
         orig: this.lastMid || this.lastDest,
         destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
-        gradient: this.gradient,
         brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
@@ -391,7 +389,7 @@ export class FilterBrushAction extends FreeDrawAction {
     this.hardness = params.hardness;
     this.density = params.density || 0.25;
     this.clip = params.clip;
-    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.processing = document.createElement('canvas');
     this.filtered = document.createElement('canvas');
   }
@@ -411,7 +409,7 @@ export class FilterBrushAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
           density: this.density,
@@ -456,7 +454,7 @@ export class FilterBrushAction extends FreeDrawAction {
       params: {
         orig: this.lastMid || this.lastDest,
         destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
         density: this.density,
@@ -506,7 +504,7 @@ export class StampAction extends FreeDrawAction {
     this.clip = params.clip;
     this.opacity = params.opacity;
     this.density = params.density || 0.25;
-    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.processing = document.createElement('canvas');
     this.stampCanvas = params.stampData.canvas;
     this.stampOrigin = params.stampData.origin;
@@ -546,7 +544,7 @@ export class StampAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
           density: this.density,
@@ -594,7 +592,7 @@ export class StampAction extends FreeDrawAction {
       params: {
         orig: this.origin,
         destArray: [this.lastMid || this.origin, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
         density: this.density,
@@ -644,8 +642,9 @@ export class EraserAction extends FreeDrawAction {
     this.composite = params.composite;
     this.width = params.width;
     this.clip = params.clip;
+    this.hardness = params.hardness;
     this.density = params.density || 0.25;
-    this.gradient = getGradient("rgba(0, 0, 0, 1)", 100, params.hardness);
+    this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.usesStaging = false;
   }
 
@@ -660,7 +659,7 @@ export class EraserAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
           density: this.density,
@@ -692,7 +691,7 @@ export class EraserAction extends FreeDrawAction {
       params: {
         orig: this.origin,
         destArray: [this.lastMid || this.origin, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
         density: this.density,
