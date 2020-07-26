@@ -16,7 +16,7 @@ function getPointInQuad(p1, p2, p3, t) {
 
 function getPointsAlongQuad(p1, p2, p3, densityFactor) {
   const roughLength = getQuadLength(p1, p2, p3),
-    points = [getPointInQuad(p1, p2, p3, 0)],
+    points = [p1],
     arcLengths = [0],
     lengths = roughLength / densityFactor * 4;
 
@@ -51,7 +51,7 @@ function getPointsAlongQuad(p1, p2, p3, densityFactor) {
     }
     points.push(point);
   }
-  points.push(getPointInQuad(p1, p2, p3, 1))
+  points.push(p3)
   return points;
 }
 
@@ -87,15 +87,14 @@ export function quadratic(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadraticPoints(ctx, { destArray, width, brushHead, hardness=100, density = .2, translation }) {
+export function quadraticPoints(ctx, { destArray, width, brushHead, hardness=100, density=.25, translation }) {
   // density in this case = percentage of width between each point
+  // no translation for this one - it's specifically made to offset path drawing tools that this action does not use
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  if (translation) ctx.translate(translation, translation);
   getPointsAlongQuad(destArray[0], destArray[1], destArray[2], density * width).forEach(point => {
-    ctx.drawImage(brushHead, point.x - .5 * brushHead.width, point.y - .5 * brushHead.height);
+    ctx.drawImage(brushHead, Math.floor(point.x - .5 * brushHead.width), Math.floor(point.y - .5 * brushHead.height));
   })
-  if (translation) ctx.translate(-translation, -translation);
 }
 
 export function rectangle(ctx, { orig, dest, translation }) {

@@ -276,7 +276,6 @@ export default function Workspace() {
           color: "rgba(0, 0, 0, 1)",
           opacity: 100,
           hardness: toolSettings.eraser.hardness,
-          composite: "destination-out",
           clip: selectionPath,
           lastEndpoint,
           setLastEndpoint

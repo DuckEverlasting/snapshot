@@ -61,7 +61,7 @@ export function getRadialGradient(color, width, hardness=100) {
     imageData = ctx.getImageData(0, 0, newWidth, newWidth),
     dataArray = imageData.data;
 
-  const origin = {x: (newWidth + 1) / 2, y: (newWidth + 1) / 2};
+  const origin = {x: (newWidth - 1) / 2, y: (newWidth - 1) / 2};
   const colorArray = toArrayFromRgba(color);
   
   for (let i=0; i<dataArray.length; i+=4) {
@@ -181,12 +181,6 @@ export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
 }
 
 export function calculateClipping(size, offset, docSize, zoom) {
-  console.log("CLIPPING: ", {
-    up: Math.floor(-offset.y * zoom - 2),
-    down: Math.floor((size.h + offset.y - docSize.h) * zoom + 2),
-    left: Math.floor(-offset.x * zoom - 2),
-    right: Math.floor((size.w + offset.x - docSize.w) * zoom + 2),
-  })
   return {
     up: Math.floor(-offset.y * zoom - 2),
     down: Math.floor((size.h + offset.y - docSize.h) * zoom + 2),
@@ -194,4 +188,3 @@ export function calculateClipping(size, offset, docSize, zoom) {
     right: Math.floor((size.w + offset.x - docSize.w) * zoom + 2),
   };
 }
-
