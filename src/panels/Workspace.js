@@ -167,6 +167,10 @@ export default function Workspace() {
     };
   }
 
+  function capTranslate(translateX, translateY) {
+    const maxX = 0
+  }
+
   function eventIsWithinCanvas(ev) {
     const translateData = getTranslateData(),
       x = Math.floor(ev.nativeEvent.offsetX) - translateData.x,
@@ -399,8 +403,8 @@ export default function Workspace() {
 
   const zoom = (steps, ev) => {
     const newZoomPct = getZoomAmount(steps, zoomPct),
-      toLeft = ev.nativeEvent.offsetX,
-      toTop = ev.nativeEvent.offsetY,
+      toLeft = ev.nativeEvent ? ev.nativeEvent.offsetX : ev.offsetX,
+      toTop = ev.nativeEvent ? ev.nativeEvent.offsetY : ev.offsetY,
       zoomFraction = (newZoomPct / 100) / (zoomPct / 100);
     
     let newTranslateX, newTranslateY;
