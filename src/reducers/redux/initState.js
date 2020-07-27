@@ -70,6 +70,8 @@ export const getInitUiState = () => ({
   workspaceSettings: {
     translateX: 0,
     translateY: 0,
+    anchorX: 50,
+    anchorY: 50,
     zoomPct: 100
   },
   toolSettings: {

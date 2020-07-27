@@ -64,8 +64,8 @@ class ToolActionBase {
   }
 
   _getCoordinates(ev, params={}) {
-    let x = (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
-      y = (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY;
+    let x = (ev.nativeEvent.offsetX - this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y = (ev.nativeEvent.offsetY - this.translateData.y) / this.translateData.zoom - this.translateData.offY;
     if (params.autoCrop) {
       x = Math.min(Math.max(x, 0), this.translateData.documentWidth - 1);
       y = Math.min(Math.max(y, 0), this.translateData.documentHeight - 1); 

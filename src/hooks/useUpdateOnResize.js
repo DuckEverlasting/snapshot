@@ -18,5 +18,5 @@ export default function useUpdateOnResize(ref) {
 
   useEventListener("resize", handleResize);
 
-  return [refSize, setRefSize];
+  return refSize;
 }

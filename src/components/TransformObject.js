@@ -212,7 +212,7 @@ export default function TransformObject({
   const boundingBoxRef = useRef();
   const anchorRef = useRef();
 
-  const [boxSize, setBoxSize] = useUpdateOnResize(boundingBoxRef);
+  const boxSize = useUpdateOnResize(boundingBoxRef);
 
   useEffect(() => {
     dispatch(setActiveTool("move"));

@@ -143,7 +143,7 @@ export default function CropObject() {
   const dispatch = useDispatch();
 
   const boundingBoxRef = useRef();
-  const [boxSize, setBoxSize] = useUpdateOnResize(boundingBoxRef);
+  const boxSize = useUpdateOnResize(boundingBoxRef);
 
   useEffect(() => {
     dispatch(setMenuIsDisabled(true));

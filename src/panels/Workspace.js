@@ -38,10 +38,10 @@ import useEventListener from "../hooks/useEventListener";
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
 import render from "../actions/redux/renderCanvas";
+import useUpdateOnResize from "../hooks/useUpdateOnResize";
 
 const WorkspaceSC = styled.div`
   position: relative;
-  display: flex;
   width: 100%;
   height: 100%;
   border: 1px solid black;
@@ -80,19 +80,17 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
     transform: `translateX(${Math.floor(props.translateX)}px)
       translateY(${Math.floor(props.translateY)}px)
       scale(${props.zoomPct / 100})`,
-    marginTop: `-${Math.floor(.5 * props.height)}px`,
-    marginLeft: `-${Math.floor(.5 * props.width)}px`,
+    transformOrigin: "top left",
     backgroundSize: `${1000 / props.zoomPct}px ${1000 / props.zoomPct}px`,
     backgroundPosition: `0 0, ${500 / props.zoomPct}px ${500 / props.zoomPct}px`
   },
 }))`
   position: relative;
-  top: 50%;
-  left: 50%;
+  top: 0%;
+  left: 0%;
   background-color: #eee;
   background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc),
   linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
-  flex: none;
   pointer-events: none;
   overflow: hidden;
 `;
@@ -103,7 +101,7 @@ let currentAction = null;
 let isDrawing = false;
 
 export default function Workspace() {
-  const { translateX, translateY, zoomPct } = useSelector(
+  const { translateX, translateY, anchorX, anchorY, zoomPct } = useSelector(
     (state) => state.ui.workspaceSettings
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
@@ -130,12 +128,9 @@ export default function Workspace() {
     ctrl: false,
     alt: false,
   });
-  const [workspaceDimensions, setWorkspaceDimensions] = useState({
-    w: 0,
-    h: 0
-  })
-
   const workspaceRef = useRef(null);
+  const workspaceDimensions = useUpdateOnResize(workspaceRef);
+
   let workspaceElement = workspaceRef.current;
 
   const dispatch = useDispatch();
@@ -152,26 +147,18 @@ export default function Workspace() {
   }, []);
 
   useEffect(() => {
-    if (workspaceRef.current) {
-      setWorkspaceDimensions({
-        w: workspaceRef.current.width,
-        h: workspaceRef.current.height,
-      })
-    }
-  }, [workspaceRef])
+    dispatch(updateWorkspaceSettings({
+      translateX: 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100),
+      translateY: 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100),
+    }))
+  }, [])
 
   function getTranslateData(noOffset) {
-    const marginLeft =
-      0.5 *
-      (Math.floor(workspaceRef.current.clientWidth) -
-        (documentWidth * zoomPct) / 100);
-    const marginTop =
-      0.5 *
-      (Math.floor(workspaceRef.current.clientHeight) -
-        (documentHeight * zoomPct) / 100);
+    const marginLeft = 0.5 * (workspaceDimensions.w - documentWidth * zoomPct / 100);
+    const marginTop = 0.5 * (workspaceDimensions.h - documentHeight * zoomPct / 100);
     return {
-      x: -(translateX + marginLeft),
-      y: -(translateY + marginTop),
+      x: translateX,
+      y: translateY,
       zoom: zoomPct / 100,
       offX: noOffset ? 0 : layerSettings[activeLayer].offset.x,
       offY: noOffset ? 0 : layerSettings[activeLayer].offset.y,
@@ -182,8 +169,8 @@ export default function Workspace() {
 
   function eventIsWithinCanvas(ev) {
     const translateData = getTranslateData(),
-      x = Math.floor(ev.nativeEvent.offsetX) + translateData.x,
-      y = Math.floor(ev.nativeEvent.offsetY) + translateData.y;
+      x = Math.floor(ev.nativeEvent.offsetX) - translateData.x,
+      y = Math.floor(ev.nativeEvent.offsetY) - translateData.y;
 
     return (
       x > 0 &&
@@ -410,9 +397,28 @@ export default function Workspace() {
     }
   }
 
-  const zoom = (steps) => {
+  const zoom = (steps, ev) => {
+    const newZoomPct = getZoomAmount(steps, zoomPct),
+      toLeft = ev.nativeEvent.offsetX,
+      toTop = ev.nativeEvent.offsetY,
+      zoomFraction = (newZoomPct / 100) / (zoomPct / 100);
+    
+    let newTranslateX, newTranslateY;
+
+    if (newZoomPct <= 100 && steps < 0) {
+      newTranslateY = 0.5 * (workspaceRef.current.clientHeight - documentHeight * newZoomPct / 100)
+      newTranslateX = 0.5 * (workspaceRef.current.clientWidth - documentWidth * newZoomPct / 100)
+    } else {
+      newTranslateX = zoomFraction * (translateX - toLeft) + toLeft;
+      newTranslateY = zoomFraction * (translateY - toTop) + toTop;  
+    }
+
     dispatch(
-      updateWorkspaceSettings({ zoomPct: getZoomAmount(steps, zoomPct) })
+      updateWorkspaceSettings({
+        translateX: newTranslateX,
+        translateY: newTranslateY,
+        zoomPct: newZoomPct
+      })
     );
   };
 
@@ -420,18 +426,10 @@ export default function Workspace() {
     let steps;
     if (!zoomOut) {
       steps = ev.shiftKey ? 2 : 1;
-      zoom(steps);
-      if (zoomPct * steps >= 100) {
-        // HANDLE ZOOM IN STUFF
-      }
+      zoom(steps, ev);
     } else {
       steps = ev.shiftKey ? -2 : -1;
-      zoom(steps);
-
-      // Autocenter when zooming out
-      if (getZoomAmount(steps, zoomPct) <= 100) {
-        dispatch(updateWorkspaceSettings({ translateX: 0, translateY: 0 }));
-      }
+      zoom(steps, ev);
     }
     dispatch(render());
   };
@@ -584,6 +582,7 @@ export default function Workspace() {
       dispatch(setImportImageFile(file));
     });
   };
+  console.log(zoomPct, translateX, translateY);
 
   return (
     <WorkspaceSC
@@ -598,6 +597,8 @@ export default function Workspace() {
       <CanvasPaneSC
         translateX={translateX}
         translateY={translateY}
+        anchorX={anchorX}
+        anchorY={anchorY}
         width={documentWidth}
         height={documentHeight}
         workspaceWidth={workspaceDimensions.w}
