@@ -168,7 +168,16 @@ export default function Workspace() {
   }
 
   function capTranslate(translateX, translateY) {
-    const maxX = 0
+    const zoomDocWidth = documentWidth * (zoomPct / 100),
+      zoomDocHeight = documentHeight * (zoomPct / 100),
+      maxX = zoomDocWidth + (workspaceDimensions.w - zoomDocWidth) - 50,
+      minX = -zoomDocWidth + 50,
+      maxY = zoomDocHeight + (workspaceDimensions.h - zoomDocHeight) - 50,
+      minY = -zoomDocHeight + 50;
+    return [
+      Math.max(minX, Math.min(maxX, translateX)),
+      Math.max(minY, Math.min(maxY, translateY))
+    ]
   }
 
   function eventIsWithinCanvas(ev) {
@@ -407,15 +416,17 @@ export default function Workspace() {
       toTop = ev.nativeEvent ? ev.nativeEvent.offsetY : ev.offsetY,
       zoomFraction = (newZoomPct / 100) / (zoomPct / 100);
     
-    let newTranslateX, newTranslateY;
+    let transX, transY;
 
     if (newZoomPct <= 100 && steps < 0) {
-      newTranslateY = 0.5 * (workspaceRef.current.clientHeight - documentHeight * newZoomPct / 100)
-      newTranslateX = 0.5 * (workspaceRef.current.clientWidth - documentWidth * newZoomPct / 100)
+      transY = 0.5 * (workspaceRef.current.clientHeight - documentHeight * newZoomPct / 100)
+      transX = 0.5 * (workspaceRef.current.clientWidth - documentWidth * newZoomPct / 100)
     } else {
-      newTranslateX = zoomFraction * (translateX - toLeft) + toLeft;
-      newTranslateY = zoomFraction * (translateY - toTop) + toTop;  
+      transX = zoomFraction * (translateX - toLeft) + toLeft;
+      transY = zoomFraction * (translateY - toTop) + toTop;  
     }
+
+    const [newTranslateX, newTranslateY] = capTranslate(transX, transY);
 
     dispatch(
       updateWorkspaceSettings({
@@ -439,10 +450,11 @@ export default function Workspace() {
   };
 
   const translate = (deltaX, deltaY) => {
+    const [newTranslateX, newTranslateY] = capTranslate(translateX + deltaX, translateY + deltaY);
     dispatch(
       updateWorkspaceSettings({
-        translateX: translateX + deltaX,
-        translateY: translateY + deltaY,
+        translateX: newTranslateX,
+        translateY: newTranslateY,
       })
     );
   };
@@ -534,10 +546,11 @@ export default function Workspace() {
     if (isDragging) {
       if (animationFrame === lastFrame) return;
       lastFrame = animationFrame;
-      const newTranslateX =
+      const transX =
         Math.floor(ev.screenX) - dragOrigin.x * (zoomPct / 100);
-      const newTranslateY =
+      const transY =
         Math.floor(ev.screenY) - dragOrigin.y * (zoomPct / 100);
+      const [newTranslateX, newTranslateY] = capTranslate(transX, transY);
       dispatch(
         updateWorkspaceSettings({
           translateX: newTranslateX,
