@@ -14,6 +14,7 @@ import {
   setTransformParams,
   updateLayerPosition,
   updateDocumentSettings,
+  updateWorkspaceSettings,
 } from "./index";
 
 import { MoveAction } from "../../utils/ToolAction";
@@ -74,7 +75,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
     }
 
     await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
-    
+
     await dispatch(menuAction("deselect"));
     layerCanvas.staging.width = width;
     layerCanvas.staging.height = height;

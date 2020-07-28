@@ -85,7 +85,7 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
     backgroundPosition: `0 0, ${500 / props.zoomPct}px ${500 / props.zoomPct}px`
   },
 }))`
-  position: relative;
+  position: absolute;
   top: 0%;
   left: 0%;
   background-color: #eee;
@@ -151,7 +151,7 @@ export default function Workspace() {
       translateX: 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100),
       translateY: 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100),
     }))
-  }, [])
+  }, [documentWidth, documentHeight])
 
   function getTranslateData(noOffset) {
     const marginLeft = 0.5 * (workspaceDimensions.w - documentWidth * zoomPct / 100);

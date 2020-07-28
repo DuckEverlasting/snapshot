@@ -142,9 +142,6 @@ export default function CropObject() {
 
   const dispatch = useDispatch();
 
-  const boundingBoxRef = useRef();
-  const boxSize = useUpdateOnResize(boundingBoxRef);
-
   useEffect(() => {
     dispatch(setMenuIsDisabled(true));
     setInitialized(true);
@@ -194,13 +191,9 @@ export default function CropObject() {
   }
 
   function calculateOffset() {
-    const xFromBorder =
-      (boxSize.w - documentWidth * zoom) / 2;
-    const yFromBorder =
-      (boxSize.h - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -246,7 +239,6 @@ export default function CropObject() {
       overrideCursor={
         currentTransformAction ? currentTransformAction.actionType : null
       }
-      ref={boundingBoxRef}
     >
       <ContainerSC
         offset={calculateOffset()}

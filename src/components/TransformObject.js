@@ -178,7 +178,6 @@ let currentTransformAction = null;
 export default function TransformObject({
   target,
   targetCtx,
-  targetOffset = {x: 0, y: 0},
   source
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -209,10 +208,7 @@ export default function TransformObject({
   const dispatch = useDispatch();
 
   const canvasRef = useRef();
-  const boundingBoxRef = useRef();
   const anchorRef = useRef();
-
-  const boxSize = useUpdateOnResize(boundingBoxRef);
 
   useEffect(() => {
     dispatch(setActiveTool("move"));
@@ -338,16 +334,9 @@ export default function TransformObject({
   }
 
   function calculateOffset() {
-    if (!boundingBoxRef.current) {
-      return { x: 0, y: 0 };
-    }
-    const xFromBorder =
-      (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
-    const yFromBorder =
-      (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -409,7 +398,6 @@ export default function TransformObject({
       overrideCursor={
         currentTransformAction ? currentTransformAction.actionType : null
       }
-      ref={boundingBoxRef}
     >
       <ContainerSC
         offset={calculateOffset()}
