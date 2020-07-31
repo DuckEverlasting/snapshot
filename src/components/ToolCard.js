@@ -44,7 +44,7 @@ const ToolCardInnerSC = styled.div`
 export default function ToolCard() {
   const activeTool = useSelector(state => state.ui.activeTool);
   const toolSettings = useSelector(state => state.ui.toolSettings);
-  const { width, amount, opacity, hardness, tolerance, range } = toolSettings[activeTool];
+  const { width, amount, opacity, hardness, tolerance, range, smooth } = toolSettings[activeTool];
   const dispatch = useDispatch();
 
   const toolName = toolSettings[activeTool].name;
@@ -98,6 +98,13 @@ export default function ToolCard() {
           selected={range}
           onChange={value => handleInput(value, "range")}
           options={["Shadows", "Midtones", "Highlights"]}
+          vertical
+        />}
+        {smooth !== undefined && <RadioInput
+          name={""}
+          selected={smooth ? "Smooth" : "Pixellated"}
+          onChange={value => handleInput(value === "Smooth", "smooth")}
+          options={["Smooth", "Pixellated"]}
           vertical
         />}
       </ToolCardInnerSC>

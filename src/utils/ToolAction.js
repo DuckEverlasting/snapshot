@@ -1,9 +1,9 @@
 import {
   midpoint,
   getQuadLength,
-  getGradient,
   getRadialGradient,
-  convertDestToRegularShape
+  convertDestToRegularShape,
+  canvasIsBlank
 } from "../utils/helpers";
 
 import getImageRect from "../utils/getImageRect";
@@ -251,6 +251,7 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (this.destArray.length < 2) {
         return this.dispatch(updateSelectionPath("clear"));
@@ -378,6 +379,7 @@ export class BrushAction extends FreeDrawAction {
   }
 
   onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
@@ -505,6 +507,7 @@ export class FilterBrushAction extends FreeDrawAction {
   }
 
   async onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     await this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
@@ -658,6 +661,7 @@ export class StampAction extends FreeDrawAction {
 
   async onEnd() {
     if (!this.stampCanvas) return;
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     await this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
@@ -752,9 +756,12 @@ export class EraserAction extends FreeDrawAction {
   }
 
   onEnd() {
+    const ctx = this.layerCanvas[this.targetLayer].getContext("2d");
+    const currData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    if (!currData.data.some((el, i) => this.prevImgData.data[i] !== el)) return;
     this.dispatch(putHistoryData(
       this.targetLayer,
-      this.layerCanvas[this.targetLayer].getContext("2d"),
+      ctx,
       null,
       this.prevImgData
     ));
@@ -826,6 +833,7 @@ export class ShapeAction extends ToolActionBase {
   }
 
   onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (!this.dest) {
         return this.dispatch(updateSelectionPath("clear"));
@@ -1118,8 +1126,6 @@ export class CropAction extends ToolActionBase {
 
   onEnd() {
     if (this.dest) {
-      const orig = {x: Math.min(this.origin.x, this.dest.x), y: Math.min(this.origin.y, this.dest.y)}
-      const dest = {x: Math.max(this.origin.x, this.dest.x), y: Math.max(this.origin.y, this.dest.y)}
       this.dispatch(setCropIsActive(true, {
         startDimensions: {
           x: Math.min(this.origin.x, this.dest.x),

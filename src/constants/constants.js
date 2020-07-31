@@ -1,4 +1,6 @@
 export const zoomSteps = [
+  5,
+  8,
   12.5,
   18.75,
   33.33,

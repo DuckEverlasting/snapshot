@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import useEventListener from "./useEventListener";
 
 export default function useUpdateOnResize(ref) {
@@ -12,7 +12,7 @@ export default function useUpdateOnResize(ref) {
       w: ref.current.clientWidth,
       h: ref.current.clientHeight
     });
-  }, [])
+  }, [ref])
 
   useEffect(handleResize, []);
 

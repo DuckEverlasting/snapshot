@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import useUpdateOnResize from "../hooks/useUpdateOnResize";
 import useEventListener from "../hooks/useEventListener";
 import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
 import transformActionFactory from "../utils/TransformAction";
