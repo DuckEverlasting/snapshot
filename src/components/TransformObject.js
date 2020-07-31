@@ -35,14 +35,12 @@ const ContainerSC = styled.div.attrs((props) => ({
                 translateY(${props.offset.y}px)
                 rotate(${props.rotation}rad)`,
     transformOrigin: `${props.anchorPoint.x * 100}% ${props.anchorPoint.y * 100}%`,
-    width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
-    height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
+    width: props.size ? (props.size.w * props.zoom) + "px" : "auto",
+    height: props.size ? (props.size.h * props.zoom) + "px" : "auto",
     cursor: props.overrideCursor || "move",
     border: props.borderStyle || "2px solid " + props.theme.colors.highlight,
   },
 }))`
-  flex-grow: 0;
-  flex-shrink: 0;
   position: relative;
   box-sizing: content-box;
 `;
@@ -179,11 +177,10 @@ let currentTransformAction = null;
 export default function TransformObject({
   target,
   targetCtx,
-  targetOffset = {x: 0, y: 0},
   source
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ h: 0, w: 0 });
+  const [size, setSize] = useState({ w: 0, h: 0 });
   const [anchorPoint, setAnchorPoint] = useState({x: .5, y: .5});
   const [rotation, setRotation] = useState(0);
   const [image, setImage] = useState(null);
@@ -210,7 +207,6 @@ export default function TransformObject({
   const dispatch = useDispatch();
 
   const canvasRef = useRef();
-  const boundingBoxRef = useRef();
   const anchorRef = useRef();
 
   useEffect(() => {
@@ -337,16 +333,9 @@ export default function TransformObject({
   }
 
   function calculateOffset() {
-    if (!boundingBoxRef.current) {
-      return { x: 0, y: 0 };
-    }
-    const xFromBorder =
-      (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
-    const yFromBorder =
-      (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -367,8 +356,6 @@ export default function TransformObject({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch, offset, size, anchorPoint, rotation, documentHeight, documentWidth]
   );
-
-  useEffect(() => console.log("ROTATABLE: ", rotatable), [rotatable])
 
   async function apply() {
     dispatch(putHistoryData(target, targetCtx, () => {
@@ -410,7 +397,6 @@ export default function TransformObject({
       overrideCursor={
         currentTransformAction ? currentTransformAction.actionType : null
       }
-      ref={boundingBoxRef}
     >
       <ContainerSC
         offset={calculateOffset()}

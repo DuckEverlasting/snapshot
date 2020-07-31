@@ -1,4 +1,5 @@
 import { zoomSteps } from "../constants/constants";
+import { toArrayFromRgba } from "./colorConversion";
 
 export function getZoomAmount(steps, zoomPct) {
   let amount;
@@ -22,6 +23,15 @@ export function midpoint(orig, dest) {
   };
 }
 
+export function canvasIsBlank(canvas) {
+  const pixelBuffer = new Uint32Array(
+    canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data.buffer
+  );
+
+  return !pixelBuffer.some(el => el !== 0);
+}
+
+// This is just for approximating.
 export function getQuadLength(p1, p2, p3) {
   const distA = Math.sqrt(
     Math.pow(p1.y - p2.y, 2) + Math.pow(p1.x - p2.x, 2)
@@ -48,6 +58,38 @@ export function getQuadEquation(p1, p2, p3) {
   return function(x) {
     return a * x * x + b * x + c;
   }
+}
+
+export function getRadialGradient(color, width, hardness=100) {
+  const newWidth = Math.ceil(width * (2 - hardness / 100)),
+    innerRadius = newWidth / 2 * hardness / 100,
+    outerRadius = newWidth / 2 - innerRadius,
+    canvas = new OffscreenCanvas(newWidth, newWidth),
+    ctx = canvas.getContext('2d'),
+    imageData = ctx.getImageData(0, 0, newWidth, newWidth),
+    dataArray = imageData.data;
+
+  const origin = {x: (newWidth - 1) / 2, y: (newWidth - 1) / 2};
+  const colorArray = toArrayFromRgba(color);
+  
+  for (let i=0; i<dataArray.length; i+=4) {
+    const distance = getDistance({x: (i/4) % newWidth, y: Math.floor((i/4) / newWidth)}, origin);
+    if (distance < innerRadius) {
+      dataArray[i] = colorArray[0];
+      dataArray[i + 1] = colorArray[1];
+      dataArray[i + 2] = colorArray[2];
+      dataArray[i + 3] = 255;
+    } else if (distance < innerRadius + outerRadius) {
+      const pct = (distance - innerRadius) / outerRadius;
+      dataArray[i] = colorArray[0];
+      dataArray[i + 1] = colorArray[1];
+      dataArray[i + 2] = colorArray[2];
+      dataArray[i + 3] = 255 * (pct * pct - 2 * pct + 1);
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
 }
 
 export function getHistogram(ctx, channel) {
@@ -79,24 +121,40 @@ export function getAllHistogram(ctx) {
   return result;
 }
 
-export function getGradient(color, hardness) {         
-  const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
-  const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
-  const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` .1`
-  const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` .05`
-  const colorStep4 = color.substring(0, color.lastIndexOf(",") + 1) + ` .025`
-  const colorStep5 = color.substring(0, color.lastIndexOf(",") + 1) + ` .001`
-  const colorStep6 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
+// export function getGradient(color, hardness) {         
+//   const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`
+//   const colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`
+//   const colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` .1`
+//   const colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` .05`
+//   const colorStep4 = color.substring(0, color.lastIndexOf(",") + 1) + ` .025`
+//   const colorStep5 = color.substring(0, color.lastIndexOf(",") + 1) + ` .001`
+//   const colorStep6 = color.substring(0, color.lastIndexOf(",") + 1) + ` 0)`
+
+//   return [
+//     [0 + hardness * .01, colorStep0],
+//     [.1 + hardness * .009, colorStep0],
+//     [.4 + hardness * .006, colorStep1],
+//     [.45 + hardness * .0055, colorStep2],
+//     [.49 + hardness * .0051, colorStep3],
+//     [.5 + hardness * .005, colorStep4],
+//     [.6 + hardness * .004, colorStep5],
+//     [1, colorStep6]
+//   ];
+// }
+
+export function getGradient(color) {         
+  const colorStep0 = color.substring(0, color.lastIndexOf(",") + 1) + ` 1`,
+    colorStep1 = color.substring(0, color.lastIndexOf(",") + 1) + ` .5`,
+    colorStep2 = color.substring(0, color.lastIndexOf(",") + 1) + ` .33`,
+    colorStep3 = color.substring(0, color.lastIndexOf(",") + 1) + ` .25`,
+    colorStep4 = color.substring(0, color.lastIndexOf(",") + 1) + ` .0`
 
   return [
-    [0 + hardness * .01, colorStep0],
-    [.1 + hardness * .009, colorStep0],
-    [.4 + hardness * .006, colorStep1],
-    [.45 + hardness * .0055, colorStep2],
-    [.49 + hardness * .0051, colorStep3],
-    [.5 + hardness * .005, colorStep4],
-    [.6 + hardness * .004, colorStep5],
-    [1, colorStep6]
+    [0, colorStep0],
+    [.25, colorStep1],
+    [.5, colorStep2],
+    [.75, colorStep3],
+    [1, colorStep4]
   ];
 }
 
@@ -132,10 +190,9 @@ export function getDistance({x: x1, y: y1}, {x: x2, y: y2}) {
 
 export function calculateClipping(size, offset, docSize, zoom) {
   return {
-    up: Math.floor(-offset.y * zoom - 1),
-    down: Math.floor((size.h + offset.y - docSize.h) * zoom + 1),
-    left: Math.floor(-offset.x * zoom - 1),
-    right: Math.floor((size.w + offset.x - docSize.w) * zoom + 1),
+    up: Math.floor(-offset.y * zoom - 2),
+    down: Math.floor((size.h + offset.y - docSize.h) * zoom + 2),
+    left: Math.floor(-offset.x * zoom - 2),
+    right: Math.floor((size.w + offset.x - docSize.w) * zoom + 2),
   };
 }
-

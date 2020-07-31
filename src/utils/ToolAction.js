@@ -1,8 +1,9 @@
 import {
   midpoint,
   getQuadLength,
-  getGradient,
-  convertDestToRegularShape
+  getRadialGradient,
+  convertDestToRegularShape,
+  canvasIsBlank
 } from "../utils/helpers";
 
 import getImageRect from "../utils/getImageRect";
@@ -63,8 +64,8 @@ class ToolActionBase {
   }
 
   _getCoordinates(ev, params={}) {
-    let x = (ev.nativeEvent.offsetX + this.translateData.x) / this.translateData.zoom - this.translateData.offX,
-      y = (ev.nativeEvent.offsetY + this.translateData.y) / this.translateData.zoom - this.translateData.offY;
+    let x = (ev.nativeEvent.offsetX - this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y = (ev.nativeEvent.offsetY - this.translateData.y) / this.translateData.zoom - this.translateData.offY;
     if (params.autoCrop) {
       x = Math.min(Math.max(x, 0), this.translateData.documentWidth - 1);
       y = Math.min(Math.max(y, 0), this.translateData.documentHeight - 1); 
@@ -250,6 +251,7 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (this.destArray.length < 2) {
         return this.dispatch(updateSelectionPath("clear"));
@@ -290,7 +292,8 @@ export class BrushAction extends FreeDrawAction {
     this.opacity = params.opacity;
     this.hardness = params.hardness;
     this.clip = params.clip;
-    this.gradient = getGradient(params.color, params.hardness);
+    this.density = params.density || 0.25;
+    this.brushHead = getRadialGradient(params.color, this.width, this.hardness);
     this.processing = document.createElement('canvas');
   }
 
@@ -304,10 +307,10 @@ export class BrushAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
@@ -316,6 +319,18 @@ export class BrushAction extends FreeDrawAction {
         action: "paste",
         params: {
           sourceCtx: this.processing.getContext("2d"),
+          globalAlpha: this.opacity / 100,
+          clearFirst: true
+        },
+      });
+    } else {
+      manipulate(this.layerCanvas.staging.getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.brushHead.getContext("2d"),
+          dest: { x: this.origin.x - .5 * this.brushHead.width, y: this.origin.y - .5 * this.brushHead.height },
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
           globalAlpha: this.opacity / 100,
           clearFirst: true
         },
@@ -333,7 +348,7 @@ export class BrushAction extends FreeDrawAction {
         this.lastDest,
         newMid
       ) <
-      this.width * 0.25
+      this.width * this.density
     ) {
       return;
     }
@@ -343,10 +358,10 @@ export class BrushAction extends FreeDrawAction {
       params: {
         orig: this.lastMid || this.lastDest,
         destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
@@ -364,6 +379,7 @@ export class BrushAction extends FreeDrawAction {
   }
 
   onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
@@ -385,8 +401,9 @@ export class FilterBrushAction extends FreeDrawAction {
     this.filter = params.filter;
     this.filterInput = params.filterInput;
     this.hardness = params.hardness;
+    this.density = params.density || 0.25;
     this.clip = params.clip;
-    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.processing = document.createElement('canvas');
     this.filtered = document.createElement('canvas');
   }
@@ -406,29 +423,41 @@ export class FilterBrushAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       });
-      manipulate(this.layerCanvas.staging.getContext("2d"), {
+    } else {
+      manipulate(this.processing.getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.processing.getContext("2d"),
+          sourceCtx: this.brushHead.getContext("2d"),
+          dest: { x: this.origin.x - .5 * this.brushHead.width, y: this.origin.y - .5 * this.brushHead.height },
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
+          globalAlpha: this.opacity / 100,
           clearFirst: true
-        }
-      });
-      manipulate(this.layerCanvas.staging.getContext("2d"), {
-        action: "paste",
-        params: {
-          sourceCtx: this.filtered.getContext("2d"),
-          composite: "source-in"
-        }
+        },
       });
     }
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.processing.getContext("2d"),
+        clearFirst: true
+      }
+    });
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.filtered.getContext("2d"),
+        composite: "source-in"
+      }
+    });
     this.lastDest = this.origin;
   }
 
@@ -451,10 +480,10 @@ export class FilterBrushAction extends FreeDrawAction {
       params: {
         orig: this.lastMid || this.lastDest,
         destArray: [this.lastMid || this.lastDest, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
@@ -478,6 +507,7 @@ export class FilterBrushAction extends FreeDrawAction {
   }
 
   async onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     await this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
@@ -500,7 +530,8 @@ export class StampAction extends FreeDrawAction {
     this.hardness = params.hardness;
     this.clip = params.clip;
     this.opacity = params.opacity;
-    this.gradient = getGradient("rgba(0, 0, 0, 1)", params.hardness);
+    this.density = params.density || 0.25;
+    this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.processing = document.createElement('canvas');
     this.stampCanvas = params.stampData.canvas;
     this.stampOrigin = params.stampData.origin;
@@ -540,31 +571,43 @@ export class StampAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       });
-      manipulate(this.layerCanvas.staging.getContext("2d"), {
+    } else {
+      manipulate(this.processing.getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.processing.getContext("2d"),
+          sourceCtx: this.brushHead.getContext("2d"),
+          dest: { x: this.origin.x - .5 * this.brushHead.width, y: this.origin.y - .5 * this.brushHead.height },
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
           globalAlpha: this.opacity / 100,
           clearFirst: true
-        }
-      });
-      manipulate(this.layerCanvas.staging.getContext("2d"), {
-        action: "paste",
-        params: {
-          sourceCtx: this.stampCanvas.getContext("2d"),
-          composite: "source-in",
-          orig: this.stampOffset
-        }
+        },
       });
     }
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.processing.getContext("2d"),
+        globalAlpha: this.opacity / 100,
+        clearFirst: true
+      }
+    });
+    manipulate(this.layerCanvas.staging.getContext("2d"), {
+      action: "paste",
+      params: {
+        sourceCtx: this.stampCanvas.getContext("2d"),
+        composite: "source-in",
+        orig: this.stampOffset
+      }
+    });
   }
 
   onMove() {
@@ -588,10 +631,10 @@ export class StampAction extends FreeDrawAction {
       params: {
         orig: this.origin,
         destArray: [this.lastMid || this.origin, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
@@ -618,6 +661,7 @@ export class StampAction extends FreeDrawAction {
 
   async onEnd() {
     if (!this.stampCanvas) return;
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     await this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
@@ -635,10 +679,12 @@ export class StampAction extends FreeDrawAction {
 export class EraserAction extends FreeDrawAction {
   constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
     super(targetLayer, layerCanvas, dispatch, translateData, params);
-    this.composite = params.composite;
     this.width = params.width;
     this.clip = params.clip;
-    this.gradient = getGradient("rgba(0, 0, 0, 1)", 100, params.hardness);
+    this.hardness = params.hardness;
+    this.density = params.density || 0.25;
+    this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
+    this.composite = "destination-out";
     this.usesStaging = false;
   }
 
@@ -653,14 +699,25 @@ export class EraserAction extends FreeDrawAction {
         params: {
           orig: this.lastEndpoint,
           destArray: [this.lastEndpoint, this.origin, this.origin],
-          gradient: this.gradient,
+          brushHead: this.brushHead,
           width: this.width,
           hardness: this.hardness,
-          density: 0.25,
+          density: this.density,
           composite: this.composite,
           clip: this.clip,
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
+      });
+    } else {
+      manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
+        action: "paste",
+        params: {
+          sourceCtx: this.brushHead.getContext("2d"),
+          dest: { x: this.origin.x - .5 * this.brushHead.width, y: this.origin.y - .5 * this.brushHead.height },
+          composite: this.composite,
+          clip: this.clip,
+          clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
+        },
       });
     }
     this.lastDest = this.origin;
@@ -685,10 +742,10 @@ export class EraserAction extends FreeDrawAction {
       params: {
         orig: this.origin,
         destArray: [this.lastMid || this.origin, this.lastDest, newMid],
-        gradient: this.gradient,
+        brushHead: this.brushHead,
         width: this.width,
         hardness: this.hardness,
-        density: 0.25,
+        density: this.density,
         composite: this.composite,
         clip: this.clip,
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
@@ -699,9 +756,12 @@ export class EraserAction extends FreeDrawAction {
   }
 
   onEnd() {
+    const ctx = this.layerCanvas[this.targetLayer].getContext("2d");
+    const currData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    if (!currData.data.some((el, i) => this.prevImgData.data[i] !== el)) return;
     this.dispatch(putHistoryData(
       this.targetLayer,
-      this.layerCanvas[this.targetLayer].getContext("2d"),
+      ctx,
       null,
       this.prevImgData
     ));
@@ -773,6 +833,7 @@ export class ShapeAction extends ToolActionBase {
   }
 
   onEnd() {
+    if (canvasIsBlank(this.layerCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (!this.dest) {
         return this.dispatch(updateSelectionPath("clear"));
@@ -967,6 +1028,15 @@ export class FillAction extends ToolActionBase {
   }
 
   onStart(ev) {
+    const orig = this._getCoordinates(ev);
+    if (
+      orig.x < 0 ||
+      orig.x > this.translateData.documentWidth ||
+      orig.y < 0 ||
+      orig.y > this.translateData.documentHeight
+    ) {
+      return;
+    }
     if (this.isSelectionTool) {
       this._selectionStart(ev);
       let dataCanvas;
@@ -982,7 +1052,6 @@ export class FillAction extends ToolActionBase {
           }
         });
       }
-      const orig = this._getCoordinates(ev);
       orig.x -= this.translateData.offX;
       orig.y -= this.translateData.offY;
       const clip = new Path2D();
@@ -1057,8 +1126,6 @@ export class CropAction extends ToolActionBase {
 
   onEnd() {
     if (this.dest) {
-      const orig = {x: Math.min(this.origin.x, this.dest.x), y: Math.min(this.origin.y, this.dest.y)}
-      const dest = {x: Math.max(this.origin.x, this.dest.x), y: Math.max(this.origin.y, this.dest.y)}
       this.dispatch(setCropIsActive(true, {
         startDimensions: {
           x: Math.min(this.origin.x, this.dest.x),

@@ -1,4 +1,4 @@
-import { midpoint, getQuadLength } from "../../utils/helpers";
+import { midpoint, getQuadLength, getDistance } from "../../utils/helpers";
 
 function floor(vector) {
   return {
@@ -14,13 +14,44 @@ function getPointInQuad(p1, p2, p3, t) {
   return {x, y}
 }
 
-function getPointsAlongQuad(p1, p2, p3, numOfPoints) {
-  const points = [];
-  const integer = Math.floor(numOfPoints)
-  for (let i = 0; i < numOfPoints; i++) {
-    const t = i / integer;
-    points.push(getPointInQuad(p1, p2, p3, t));
+function getPointsAlongQuad(p1, p2, p3, densityFactor) {
+  const roughLength = getQuadLength(p1, p2, p3),
+    points = [p1],
+    arcLengths = [0],
+    lengths = roughLength / densityFactor * 4 + 1;
+
+  let prev = points[0];
+  for (let i = 1; i < lengths; i++) {
+    const t = i / lengths;
+    const point = getPointInQuad(p1, p2, p3, t);
+    arcLengths[i] = (getDistance(prev, point) + arcLengths[i - 1]);
+    prev = point;
   }
+
+  const totalLength = arcLengths[arcLengths.length - 1],
+    numOfPoints = Math.floor(totalLength / densityFactor),
+    step = totalLength / (numOfPoints - 1);
+
+  let prevLengthNum = 0;
+  for (let i = 1; i < numOfPoints - 1; i++) {
+    let point;
+    const targetLength = i * step;
+      
+    for (let j = prevLengthNum; j < arcLengths.length; j++) {
+      if (arcLengths[j] > targetLength) {
+        if (targetLength - arcLengths[j - 1] < arcLengths[j] - targetLength) {
+          point = getPointInQuad(p1, p2, p3, (j - 1) / lengths);
+          prevLengthNum = j - 1;
+        } else {
+          point = getPointInQuad(p1, p2, p3, j / lengths);
+          prevLengthNum = j;
+        }
+        break;
+      }
+    }
+    points.push(point);
+  }
+  points.push(p3)
   return points;
 }
 
@@ -56,23 +87,14 @@ export function quadratic(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadraticPoints(ctx, { destArray, width, gradient, hardness=100, density = .25, translation }) {
+export function quadraticPoints(ctx, { destArray, width, brushHead, density=.25 }) {
   // density in this case = percentage of width between each point
+  // no translation for this one - it's specifically made to offset path drawing tools that this action does not use
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  if (translation) ctx.translate(translation, translation);
-  const numOfPoints = getQuadLength(destArray[0], destArray[1], destArray[2]) / (density * width);
-  getPointsAlongQuad(destArray[0], destArray[1], destArray[2], numOfPoints).forEach(point => {
-    ctx.beginPath();
-    let grad = ctx.createRadialGradient(Math.floor(point.x), Math.floor(point.y), 0, Math.floor(point.x), Math.floor(point.y), width * (2 - hardness / 100) / 2);
-    gradient.forEach(data => {
-      grad.addColorStop(data[0], data[1]);
-    })
-    ctx.fillStyle = grad;
-    ctx.arc(Math.floor(point.x), Math.floor(point.y), (width * (2 - hardness / 100)) / 2, 0,Math.PI * 2);
-    ctx.fill();
+  getPointsAlongQuad(destArray[0], destArray[1], destArray[2], density * width).forEach(point => {
+    ctx.drawImage(brushHead, Math.floor(point.x - .5 * brushHead.width), Math.floor(point.y - .5 * brushHead.height));
   })
-  if (translation) ctx.translate(-translation, -translation);
 }
 
 export function rectangle(ctx, { orig, dest, translation }) {

@@ -1,11 +1,13 @@
-import React, { useState } from "react";
-
-export default function useThrottle(callback, delay) {
-  const [isThrottling, setIsThrottling] = useState(false);
-
-  if (!isThrottling) {
-    setIsThrottling(true)
-    setTimeout(() => setIsThrottling(false), delay)
-    return callback
+const handleResize = useCallback(() => {
+  if (!boundingBoxRef.current) {
+    return;
   }
-}
+  setBoxSize({
+    w: boundingBoxRef.current.clientWidth,
+    h: boundingBoxRef.current.clientHeight
+  });
+}, [])
+
+useEffect(handleResize, []);
+
+useEventListener("resize", handleResize);

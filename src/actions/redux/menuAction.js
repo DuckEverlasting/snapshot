@@ -74,7 +74,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
     }
 
     await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
-    
+
     await dispatch(menuAction("deselect"));
     layerCanvas.staging.width = width;
     layerCanvas.staging.height = height;

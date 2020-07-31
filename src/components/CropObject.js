@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
 import useEventListener from "../hooks/useEventListener";
+import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
 import transformActionFactory from "../utils/TransformAction";
 import { calculateClipping } from "../utils/helpers";
-// import render from "../actions/redux/renderCanvas";
 
 import styled from "styled-components";
 import { resizeDocument } from "../actions/redux/menuAction";
@@ -23,8 +22,8 @@ const ContainerSC = styled.div.attrs((props) => ({
   style: {
     transform: `translateX(${props.offset.x}px)
                 translateY(${props.offset.y}px)`,
-    width: props.size ? (Math.ceil(props.size.w * props.zoom)) + "px" : "auto",
-    height: props.size ? (Math.ceil(props.size.h * props.zoom)) + "px" : "auto",
+    width: props.size ? (Math.floor(props.size.w * props.zoom)) + "px" : "auto",
+    height: props.size ? (Math.floor(props.size.h * props.zoom)) + "px" : "auto",
     cursor: props.overrideCursor || "move",
     border: props.borderStyle || "2px solid " + props.theme.colors.highlight,
   },
@@ -41,6 +40,7 @@ const ClipCheckSC = styled.div.attrs((props) => ({
   }
 }))`
   position: absolute;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
   width: 100%;
   height: 100%;
 `;
@@ -123,8 +123,8 @@ let currentTransformAction = null;
 
 export default function CropObject() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ h: 0, w: 0 });
-  
+  const [size, setSize] = useState({ w: 0, h: 0 });
+
   const { workspaceOffset, zoom } = useSelector((state) => {
     let settings = state.ui.workspaceSettings;
     return {
@@ -133,15 +133,17 @@ export default function CropObject() {
     };
   });
   const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
-  const { startDimensions } = useSelector(state => state.ui.cropParams);
-  console.log("START DIMENSIONS: ", startDimensions);
+  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const activeTool = useSelector(state => state.ui.activeTool);
+  const startDimensions = useSelector(state => state.ui.cropParams.startDimensions);
+  const [initLayer, ] = useState(activeLayer);
+  const [initialized, setInitialized] = useState(false);
 
   const dispatch = useDispatch();
 
-  const boundingBoxRef = useRef();
-
   useEffect(() => {
     dispatch(setMenuIsDisabled(true));
+    setInitialized(true);
     return () => dispatch(setMenuIsDisabled(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -188,16 +190,9 @@ export default function CropObject() {
   }
 
   function calculateOffset() {
-    if (!boundingBoxRef.current) {
-      return { x: 0, y: 0 };
-    }
-    const xFromBorder =
-      (boundingBoxRef.current.clientWidth - documentWidth * zoom) / 2;
-    const yFromBorder =
-      (boundingBoxRef.current.clientHeight - documentHeight * zoom) / 2;
     return {
-      x: Math.floor(xFromBorder + workspaceOffset.x + offset.x * zoom),
-      y: Math.floor(yFromBorder + workspaceOffset.y + offset.y * zoom),
+      x: Math.floor(workspaceOffset.x + offset.x * zoom),
+      y: Math.floor(workspaceOffset.y + offset.y * zoom),
     };
   }
 
@@ -206,10 +201,17 @@ export default function CropObject() {
   }
 
   function apply() {
-    console.log(size.w, size.h, offset)
     dispatch(resizeDocument(size.w, size.h, offset));
     return dispatch(setCropIsActive(false));
   }
+
+  useEffect(() => {
+    if (!initialized) return;
+    if (activeTool !== "crop" || activeLayer !== initLayer) {
+      apply();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTool, activeLayer, initLayer, initialized]);
 
   const handleKeyDown = useCallback(
     (ev) => {
@@ -236,7 +238,6 @@ export default function CropObject() {
       overrideCursor={
         currentTransformAction ? currentTransformAction.actionType : null
       }
-      ref={boundingBoxRef}
     >
       <ContainerSC
         offset={calculateOffset()}
