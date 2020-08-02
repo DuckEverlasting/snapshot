@@ -18,7 +18,7 @@ function getPointsAlongQuad(p1, p2, p3, densityFactor) {
   const roughLength = getQuadLength(p1, p2, p3),
     points = [p1],
     arcLengths = [0],
-    lengths = roughLength / densityFactor * 4;
+    lengths = roughLength / densityFactor * 4 + 1;
 
   let prev = points[0];
   for (let i = 1; i < lengths; i++) {
@@ -87,7 +87,7 @@ export function quadratic(ctx, { destArray, translation }) {
   if (translation) ctx.translate(-translation, -translation);
 }
 
-export function quadraticPoints(ctx, { destArray, width, brushHead, hardness=100, density=.25, translation }) {
+export function quadraticPoints(ctx, { destArray, width, brushHead, density=.25 }) {
   // density in this case = percentage of width between each point
   // no translation for this one - it's specifically made to offset path drawing tools that this action does not use
   ctx.lineCap = "round";

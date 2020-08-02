@@ -14,7 +14,6 @@ import {
   setTransformParams,
   updateLayerPosition,
   updateDocumentSettings,
-  updateWorkspaceSettings,
 } from "./index";
 
 import { MoveAction } from "../../utils/ToolAction";

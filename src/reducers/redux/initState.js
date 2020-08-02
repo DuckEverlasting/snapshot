@@ -75,7 +75,7 @@ export const getInitUiState = () => ({
     zoomPct: 100
   },
   toolSettings: {
-    pencil: { name: "Pencil", width: 5, opacity: 100 },
+    pencil: { name: "Pencil", width: 5, opacity: 100, smooth: true },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },
     line: { name: "Line", width: 5, opacity: 100 },
     fillRect: { name: "Fill Rectangle", opacity: 100 },

@@ -23,6 +23,14 @@ export function midpoint(orig, dest) {
   };
 }
 
+export function canvasIsBlank(canvas) {
+  const pixelBuffer = new Uint32Array(
+    canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data.buffer
+  );
+
+  return !pixelBuffer.some(el => el !== 0);
+}
+
 // This is just for approximating.
 export function getQuadLength(p1, p2, p3) {
   const distA = Math.sqrt(

@@ -115,7 +115,7 @@ const PixelOverlaySC = styled.div.attrs((props) => ({
 let animationFrame = 0;
 let lastFrame = 0;
 let currentAction = null;
-let isDrawing = false;
+// let isDrawing = false;
 
 export default function Workspace() {
   const { translateX, translateY, anchorX, anchorY, zoomPct } = useSelector(
@@ -168,11 +168,10 @@ export default function Workspace() {
       translateX: 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100),
       translateY: 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100),
     }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentWidth, documentHeight])
 
   function getTranslateData(noOffset) {
-    const marginLeft = 0.5 * (workspaceDimensions.w - documentWidth * zoomPct / 100);
-    const marginTop = 0.5 * (workspaceDimensions.h - documentHeight * zoomPct / 100);
     return {
       x: translateX,
       y: translateY,
@@ -197,18 +196,18 @@ export default function Workspace() {
     ]
   }
 
-  function eventIsWithinCanvas(ev) {
-    const translateData = getTranslateData(),
-      x = Math.floor(ev.nativeEvent.offsetX) - translateData.x,
-      y = Math.floor(ev.nativeEvent.offsetY) - translateData.y;
+  // function eventIsWithinCanvas(ev) {
+  //   const translateData = getTranslateData(),
+  //     x = Math.floor(ev.nativeEvent.offsetX) - translateData.x,
+  //     y = Math.floor(ev.nativeEvent.offsetY) - translateData.y;
 
-    return (
-      x > 0 &&
-      y > 0 &&
-      x < (documentWidth * zoomPct) / 100 &&
-      y < (documentHeight * zoomPct) / 100
-    );
-  }
+  //   return (
+  //     x > 0 &&
+  //     y > 0 &&
+  //     x < (documentWidth * zoomPct) / 100 &&
+  //     y < (documentHeight * zoomPct) / 100
+  //   );
+  // }
 
   function buildAction() {
     switch (activeTool) {
@@ -223,16 +222,26 @@ export default function Workspace() {
       //   });
       case "pencil":
         if (!activeLayer) {return}
-        return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
-          width: toolSettings.pencil.width,
-          color: primary,
-          opacity: toolSettings.pencil.opacity,
-          hardness: 100,
-          density: 0.1,
-          clip: selectionPath,
-          lastEndpoint,
-          setLastEndpoint
-        });
+        if (toolSettings.pencil.smooth) {
+          return new PencilAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+            width: toolSettings.pencil.width,
+            color: addOpacity(primary, toolSettings.pencil.opacity / 100),
+            clip: selectionPath,
+            lastEndpoint,
+            setLastEndpoint
+          });
+        } else {
+          return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+            width: toolSettings.pencil.width,
+            color: primary,
+            opacity: toolSettings.pencil.opacity,
+            hardness: 100,
+            density: 0.1,
+            clip: selectionPath,
+            lastEndpoint,
+            setLastEndpoint
+          });
+        }
       case "brush":
         if (!activeLayer) {return}
         return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
@@ -432,10 +441,14 @@ export default function Workspace() {
       toLeft = ev.nativeEvent ? ev.nativeEvent.offsetX : ev.offsetX,
       toTop = ev.nativeEvent ? ev.nativeEvent.offsetY : ev.offsetY,
       zoomFraction = (newZoomPct / 100) / (zoomPct / 100);
-    
+
     let transX, transY;
 
-    if (newZoomPct <= 100 && steps < 0) {
+    if (
+      workspaceRef.current.clientHeight - documentHeight * newZoomPct / 100 > 0 &&
+      workspaceRef.current.clientWidth - documentWidth * newZoomPct / 100 > 0 &&
+      steps < 0
+    ) {
       transY = 0.5 * (workspaceRef.current.clientHeight - documentHeight * newZoomPct / 100)
       transX = 0.5 * (workspaceRef.current.clientWidth - documentWidth * newZoomPct / 100)
     } else {
@@ -543,18 +556,19 @@ export default function Workspace() {
       currentAction = buildAction();
       if (!currentAction) {return}
       currentAction.start(ev);
-      if (eventIsWithinCanvas(ev)) {
-        isDrawing = true;
-      }
+      // if (eventIsWithinCanvas(ev)) {
+      //   isDrawing = true;
+      // }
     }
   };
 
   const handleMouseLeave = (ev) => {
     if (currentAction && ev.buttons === 1) {
-      if (isDrawing) {
-        currentAction.end();
-        isDrawing = false;
-      }
+      // if (isDrawing) {
+      //   currentAction.end();
+      //   isDrawing = false;
+      // }
+      currentAction.end();
       currentAction = null;
     }
   };
@@ -576,9 +590,9 @@ export default function Workspace() {
       );
     } else if (currentAction && ev.buttons === 1) {
       currentAction.move(ev);
-      if (!isDrawing && eventIsWithinCanvas(ev)) {
-        isDrawing = true;
-      }
+      // if (!isDrawing && eventIsWithinCanvas(ev)) {
+      //   isDrawing = true;
+      // }
     }
   };
 
@@ -589,10 +603,11 @@ export default function Workspace() {
     } else if (ev.button === 0 && activeTool === "zoom") {
       zoomTool(ev, ev.altKey);
     } else if (currentAction && ev.button === 0) {
-      if (isDrawing || currentAction.alwaysFire) {
-        currentAction.end();
-        isDrawing = false;
-      }
+      // if (isDrawing || currentAction.alwaysFire) {
+      //   currentAction.end();
+      //   isDrawing = false;
+      // }
+      currentAction.end();
       currentAction = null;
     }
   };
@@ -616,7 +631,6 @@ export default function Workspace() {
       dispatch(setImportImageFile(file));
     });
   };
-  console.log(zoomPct, translateX, translateY);
 
   return (
     <WorkspaceSC

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "./hooks/useEventListener";
 import styled from "styled-components";
@@ -65,6 +65,7 @@ function App() {
     } else {
       dispatch(menuAction(keyCombo.payload));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay, transformTarget, importImageFile]);
 
   useEventListener("keydown", handleKeyDown)
