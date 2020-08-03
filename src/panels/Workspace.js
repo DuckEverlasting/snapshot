@@ -37,6 +37,7 @@ import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
+import PixelGrid from "../components/PixelGrid";
 import render from "../actions/redux/renderCanvas";
 import useUpdateOnResize from "../hooks/useUpdateOnResize";
 
@@ -94,23 +95,6 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
   pointer-events: none;
   overflow: hidden;
 `;
-
-const PixelOverlaySC = styled.div.attrs((props) => ({
-}))`
-  background-image: linear-gradient(grey .1px, transparent .1px),
-    linear-gradient(90deg, grey .1px, transparent .1px),
-    linear-gradient(grey .05px, transparent .05px),
-    linear-gradient(90deg, grey .05px, transparent .05px);
-  background-size: 10px 10px, 10px 10px, 1px 1px, 1px 1px;
-  background-position:-.05px -.05px, -.05px -.05px, -.025px -.025px, -.025px -.025px;
-  position: absolute;
-  top: 0%;
-  left: 0%;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-`
 
 let animationFrame = 0;
 let lastFrame = 0;
@@ -653,8 +637,8 @@ export default function Workspace() {
         workspaceHeight={workspaceDimensions.h}
         zoomPct={zoomPct}
       >
+        <PixelGrid />
         <MainCanvas />
-        {zoomPct >= 1000 && <PixelOverlaySC zoomPct={zoomPct}/>}
       </CanvasPaneSC>
       {importImageFile && (
         <TransformObject
