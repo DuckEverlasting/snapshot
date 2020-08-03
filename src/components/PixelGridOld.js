@@ -4,12 +4,10 @@ import { useSelector } from "react-redux";
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
-    width: `${props.size.w}px`,
-    height: `${props.size.h}px`,
+    width: `${100}px`,
+    height: `${200}px`,
     transform: `
       translate(${props.dimensions.x}px, ${props.dimensions.y}px)
-      scale(${props.zoom})
-      translate(${props.dimensions.offX}px, ${props.dimensions.offY}px)
     `
   }
 }))`
@@ -22,14 +20,14 @@ const LayerWrapperSC = styled.div.attrs(props => ({
 const LayerSC = styled.canvas`
   position: absolute;
   width: 100%;
-  height: calc(100%);
+  height: 100%;
   left: 0;
   top: 0;
   image-rendering: pixelated;
   pointer-events: none;
 `
 
-function PixelGrid({ transX, transY, sizeW, sizeH }) {
+function PixelGrid({ transX, transY }) {
   const canvasRef = useRef(null),
     documentHeight = useSelector(state => state.main.present.documentSettings.documentHeight),
     documentWidth = useSelector(state => state.main.present.documentSettings.documentWidth),
@@ -38,41 +36,51 @@ function PixelGrid({ transX, transY, sizeW, sizeH }) {
     docSize = {w: documentWidth, h: documentHeight};
 
   function getPattern() {
-    const dim = Math.max(zoom, 1);
-    let pattern = new OffscreenCanvas(dim, dim);
+    let pattern = new OffscreenCanvas(30, 30);
     const patternCtx = pattern.getContext("2d");
-    patternCtx.translate(-.5, -.5);
+    patternCtx.translate(.5, .5);
     patternCtx.lineWidth = 1;
     patternCtx.strokeStyle = 'rgba(128, 128, 128, 1)';
     patternCtx.beginPath();
-    patternCtx.moveTo(-1, dim - 1);
-    patternCtx.lineTo(dim - 1, dim - 1);
-    patternCtx.lineTo(dim - 1, -1);
+    patternCtx.moveTo(-1, 29);
+    patternCtx.lineTo(29, 29);
+    patternCtx.lineTo(29, -1);
     patternCtx.stroke();
-    patternCtx.translate(.5, .5);
+    patternCtx.translate(-.5, -.5);
     return pattern;
   }
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     let pattern = getPattern();
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(.5, .5);
     ctx.fillStyle = ctx.createPattern(getPattern(), "repeat");
+    ctx.fillStyle = "red";
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.translate(-.5, -.5);
     pattern = null;
-  }, [sizeW, sizeH, zoom])
+  }, [])
 
   function getDimensions() {
+    console.log(
+      "docW: ",
+      docSize.w,
+      "ovrW: ",
+      docSize.w / 4,
+      "transX: ",
+      translateX,
+      "calc: ",
+      ((docSize.w - 100) / 2) - transX
+    );
     return {
-      x: (docSize.w - sizeW) / 2 - transX / zoom,
-      y: (docSize.h - sizeH) / 2 - transY / zoom,
-      offX: translateX % zoom,
-      offY: translateY % zoom,
+      x: ((docSize.w - 100) / 2) - transX / zoom,
+      y: ((docSize.h - 200) / 2) - transY / zoom
     }
   }
 
-  return <LayerWrapperSC dimensions={getDimensions()} zoom={1 / zoom} visible={zoom >= 15} size={{w: sizeW, h: sizeH}}>
-    <LayerSC width={sizeW} height={sizeH} ref={canvasRef} />
+  return <LayerWrapperSC dimensions={getDimensions()} visible={true} size={docSize}>
+    <LayerSC width={docSize.w * 30} height={docSize.h * 30} ref={canvasRef} />
   </LayerWrapperSC>
 }
 

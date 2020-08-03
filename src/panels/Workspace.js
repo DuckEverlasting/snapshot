@@ -102,7 +102,7 @@ let currentAction = null;
 // let isDrawing = false;
 
 export default function Workspace() {
-  const { translateX, translateY, anchorX, anchorY, zoomPct } = useSelector(
+  const { translateX, translateY, zoomPct } = useSelector(
     (state) => state.ui.workspaceSettings
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
@@ -629,16 +629,19 @@ export default function Workspace() {
       <CanvasPaneSC
         translateX={translateX}
         translateY={translateY}
-        anchorX={anchorX}
-        anchorY={anchorY}
         width={documentWidth}
         height={documentHeight}
         workspaceWidth={workspaceDimensions.w}
         workspaceHeight={workspaceDimensions.h}
         zoomPct={zoomPct}
       >
-        <PixelGrid />
         <MainCanvas />
+        <PixelGrid
+          transX={workspaceRef.current ? translateX - 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100) : 0}
+          transY={workspaceRef.current ? translateY - 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100) : 0}
+          sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50 : 1}
+          sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
+        />
       </CanvasPaneSC>
       {importImageFile && (
         <TransformObject
