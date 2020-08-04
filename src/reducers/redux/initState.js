@@ -1,3 +1,5 @@
+import { getCanvas } from "../../utils/helpers";
+
 const initWidth = Math.floor((window.innerWidth - 300) * .8);
 const initHeight = Math.floor((window.innerHeight - 30) * .8);
 const initSelectionPath = new Path2D();
@@ -17,10 +19,10 @@ export const getInitMainState = () => ({
   },
   layerCanvas: {
     main: null,
-    1: new OffscreenCanvas(initWidth, initHeight),
-    clipboard: new OffscreenCanvas(initWidth, initHeight),
-    placeholder: new OffscreenCanvas(initWidth, initHeight),
-    staging: new OffscreenCanvas(initWidth, initHeight)
+    1: getCanvas(initWidth, initHeight),
+    clipboard: getCanvas(initWidth, initHeight),
+    placeholder: getCanvas(initWidth, initHeight),
+    staging: getCanvas(initWidth, initHeight)
   },
   layerSettings: {
     1: {

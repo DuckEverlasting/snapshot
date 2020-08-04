@@ -25,6 +25,7 @@ import { saveAs } from 'file-saver';
 import manipulate from "../../reducers/custom/manipulateReducer";
 
 import render from "./renderCanvas";
+import { getCanvas } from "../../utils/helpers";
 
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
@@ -80,7 +81,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
     layerCanvas.staging.height = height;
     layerCanvas.placeholder.width = width;
     layerCanvas.placeholder.height = height;
-    const temp = new OffscreenCanvas(documentWidth, documentHeight);
+    const temp = getCanvas(documentWidth, documentHeight);
     temp.getContext("2d").drawImage(layerCanvas.clipboard, 0, 0);
     layerCanvas.clipboard.width = width;
     layerCanvas.clipboard.height = height;

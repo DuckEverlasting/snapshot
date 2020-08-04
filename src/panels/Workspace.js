@@ -130,6 +130,8 @@ export default function Workspace() {
     alt: false,
   });
   const workspaceRef = useRef(null);
+  const refRef = useRef(null);
+
   const workspaceDimensions = useUpdateOnResize(workspaceRef);
 
   let workspaceElement = workspaceRef.current;
@@ -632,6 +634,7 @@ export default function Workspace() {
         correction={correction}
       /> */}
       <CanvasPaneSC
+        ref={refRef}
         translateX={translateX}
         translateY={translateY}
         width={documentWidth}
@@ -640,17 +643,13 @@ export default function Workspace() {
         workspaceHeight={workspaceDimensions.h}
         zoomPct={zoomPct}
       >
-        <MainCanvas 
-          transX={workspaceRef.current ? translateX - 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100) : 0}
-          transY={workspaceRef.current ? translateY - 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100) : 0}
-          sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50 : 1}
-          sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
-        />
+        <MainCanvas />
         <PixelGrid
           transX={workspaceRef.current ? translateX - 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100) : 0}
           transY={workspaceRef.current ? translateY - 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100) : 0}
           sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50 : 1}
           sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
+          refRef={refRef}
         />
       </CanvasPaneSC>
       {importImageFile && (

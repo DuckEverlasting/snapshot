@@ -20,6 +20,7 @@ import {
 
 import { getInitMainState } from "./initState";
 import { MarchingSquaresAllPaths } from "../../utils/marchingSquaresAllPaths";
+import { getCanvas } from "../../utils/helpers";
 
 const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
@@ -49,7 +50,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         opacity: 100,
         blend: "source-over"
       };
-      const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
+      const newLayerCanvas = getCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
       let orderAfterCreate = state.renderOrder.slice(0);
       orderAfterCreate.splice(position + 1, 0, layerId);
 
@@ -119,13 +120,13 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
           remove: "destination-out",
           intersect: "destination-in"
         }
-        const oldCanvas = new OffscreenCanvas(width, height);
+        const oldCanvas = getCanvas(width, height);
         const oldCtx = oldCanvas.getContext("2d");
         let newCanvas;
-        if (changes instanceof OffscreenCanvas) {
+        if (changes instanceof HTMLCanvasElement || typeof OffscreenCanvas !== "undefined" && changes instanceof OffscreenCanvas) {
           newCanvas = changes;
         } else if (changes instanceof Path2D) {
-          newCanvas = new OffscreenCanvas(width, height);
+          newCanvas = getCanvas(width, height);
           const newCtx = newCanvas.getContext("2d");
           newCtx.save();
           newCtx.clip(changes);

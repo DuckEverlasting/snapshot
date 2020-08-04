@@ -3,7 +3,8 @@ import {
   getQuadLength,
   getRadialGradient,
   convertDestToRegularShape,
-  canvasIsBlank
+  canvasIsBlank,
+  getCanvas
 } from "../utils/helpers";
 
 import getImageRect from "../utils/getImageRect";
@@ -1043,7 +1044,7 @@ export class FillAction extends ToolActionBase {
       if (this.selectionTarget === "all") {
         dataCanvas = this.layerCanvas.main;
       } else {
-        dataCanvas = new OffscreenCanvas(this.translateData.documentWidth, this.translateData.documentHeight);
+        dataCanvas = getCanvas(this.translateData.documentWidth, this.translateData.documentHeight);
         manipulate(dataCanvas.getContext("2d"), {
           action: "paste",
           params: {

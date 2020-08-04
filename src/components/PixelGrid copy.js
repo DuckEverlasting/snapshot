@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector } from "react-redux";
-import { calculateClipping } from "../utils/helpers";
+import { calculateClipping, getCanvas } from "../utils/helpers";
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
@@ -29,6 +29,7 @@ const LayerSC = styled.canvas.attrs(props => ({
   left: 0;
   top: 0;
   image-rendering: pixelated;
+  image-rendering: optimizespeed;
   pointer-events: none;
 `
 
@@ -42,7 +43,7 @@ function PixelGrid({ transX, transY, sizeW, sizeH, correction }) {
 
   function getPattern() {
     const dim = Math.max(zoom, 1);
-    let pattern = new OffscreenCanvas(dim, dim);
+    let pattern = getCanvas(dim, dim);
     const patternCtx = pattern.getContext("2d");
     // patternCtx.translate(-.5, -.5);
     patternCtx.lineWidth = 1;

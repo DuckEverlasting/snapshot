@@ -16,7 +16,7 @@ MarchingSquaresAllPaths.getAllOutlinePaths = function(source_array) {
   //       no padding of 1 pixel to handle points which touch edges. Hmm... gotta find a way around that one.
   let width, height;
 
-  if (source_array instanceof HTMLCanvasElement || source_array instanceof OffscreenCanvas) {
+  if (source_array instanceof HTMLCanvasElement || typeof OffscreenCanvas !== "undefined" && source_array instanceof OffscreenCanvas) {
   width = source_array.width;
   height = source_array.height;
   const data4 = source_array.getContext('2d').getImageData(0, 0, width, height).data,  // Uint8ClampedArray

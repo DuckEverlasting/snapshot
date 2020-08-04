@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector } from "react-redux";
+import { getCanvas } from '../utils/helpers';
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
@@ -26,10 +27,11 @@ const LayerSC = styled.canvas`
   left: 0;
   top: 0;
   image-rendering: pixelated;
+  image-rendering: optimizespeed;
   pointer-events: none;
 `
 
-function PixelGrid({ transX, transY, sizeW, sizeH }) {
+function PixelGrid({ transX, transY, sizeW, sizeH, refRef }) {
   const canvasRef = useRef(null),
     documentHeight = useSelector(state => state.main.present.documentSettings.documentHeight),
     documentWidth = useSelector(state => state.main.present.documentSettings.documentWidth),
@@ -39,7 +41,7 @@ function PixelGrid({ transX, transY, sizeW, sizeH }) {
 
   function getPattern() {
     const dim = Math.max(zoom, 1);
-    let pattern = new OffscreenCanvas(dim, dim);
+    let pattern = getCanvas(dim, dim);
     const patternCtx = pattern.getContext("2d");
     // patternCtx.translate(-.5, -.5);
     patternCtx.lineWidth = 1;
@@ -62,16 +64,27 @@ function PixelGrid({ transX, transY, sizeW, sizeH }) {
     pattern = null;
   }, [sizeW, sizeH, zoom])
 
+  // function getDimensions() {
+  //   let correctionX = -translateX / zoom / docSize.w * (docSize.w % 10) / 20;
+  //   let correctionY = -translateY / zoom / docSize.h * (docSize.h % 10) / 20;
+  //   return {
+  //     x: (docSize.w - sizeW) / 2 - transX / zoom,
+  //     y: (docSize.h - sizeH) / 2 - transY / zoom,
+  //     offX: translateX % zoom + correctionX * zoom,
+  //     offY: translateY % zoom + correctionY * zoom,
+  //   }
+  // }
+
   function getDimensions() {
-    let correctionX = -translateX / zoom / docSize.w * (docSize.w % 10) / 20;
-    let correctionY = -translateY / zoom / docSize.h * (docSize.h % 10) / 20;
     return {
       x: (docSize.w - sizeW) / 2 - transX / zoom,
       y: (docSize.h - sizeH) / 2 - transY / zoom,
-      offX: translateX % zoom + correctionX * zoom,
-      offY: translateY % zoom + correctionY * zoom,
+      offX: translateX % zoom,
+      offY: translateY % zoom,
     }
   }
+
+  if (refRef.current) console.log(refRef.current.getBoundingClientRect())
 
   return <LayerWrapperSC dimensions={getDimensions()} zoom={1 / zoom} visible={zoom >= 15} size={{w: sizeW, h: sizeH}}>
     <LayerSC width={sizeW} height={sizeH} ref={canvasRef} />
