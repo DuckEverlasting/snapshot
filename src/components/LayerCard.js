@@ -11,7 +11,7 @@ import {
   makeActiveLayer,
   deleteLayer,
   hideLayer,
-  enableLayerRename,
+  setEnableLayerRename,
   updateLayerName
 } from "../actions/redux";
 
@@ -76,6 +76,11 @@ export default function LayerCard(props) {
   const dispatch = useDispatch();
 
   const handleKeyDown = ev => {
+    if (ev.key === "Enter") {
+      submitRename();
+    } else if (ev.key === "Escape") {
+      cancelRename();
+    }
     ev.stopPropagation();
   }
 
@@ -97,15 +102,26 @@ export default function LayerCard(props) {
   };
 
   const enableRenameHandler = () => {
-    dispatch(enableLayerRename(props.id))
+    dispatch(setEnableLayerRename(props.id))
     document.addEventListener('mousedown', clickOutsideHandler, false)
   }
 
   const clickOutsideHandler = ev => {
     if (nameBox.current !== (ev.target)) {
-      dispatch(updateLayerName(props.id, nameBox.current.value))
-      document.removeEventListener('mousedown', clickOutsideHandler, false)
+      submitRename();
     }
+  }
+
+  const submitRename = () => {
+    document.removeEventListener('mousedown', clickOutsideHandler, false)
+    if (nameBox.current) {
+      dispatch(updateLayerName(props.id, nameBox.current.value))
+    }
+  }
+
+  const cancelRename = () => {
+    document.removeEventListener('mousedown', clickOutsideHandler, false)
+    dispatch(setEnableLayerRename(props.id, false));
   }
 
   return (

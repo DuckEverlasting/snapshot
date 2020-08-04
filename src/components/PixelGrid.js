@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { useSelector } from "react-redux";
 import { getCanvas } from '../utils/helpers';
@@ -39,7 +39,7 @@ function PixelGrid({ transX, transY, sizeW, sizeH, refRef }) {
     zoom = zoomPct / 100,
     docSize = {w: documentWidth, h: documentHeight};
 
-  function getPattern() {
+  const getPattern = useCallback(zoom => {
     const dim = Math.max(zoom, 1);
     let pattern = getCanvas(dim, dim);
     const patternCtx = pattern.getContext("2d");
@@ -53,16 +53,16 @@ function PixelGrid({ transX, transY, sizeW, sizeH, refRef }) {
     patternCtx.stroke();
     // patternCtx.translate(.5, .5);
     return pattern;
-  }
+  }, [])
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
-    let pattern = getPattern();
+    let pattern = getPattern(zoom);
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     ctx.fillStyle = ctx.createPattern(pattern, "repeat");
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     pattern = null;
-  }, [sizeW, sizeH, zoom])
+  }, [sizeW, sizeH, zoom, getPattern])
 
   // function getDimensions() {
   //   let correctionX = -translateX / zoom / docSize.w * (docSize.w % 10) / 20;
@@ -83,8 +83,6 @@ function PixelGrid({ transX, transY, sizeW, sizeH, refRef }) {
       offY: translateY % zoom,
     }
   }
-
-  if (refRef.current) console.log(refRef.current.getBoundingClientRect())
 
   return <LayerWrapperSC dimensions={getDimensions()} zoom={1 / zoom} visible={zoom >= 15} size={{w: sizeW, h: sizeH}}>
     <LayerSC width={sizeW} height={sizeH} ref={canvasRef} />

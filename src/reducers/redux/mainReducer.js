@@ -9,7 +9,7 @@ import {
   UPDATE_RENDER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
-  ENABLE_LAYER_RENAME,
+  SET_ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   MAKE_ACTIVE_LAYER,
   SET_STAMP_DATA,
@@ -241,12 +241,12 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         stagingPinnedTo: payload.id
       }
 
-    case ENABLE_LAYER_RENAME:
+    case SET_ENABLE_LAYER_RENAME:
       let afterEnableSettings =  {
         ...state.layerSettings, 
         [payload.id]: {
           ...state.layerSettings[payload.id],
-          nameEditable: true
+          nameEditable: payload.renamable
         }
       }
 
