@@ -209,3 +209,13 @@ export function getCanvas(width, height) {
   canvas.getContext("2d").imageSmoothingEnabled = false;
   return canvas;
 }
+
+export function isCanvas(element) {
+  return (
+    element instanceof HTMLCanvasElement ||
+    (
+      typeof OffscreenCanvas !== "undefined" &&
+      element instanceof OffscreenCanvas
+    )
+  )
+}

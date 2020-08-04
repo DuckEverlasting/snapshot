@@ -20,7 +20,7 @@ import {
 
 import { getInitMainState } from "./initState";
 import { MarchingSquaresAllPaths } from "../../utils/marchingSquaresAllPaths";
-import { getCanvas } from "../../utils/helpers";
+import { getCanvas, isCanvas } from "../../utils/helpers";
 
 const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
@@ -123,7 +123,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         const oldCanvas = getCanvas(width, height);
         const oldCtx = oldCanvas.getContext("2d");
         let newCanvas;
-        if (changes instanceof HTMLCanvasElement || typeof OffscreenCanvas !== "undefined" && changes instanceof OffscreenCanvas) {
+        if (isCanvas(changes)) {
           newCanvas = changes;
         } else if (changes instanceof Path2D) {
           newCanvas = getCanvas(width, height);
