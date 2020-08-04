@@ -1,16 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector } from "react-redux";
+import { calculateClipping } from "../utils/helpers";
 
 const LayerWrapperSC = styled.div.attrs(props => ({
   style: {
     width: `${props.size.w}px`,
     height: `${props.size.h}px`,
-    transform: `
-      translate(${props.dimensions.x}px, ${props.dimensions.y}px)
-      scale(${props.zoom})
-      translate(${props.dimensions.offX}px, ${props.dimensions.offY}px)
-    `
+    clipPath: `inset(${props.clip.up}px ${props.clip.right}px ${props.clip.down}px ${props.clip.left}px)`
   }
 }))`
   display: ${props => props.visible ? "block" : "none"};
@@ -19,7 +16,13 @@ const LayerWrapperSC = styled.div.attrs(props => ({
   pointer-events: none;
 `
 
-const LayerSC = styled.canvas`
+const LayerSC = styled.canvas.attrs(props => ({
+  style: {
+    transform: `
+      translate(${props.dimensions.offX}px, ${props.dimensions.offY}px)
+    `
+  }
+}))`
   position: absolute;
   width: 100%;
   height: calc(100%);
@@ -29,7 +32,7 @@ const LayerSC = styled.canvas`
   pointer-events: none;
 `
 
-function PixelGrid({ transX, transY, sizeW, sizeH }) {
+function PixelGrid({ transX, transY, sizeW, sizeH, correction }) {
   const canvasRef = useRef(null),
     documentHeight = useSelector(state => state.main.present.documentSettings.documentHeight),
     documentWidth = useSelector(state => state.main.present.documentSettings.documentWidth),
@@ -59,23 +62,36 @@ function PixelGrid({ transX, transY, sizeW, sizeH }) {
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     ctx.fillStyle = ctx.createPattern(pattern, "repeat");
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.fillStyle = "red";
+    ctx.fillRect(0, 0, pattern.width * 2, pattern.height * 2);
     pattern = null;
   }, [sizeW, sizeH, zoom])
 
   function getDimensions() {
-    let correctionX = -translateX / zoom / docSize.w * (docSize.w % 10) / 20;
-    let correctionY = -translateY / zoom / docSize.h * (docSize.h % 10) / 20;
     return {
       x: (docSize.w - sizeW) / 2 - transX / zoom,
       y: (docSize.h - sizeH) / 2 - transY / zoom,
-      offX: translateX % zoom + correctionX * zoom,
-      offY: translateY % zoom + correctionY * zoom,
+      offX: translateX % zoom,
+      offY: translateY % zoom,
     }
   }
 
-  return <LayerWrapperSC dimensions={getDimensions()} zoom={1 / zoom} visible={zoom >= 15} size={{w: sizeW, h: sizeH}}>
-    <LayerSC width={sizeW} height={sizeH} ref={canvasRef} />
+  function calculateClipping() {
+    console.log({translateX, translateY, zoom})
+    console.log(sizeH)
+    console.log(docSize.h * zoom + translateY - sizeH)
+    return {
+      up: translateY - 1,
+      down: -docSize.h * zoom - translateY + sizeH,
+      left: translateX - 1,
+      right: -docSize.w * zoom - translateX + sizeW,
+    };
+  }
+
+  return <LayerWrapperSC zoom={1 / zoom} clip={calculateClipping()} visible={zoom >= 15} size={{w: sizeW, h: sizeH}}>
+    <LayerSC dimensions={getDimensions()} width={sizeW} height={sizeH} ref={canvasRef} />
   </LayerWrapperSC>
 }
 
 export default PixelGrid;
+
