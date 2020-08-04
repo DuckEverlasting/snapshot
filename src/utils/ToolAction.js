@@ -293,7 +293,7 @@ export class BrushAction extends FreeDrawAction {
     this.opacity = params.opacity;
     this.hardness = params.hardness;
     this.clip = params.clip;
-    this.density = params.density || 0.25;
+    this.density = params.density || 0.2;
     this.brushHead = getRadialGradient(params.color, this.width, this.hardness);
     this.processing = document.createElement('canvas');
   }
@@ -402,7 +402,7 @@ export class FilterBrushAction extends FreeDrawAction {
     this.filter = params.filter;
     this.filterInput = params.filterInput;
     this.hardness = params.hardness;
-    this.density = params.density || 0.25;
+    this.density = params.density || 0.2;
     this.clip = params.clip;
     this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.processing = document.createElement('canvas');
@@ -531,7 +531,7 @@ export class StampAction extends FreeDrawAction {
     this.hardness = params.hardness;
     this.clip = params.clip;
     this.opacity = params.opacity;
-    this.density = params.density || 0.25;
+    this.density = params.density || 0.2;
     this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.processing = document.createElement('canvas');
     this.stampCanvas = params.stampData.canvas;
@@ -683,7 +683,7 @@ export class EraserAction extends FreeDrawAction {
     this.width = params.width;
     this.clip = params.clip;
     this.hardness = params.hardness;
-    this.density = params.density || 0.25;
+    this.density = params.density || 0.2;
     this.brushHead = getRadialGradient("rgba(0, 0, 0, 1)", this.width, this.hardness);
     this.composite = "destination-out";
     this.usesStaging = false;

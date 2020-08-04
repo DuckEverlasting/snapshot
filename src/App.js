@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import useEventListener from "./hooks/useEventListener";
 import styled from "styled-components";
@@ -39,18 +39,11 @@ const AppContainerSC = styled.div`
   user-select: none;
 `;
 
-const HiddenInputSC = styled.input`
-  position: absolute;
-  visibility: hidden;
-`
-
 function App() {
   const overlay = useSelector(state => state.ui.overlay);
   const transformTarget = useSelector(state => state.ui.transformTarget);
   const importImageFile = useSelector(state => state.ui.importImageFile);
   const appIsWaiting = useSelector(state =>state.ui.appIsWaiting);
-
-  const inputRef = useRef(null);
 
   const dispatch = useDispatch();
 
@@ -75,15 +68,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay, transformTarget, importImageFile]);
 
-  const handleKeyUp = useCallback(ev => {
-    ev.preventDefault();
-    if (ev.key === "Alt") {
-      setTimeout(() => inputRef.current.click(), 10);
-    }
-  }, [])
-
   useEventListener("keydown", handleKeyDown)
-  useEventListener("keypress", handleKeyUp)
 
   return (
     <AppSC id="App">
@@ -95,7 +80,6 @@ function App() {
         <OverlayHandler />
       </AppContainerSC>
       {appIsWaiting && <WaitScreen />}
-      <HiddenInputSC onClick={() => console.log("CLIIIICK")} ref={inputRef} />
     </AppSC>
   );
 }

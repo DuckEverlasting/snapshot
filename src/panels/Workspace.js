@@ -505,7 +505,7 @@ export default function Workspace() {
       ev.preventDefault();
       if (ev.buttons !== 0) {return}
       if (ev.altKey) {
-        zoomTool(ev, ev.deltaY < 0);
+        zoomTool(ev, ev.deltaY > 0);
       } else {
         translateTool(ev);
       }
