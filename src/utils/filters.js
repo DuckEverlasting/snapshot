@@ -28,6 +28,15 @@ const size = {
   required: true
 }
 
+const angle = {
+  name: "Angle",
+  type: "Number",
+  init: 0,
+  min: 0,
+  max: 360,
+  required: true
+}
+
 const range = {
   name: "",
   type: "Radio",
@@ -64,7 +73,7 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
     let result = 0;
     dataMatrix.forEach((row, rowIndex) => {
       row.forEach((num, colIndex) => {
-        if (!checkOpacity || num !== null) {
+        if (!checkOpacity || !!num) {
           result += num * matrix[rowIndex][colIndex]
         }
       });
@@ -96,6 +105,37 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
       }
     }
   }
+}
+
+function getMotionBlurArray(size, angle) {
+  let a, b, result = []
+  let slope = Math.tan(angle*Math.PI/180);
+  if (slope < 1 && slope > -1) {
+    a = "x";
+    b = "y"
+  } else {
+    a = "y";
+    b = "x";
+    slope = 1 / slope;
+  }
+  
+  for (let i=1; i<=size; i++) {
+    const delta1 = {}, delta2 = {};
+    delta1[a] = i;
+    delta1[b] = Math.round(i * slope);
+    delta2[a] = -i;
+    delta2[b] = -Math.round(i * slope);
+    result.push(delta1, delta2);
+  }
+  return result;
+}
+
+function motionBlurHorizontal() {
+
+}
+
+function motionBlurVertical() {
+  
 }
 
 function getMatrixAt(data, width, index, matrixLength, checkOpacity, rgb) {
@@ -145,6 +185,85 @@ function getGaussianKernel(radius) {
   }
   return result;
 }
+
+/* new idea: 
+  - do a motion blur linearly. The method that works for horizontal and vertical should work for diagonal cases too.
+  - start at corner. move along through all diagonal lines, adding the next value and removing the last trailing value from the average.
+  - tricky part is figuring out how to move along the lines, and making sure no pixels get skipped / overlapped.
+  - but you've already done this! the equation below will get you there, and applied to the full image, there should be no overlaps or missed pixels.
+  - (NO STRUCTURAL DAMAGE! ONLY DAMAGE TO THE CREATURE! That's how I see it going down.)
+
+  scribblings so far:
+
+  function getPointAt(x, y) {
+    if ("validationisbad") {
+      return null;
+    }
+    return (x + Math.round(y * slope) * width) * 4;
+  }
+  const forward = Math.ceil(size / 2),
+    backward = Math.floor(size / 2);
+  for (let x = 0; x < width; x++) {
+    let total = 0;
+    let currSize = size;
+    for (let y = 0; y < numOfRows; y++) {
+      const thisPoint = getPointAt(x, y);
+      if (thisPoint === null) {
+
+      }
+      const toAdd = getPointAt(x + forward, y + forward),
+        toSubtract = getPointAt(x - backward, y - backward);
+      toSubtract === null ? total -= toSubtract : currSize--;
+      toAdd === null ? total += toAdd : currSize--;
+      data[xy] = total / currSize;
+    }
+  }
+*/
+export const motionBlur = new Filter("Motion Blur", {size: {...size, max: 100}, angle}, (data, {size, angle, width}) => {
+  angle = angle % 180;
+  if (angle === 0) {
+    motionBlurHorizontal(data, size, width);
+    return;
+  } else if (angle === 90) {
+    motionBlurVertical(data, size, width);
+    return;
+  }
+  const dataCopy = new Uint8ClampedArray(data),
+    weighted = getMotionBlurArray(size, angle),
+    numOfRows = data.length / (width*4);
+  console.log(weighted);
+  for (let row=0; row<numOfRows; row++) {
+    for (let col=0; col<width; col++) {
+      const index = (row * width + col) * 4;
+      let count = 1,
+        total = [
+          dataCopy[index],
+          dataCopy[index] + 1,
+          dataCopy[index] + 2,
+          dataCopy[index] + 3
+        ];
+      weighted.forEach(delta => {
+        if (
+          col + delta.x >= 0 &&
+          col + delta.x < width &&
+          row + delta.y >= 0 &&
+          row + delta.y < numOfRows
+        ) {
+          const deltaIndex = ((row + delta.y) * width + (col + delta.x)) * 4;
+          count++;
+          total[0] += dataCopy[deltaIndex];
+          total[1] += dataCopy[deltaIndex + 1];
+          total[2] += dataCopy[deltaIndex + 2];
+          total[3] += dataCopy[deltaIndex + 3];
+        }
+      })
+      data[index] = total[0] / count;
+      data[index + 1] = total[1] / count;
+      data[index + 2] = total[2] / count;
+      data[index + 3] = total[3] / count;
+    }
+  }
+});
 
 export const invert = new Filter("Invert", null, data => {
   for (let i=0; i<data.length; i+=4) {
@@ -379,6 +498,7 @@ export const filter = {
   contrast,
   saturation,
   blur,
+  motionBlur,
   boxBlur,
   sharpen,
   findEdges,
