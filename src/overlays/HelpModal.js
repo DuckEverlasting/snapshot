@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import useEventListener from "../hooks/useEventListener";
 import styled from "styled-components";
+import { scrollbar } from "../styles/shared";
+
 import { useSelector, useDispatch } from "react-redux";
 
 import { setOverlay, setHelpTopic } from "../actions/redux";
@@ -34,20 +36,7 @@ const ContentBoxSC = styled.div`
   border-radius: 3px;
   overflow: auto;
 
-  scrollbar-width: thin;
-  scrollbar-color: #777777 #303030;
-
-  &::-webkit-scrollbar {
-    width: 11px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #303030;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #777777;
-    border-radius: 6px;
-    border: 1px solid #303030;
-  }
+  ${scrollbar}
 `;
 
 const TopicMenuSC = styled(ContentBoxSC)`
