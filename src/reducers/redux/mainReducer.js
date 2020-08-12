@@ -9,7 +9,7 @@ import {
   UPDATE_RENDER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
-  ENABLE_LAYER_RENAME,
+  SET_ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   MAKE_ACTIVE_LAYER,
   SET_STAMP_DATA,
@@ -20,6 +20,7 @@ import {
 
 import { getInitMainState } from "./initState";
 import { MarchingSquaresAllPaths } from "../../utils/marchingSquaresAllPaths";
+import { getCanvas, isCanvas } from "../../utils/helpers";
 
 const mainReducer = (state = getInitMainState(), {type, payload}) => {
   switch (type) {
@@ -49,7 +50,7 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         opacity: 100,
         blend: "source-over"
       };
-      const newLayerCanvas = new OffscreenCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
+      const newLayerCanvas = getCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
       let orderAfterCreate = state.renderOrder.slice(0);
       orderAfterCreate.splice(position + 1, 0, layerId);
 
@@ -119,13 +120,13 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
           remove: "destination-out",
           intersect: "destination-in"
         }
-        const oldCanvas = new OffscreenCanvas(width, height);
+        const oldCanvas = getCanvas(width, height);
         const oldCtx = oldCanvas.getContext("2d");
         let newCanvas;
-        if (changes instanceof OffscreenCanvas) {
+        if (isCanvas(changes)) {
           newCanvas = changes;
         } else if (changes instanceof Path2D) {
-          newCanvas = new OffscreenCanvas(width, height);
+          newCanvas = getCanvas(width, height);
           const newCtx = newCanvas.getContext("2d");
           newCtx.save();
           newCtx.clip(changes);
@@ -240,12 +241,12 @@ const mainReducer = (state = getInitMainState(), {type, payload}) => {
         stagingPinnedTo: payload.id
       }
 
-    case ENABLE_LAYER_RENAME:
+    case SET_ENABLE_LAYER_RENAME:
       let afterEnableSettings =  {
         ...state.layerSettings, 
         [payload.id]: {
           ...state.layerSettings[payload.id],
-          nameEditable: true
+          nameEditable: payload.renamable
         }
       }
 

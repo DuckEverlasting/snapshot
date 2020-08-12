@@ -152,6 +152,10 @@ export default function TopBar() {
               onClick={() => dispatch(setOverlay("filter", {filter: filter.blur}))}
             />
             <MenuItem 
+              label="Motion Blur"
+              onClick={() => dispatch(setOverlay("filter", {filter: filter.motionBlur}))}
+            />
+            <MenuItem 
               label="Sharpen"
               onClick={() => dispatch(setOverlay("filter", {filter: filter.sharpen}))}
             />

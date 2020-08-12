@@ -1,4 +1,7 @@
 /* eslint-disable eqeqeq */
+
+import { isCanvas } from "./helpers";
+
 /**
  * Created by @sakri on 25-3-14.
  * Edited and optimized by @mamrehn on 08-09-16
@@ -16,7 +19,7 @@ MarchingSquaresAllPaths.getAllOutlinePaths = function(source_array) {
   //       no padding of 1 pixel to handle points which touch edges. Hmm... gotta find a way around that one.
   let width, height;
 
-  if (source_array instanceof HTMLCanvasElement || source_array instanceof OffscreenCanvas) {
+  if (isCanvas(source_array)) {
   width = source_array.width;
   height = source_array.height;
   const data4 = source_array.getContext('2d').getImageData(0, 0, width, height).data,  // Uint8ClampedArray

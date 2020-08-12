@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
-import { PanelTitleSC } from "../styles/shared";
+import { PanelTitleSC, scrollbar } from "../styles/shared";
 
 import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
@@ -37,20 +37,7 @@ const LayerBoxSC = styled.div`
   border-bottom: 1px solid black;
   overflow-y: scroll;
 
-  scrollbar-width: thin;
-  scrollbar-color: #777777 #303030;
-  
-  &::-webkit-scrollbar {
-    width: 11px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #303030;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #777777;
-    border-radius: 6px;
-    border: 2px solid #303030;
-  }
+  ${scrollbar}
 `;
 
 const TitleSC = styled(PanelTitleSC)``;

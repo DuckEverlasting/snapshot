@@ -14,7 +14,7 @@ import {
 } from "../actions/redux/index";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
-import { calculateClipping } from "../utils/helpers";
+import { calculateClipping, isCanvas } from "../utils/helpers";
 import render from "../actions/redux/renderCanvas";
 
 import styled from "styled-components";
@@ -245,7 +245,7 @@ export default function TransformObject({
           h: initHeight,
         });
       };
-    } else if (source instanceof OffscreenCanvas) {
+    } else if (isCanvas(source)) {
       const imageRect = getImageRect(source);
       if (!imageRect) {
         dispatch(setImportImageFile(null));
