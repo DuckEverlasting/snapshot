@@ -130,6 +130,8 @@ export default function Workspace() {
     alt: false,
   });
   const workspaceRef = useRef(null);
+  const refRef = useRef(null);
+
   const workspaceDimensions = useUpdateOnResize(workspaceRef);
 
   let workspaceElement = workspaceRef.current;
@@ -167,9 +169,9 @@ export default function Workspace() {
     };
   }
 
-  function capTranslate(translateX, translateY) {
-    const zoomDocWidth = documentWidth * (zoomPct / 100),
-      zoomDocHeight = documentHeight * (zoomPct / 100),
+  function capTranslate(translateX, translateY, zoom = zoomPct) {
+    const zoomDocWidth = documentWidth * (zoom / 100),
+      zoomDocHeight = documentHeight * (zoom / 100),
       maxX = zoomDocWidth + (workspaceDimensions.w - zoomDocWidth) - 50,
       minX = -zoomDocWidth + 50,
       maxY = zoomDocHeight + (workspaceDimensions.h - zoomDocHeight) - 50,
@@ -440,7 +442,7 @@ export default function Workspace() {
       transY = zoomFraction * (translateY - toTop) + toTop;  
     }
 
-    const [newTranslateX, newTranslateY] = capTranslate(transX, transY);
+    const [newTranslateX, newTranslateY] = capTranslate(transX, transY, newZoomPct);
 
     dispatch(
       updateWorkspaceSettings({
@@ -503,7 +505,7 @@ export default function Workspace() {
       ev.preventDefault();
       if (ev.buttons !== 0) {return}
       if (ev.altKey) {
-        zoomTool(ev, ev.deltaY < 0);
+        zoomTool(ev, ev.deltaY > 0);
       } else {
         translateTool(ev);
       }
@@ -626,7 +628,13 @@ export default function Workspace() {
       cursor={getCursor(isDragging ? "activeHand" : activeTool, keys)}
     >
       <DropZone onDrop={handleDrop} />
+      {/* <PixelGrid
+        sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50: 1}
+        sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
+        correction={correction}
+      /> */}
       <CanvasPaneSC
+        ref={refRef}
         translateX={translateX}
         translateY={translateY}
         width={documentWidth}
@@ -641,6 +649,7 @@ export default function Workspace() {
           transY={workspaceRef.current ? translateY - 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100) : 0}
           sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50 : 1}
           sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
+          refRef={refRef}
         />
       </CanvasPaneSC>
       {importImageFile && (

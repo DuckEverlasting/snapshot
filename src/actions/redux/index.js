@@ -21,7 +21,7 @@ export const [
   UPDATE_RENDER_ORDER,
   UPDATE_LAYER_POSITION,
   UPDATE_STAGING_POSITION,
-  ENABLE_LAYER_RENAME,
+  SET_ENABLE_LAYER_RENAME,
   UPDATE_LAYER_NAME,
   DRAG_LAYERCARD,
   END_DRAG_LAYERCARD,
@@ -63,7 +63,7 @@ export const [
   "UPDATE_RENDER_ORDER",
   "UPDATE_LAYER_POSITION",
   "UPDATE_STAGING_POSITION",
-  "ENABLE_LAYER_RENAME",
+  "SET_ENABLE_LAYER_RENAME",
   "UPDATE_LAYER_NAME",
   "DRAG_LAYERCARD",
   "END_DRAG_LAYERCARD",
@@ -338,10 +338,10 @@ export const updateStagingPosition = id => {
   };
 };
 
-export const enableLayerRename = id => {
+export const setEnableLayerRename = (id, renamable=true) => {
   return {
-    type: ENABLE_LAYER_RENAME,
-    payload: {id, ignoreHistory: true}
+    type: SET_ENABLE_LAYER_RENAME,
+    payload: {id, renamable, ignoreHistory: true}
   };
 };
 

@@ -21,6 +21,7 @@ const LayerSC = styled.canvas`
   left: 0;
   top: 0;
   image-rendering: pixelated;
+  image-rendering: optimizespeed;
   pointer-events: none;
 `
 

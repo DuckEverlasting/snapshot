@@ -64,7 +64,7 @@ export function getRadialGradient(color, width, hardness=100) {
   const newWidth = Math.ceil(width * (2 - hardness / 100)),
     innerRadius = newWidth / 2 * hardness / 100,
     outerRadius = newWidth / 2 - innerRadius,
-    canvas = new OffscreenCanvas(newWidth, newWidth),
+    canvas = getCanvas(newWidth, newWidth),
     ctx = canvas.getContext('2d'),
     imageData = ctx.getImageData(0, 0, newWidth, newWidth),
     dataArray = imageData.data;
@@ -195,4 +195,27 @@ export function calculateClipping(size, offset, docSize, zoom) {
     left: Math.floor(-offset.x * zoom - 2),
     right: Math.floor((size.w + offset.x - docSize.w) * zoom + 2),
   };
+}
+
+export function getCanvas(width, height) {
+  let canvas;
+  if (typeof OffscreenCanvas !== "undefined") { 
+    canvas = new OffscreenCanvas(width, height);
+  } else { 
+    canvas = document.createElement("CANVAS");
+    canvas.width = width;
+    canvas.height = width;
+  }
+  canvas.getContext("2d").imageSmoothingEnabled = false;
+  return canvas;
+}
+
+export function isCanvas(element) {
+  return (
+    element instanceof HTMLCanvasElement ||
+    (
+      typeof OffscreenCanvas !== "undefined" &&
+      element instanceof OffscreenCanvas
+    )
+  )
 }

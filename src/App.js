@@ -48,7 +48,6 @@ function App() {
   const dispatch = useDispatch();
 
   const handleKeyDown = useCallback(ev => {
-    ev.preventDefault();
     if (overlay || transformTarget || importImageFile) {return}
     let keyCombo;
     let modifier = window.navigator.platform.includes("Mac")
@@ -60,6 +59,7 @@ function App() {
       keyCombo = hotkey[ev.key];
     }
     if (keyCombo === undefined) return;
+    ev.preventDefault();
     if (keyCombo.type === "activeTool") {
       dispatch(setActiveTool(keyCombo.payload));
     } else {

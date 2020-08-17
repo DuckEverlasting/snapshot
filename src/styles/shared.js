@@ -23,3 +23,20 @@ export const checkerBackground = `
   background-size: 60px 60px;
   background-position: 0 0, 30px 30px;
 `
+
+export const scrollbar = `
+  scrollbar-width: thin;
+  scrollbar-color: #777777 #303030;
+
+  &::-webkit-scrollbar {
+    width: 11px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #303030;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #777777;
+    border-radius: 6px;
+    border: 2px solid #303030;
+  }
+`

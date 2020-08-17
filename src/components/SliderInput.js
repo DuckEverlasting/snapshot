@@ -12,6 +12,7 @@ const SliderSC = styled.input`
   margin-top: 3px;
   margin-bottom: 6px;
   width: 80%;
+  height: 5px;
 
   &:focus {
     outline: none;
@@ -42,11 +43,13 @@ const SliderSC = styled.input`
   }
 
   &::-moz-range-thumb {
-    height: 15px;
-    width: 15px;
-    background: pink;
-    margin-top: -5px;
-    border-radius: 10px;
+    height: 25px;
+    width: 10px;
+    background: ${props => props.disabled ? "transparent" : "#eeeeee"};
+    margin-top: -10px;
+    border: 1px solid ${props => props.disabled ? "transparent" : "#444444"};
+    border-radius: 40%;
+    cursor: ${props => props.disabled ? "auto" : "pointer"};
   }
 `;
 

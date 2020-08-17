@@ -1,6 +1,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
+import { scrollbar } from "../styles/shared";
 
 import { updateToolSettings } from "../actions/redux";
 
@@ -25,20 +26,7 @@ const ToolCardInnerSC = styled.div`
   overflow: auto;
   flex: 1 1 auto;
 
-  scrollbar-width: thin;
-  scrollbar-color: #777777 #303030;
-  
-  &::-webkit-scrollbar {
-    width: 11px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #303030;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #777777;
-    border-radius: 6px;
-    border: 2px solid #303030;
-  }
+  ${scrollbar}
 `
 
 export default function ToolCard() {

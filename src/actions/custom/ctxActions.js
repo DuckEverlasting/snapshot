@@ -1,4 +1,4 @@
-import { midpoint, getQuadLength, getDistance } from "../../utils/helpers";
+import { midpoint, getQuadLength, getDistance, getCanvas } from "../../utils/helpers";
 
 function floor(vector) {
   return {
@@ -152,13 +152,13 @@ export function getFillContent(ctx, { orig, colorArray, tolerance, clip, clipOff
   const canvasWidth = Math.floor(ctx.canvas.width),
     canvasHeight = Math.floor(ctx.canvas.height);
   let pathTest;
-  const fillContentCanvas = new OffscreenCanvas(canvasWidth, canvasHeight),
+  const fillContentCanvas = getCanvas(canvasWidth, canvasHeight),
     fillContentCtx = fillContentCanvas.getContext("2d");
   
   orig = {x: Math.floor(orig.x), y: Math.floor(orig.y)};
   
   if (clip) {
-    let pathCanvas = new OffscreenCanvas(canvasWidth, canvasHeight),
+    let pathCanvas = getCanvas(canvasWidth, canvasHeight),
       pathCtx = pathCanvas.getContext("2d");
     
     if (clipOffset) {
