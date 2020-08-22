@@ -191,9 +191,9 @@ function TopicMenu({ height, width, currentTopic, setCurrentTopic }) {
 
   useEffect(checkIfScrollable, [height, width])
 
-  const wheelHandler = useCallback(ev => {
+  const wheelHandler = useCallback(e => {
     checkIfScrollable();
-    if (isScrollable) {ev.stopPropagation()}
+    if (isScrollable) {e.stopPropagation()}
   }, [isScrollable, checkIfScrollable])
 
   useEventListener("wheel", wheelHandler, topicMenuRef.current);
@@ -222,9 +222,9 @@ function TopicMenu({ height, width, currentTopic, setCurrentTopic }) {
 function TopicDisplay({ height, width, data, setCurrentTopic }) {
   const [isScrollable, setIsScrollable] = useState(false);
 
-  function handleClick(ev) {
-    if (ev.target.name) {
-      setCurrentTopic(ev.target.name)
+  function handleClick(e) {
+    if (e.target.name) {
+      setCurrentTopic(e.target.name)
     }
   }
 
@@ -241,9 +241,9 @@ function TopicDisplay({ height, width, data, setCurrentTopic }) {
 
   useEffect(checkIfScrollable, [height, width, data])
 
-  const wheelHandler = useCallback(ev => {
+  const wheelHandler = useCallback(e => {
     checkIfScrollable();
-    if (isScrollable) {ev.stopPropagation()}
+    if (isScrollable) {e.stopPropagation()}
   }, [isScrollable, checkIfScrollable])
 
   useEventListener("wheel", wheelHandler, topicDisplayRef.current);

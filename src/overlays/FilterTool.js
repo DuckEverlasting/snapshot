@@ -41,7 +41,7 @@ export default function FilterTool() {
   const [input, setInput] = useState({});
   const dispatch = useDispatch();
   const filter = useSelector(state => state.ui.currentFilter);
-  const stagingCanvas = useSelector(state => state.main.present.layerCanvas.staging);
+  const stagingCanvas = useSelector(state => state.main.utilityCanvas.staging);
 
   const [isWaiting, withWaiting] = useWait(2);
 

@@ -10,8 +10,8 @@ export default function useEventListener(event, callback, element=window) {
   useEffect(() => {
     if (!element || !element.addEventListener) return;
 
-    const handleEvent = ev => {
-      handler.current(ev);
+    const handleEvent = e => {
+      handler.current(e);
     }
 
     element.addEventListener(event, handleEvent);

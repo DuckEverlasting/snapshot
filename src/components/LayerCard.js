@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 import { Draggable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -72,16 +73,17 @@ const RenameSC = styled.input`
 
 export default function LayerCard(props) { 
   const nameBox = useRef();
-  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const activeLayer = useSelector(
+    selectFromActiveProject("activeLayer"))
   const dispatch = useDispatch();
 
-  const handleKeyDown = ev => {
-    if (ev.key === "Enter") {
+  const handleKeyDown = e => {
+    if (e.key === "Enter") {
       submitRename();
-    } else if (ev.key === "Escape") {
+    } else if (e.key === "Escape") {
       cancelRename();
     }
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   const clickHandler = () => {
@@ -89,14 +91,14 @@ export default function LayerCard(props) {
     dispatch(makeActiveLayer(props.id));
   };
 
-  const deleteHandler = ev => {
-    ev.stopPropagation();
+  const deleteHandler = e => {
+    e.stopPropagation();
     dispatch(deleteLayer(props.id));
     dispatch(render())
   };
 
-  const hideHandler = ev => {
-    ev.stopPropagation();
+  const hideHandler = e => {
+    e.stopPropagation();
     dispatch(hideLayer(props.id));
     dispatch(render())
   };
@@ -106,8 +108,8 @@ export default function LayerCard(props) {
     document.addEventListener('mousedown', clickOutsideHandler, false)
   }
 
-  const clickOutsideHandler = ev => {
-    if (nameBox.current !== (ev.target)) {
+  const clickOutsideHandler = e => {
+    if (nameBox.current !== (e.target)) {
       submitRename();
     }
   }
@@ -121,7 +123,7 @@ export default function LayerCard(props) {
 
   const cancelRename = () => {
     document.removeEventListener('mousedown', clickOutsideHandler, false)
-    dispatch(setEnableLayerRename(props.id, false));
+    dispatch(setEnableLayerRename(props.id, "current", false));
   }
 
   return (

@@ -1,18 +1,17 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 
 import { updateLayerBlendMode } from "../actions/redux";
 
 import render from "../actions/redux/renderCanvas";
 
 export default function SelectBlendMode() {
-  const activeLayer = useSelector(state => state.main.present.activeLayer);
-  const layerSettings = useSelector(state => state.main.present.layerSettings);
-
+  const [activeLayer, layerSettings] = useSelector(selectFromActiveProject("activeLayer", "layerSettings"))
   const dispatch = useDispatch();
 
-  const handleChange = ev => {
-    dispatch(updateLayerBlendMode(activeLayer, ev.target.value));
+  const handleChange = e => {
+    dispatch(updateLayerBlendMode(activeLayer, e.target.value));
     dispatch(render())
   }
   return (

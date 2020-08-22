@@ -35,8 +35,9 @@ const LayerSC = styled.canvas.attrs(props => ({
 
 function PixelGrid({ transX, transY, sizeW, sizeH, correction }) {
   const canvasRef = useRef(null),
-    documentHeight = useSelector(state => state.main.present.documentSettings.documentHeight),
-    documentWidth = useSelector(state => state.main.present.documentSettings.documentWidth),
+    activeProject = useSelector(state => state.main.activeProject),
+    documentHeight = useSelector(state => state.main.projects[activeProject].present.documentSettings.documentHeight),
+    documentWidth = useSelector(state => state.main.projects[activeProject].present.documentSettings.documentWidth),
     { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings),
     zoom = zoomPct / 100,
     docSize = {w: documentWidth, h: documentHeight};
@@ -78,9 +79,6 @@ function PixelGrid({ transX, transY, sizeW, sizeH, correction }) {
   }
 
   function calculateClipping() {
-    console.log({translateX, translateY, zoom})
-    console.log(sizeH)
-    console.log(docSize.h * zoom + translateY - sizeH)
     return {
       up: translateY - 1,
       down: -docSize.h * zoom - translateY + sizeH,

@@ -27,9 +27,10 @@ import render from "../actions/redux/renderCanvas";
 import { getFillContent } from "../actions/custom/ctxActions";
 
 class ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData) {
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData) {
     this.targetLayer = targetLayer;
     this.layerCanvas = layerCanvas;
+    this.utilityCanvas = utilityCanvas;
     this.dispatch = dispatch;
     this.translateData = translateData;
 
@@ -47,26 +48,26 @@ class ToolActionBase {
   }
 
   _clearStaging() {
-    this.layerCanvas.staging
+    this.utilityCanvas.staging
       .getContext("2d")
-      .clearRect(0, 0, this.layerCanvas.staging.width, this.layerCanvas.staging.height);
+      .clearRect(0, 0, this.utilityCanvas.staging.width, this.utilityCanvas.staging.height);
   }
 
-  _selectionStart(ev) {
-    if (ev.shiftKey && ev.altKey) {
+  _selectionStart(e) {
+    if (e.shiftKey && e.altKey) {
       this.selectionOperation = "intersect";
-    } else if (ev.shiftKey) {
+    } else if (e.shiftKey) {
       this.selectionOperation = "add";
-    } else if (ev.altKey) {
+    } else if (e.altKey) {
       this.selectionOperation = "remove";
     } else {
       this.selectionOperation = "new";
     }
   }
 
-  _getCoordinates(ev, params={}) {
-    let x = (ev.nativeEvent.offsetX - this.translateData.x) / this.translateData.zoom - this.translateData.offX,
-      y = (ev.nativeEvent.offsetY - this.translateData.y) / this.translateData.zoom - this.translateData.offY;
+  _getCoordinates(e, params={}) {
+    let x = (e.nativeEvent.offsetX - this.translateData.x) / this.translateData.zoom - this.translateData.offX,
+      y = (e.nativeEvent.offsetY - this.translateData.y) / this.translateData.zoom - this.translateData.offY;
     if (params.autoCrop) {
       x = Math.min(Math.max(x, 0), this.translateData.documentWidth - 1);
       y = Math.min(Math.max(y, 0), this.translateData.documentHeight - 1); 
@@ -74,7 +75,7 @@ class ToolActionBase {
     return { x, y };
   }
 
-  _setLockedAxis(ev) {
+  _setLockedAxis(e) {
     /* 
       Determines which axis should be "locked" in certain functions.
     */
@@ -82,10 +83,10 @@ class ToolActionBase {
       throw new Error("setLockedAxis requires an origin to be stored");
     }
 
-    const { x, y } = this._getCoordinates(ev)
-    if (this.lockedAxis && !ev.shiftKey) {
+    const { x, y } = this._getCoordinates(e)
+    if (this.lockedAxis && !e.shiftKey) {
       this.lockedAxis = null;
-    } else if (!this.lockedAxis && ev.shiftKey) {
+    } else if (!this.lockedAxis && e.shiftKey) {
       if (Math.abs(this.origin.x - x) < Math.abs(this.origin.y - y)) {
         this.lockedAxis = "x";
       } else {
@@ -135,35 +136,35 @@ class ToolActionBase {
 }
 
 export class FreeDrawAction extends ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.lastEndpoint = params.lastEndpoint;
     this.setLastEndpoint = params.setLastEndpoint;
     this.renderOnStart = true;
     this.isSelectionTool = targetLayer === "selection";
   }
 
-  start(ev, ...args) {
+  start(e, ...args) {
     if (this.usesStaging) {
       this._moveStaging();
     }
 
-    this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
+    this.origin = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
 
     this.coords = this.origin;
 
-    this.onStart(ev, ...args);
+    this.onStart(e, ...args);
 
     if (this.renderOnStart) {
       this.dispatch(render());
     }
   }
 
-  move(ev, ...args) {
+  move(e, ...args) {
     if (!this.isSelectionTool) {
-      this._setLockedAxis(ev);
+      this._setLockedAxis(e);
     }
-    let {x, y} = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
+    let {x, y} = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
@@ -171,7 +172,7 @@ export class FreeDrawAction extends ToolActionBase {
     }
     this.coords = {x, y}
 
-    this.onMove(ev, ...args);
+    this.onMove(e, ...args);
 
     if (this.renderOnMove) {
       this.dispatch(render())
@@ -197,18 +198,18 @@ export class FreeDrawAction extends ToolActionBase {
 }
 
 export class PencilAction extends FreeDrawAction {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData, params);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params);
     this.width = params.width;
     this.color = params.color;
     this.clip = params.clip;
   }
 
-  onStart(ev) {
+  onStart(e) {
     if (this.isSelectionTool) {
-      this._selectionStart(ev);
+      this._selectionStart(e);
     }
-    if (this.lastEndpoint && ev.shiftKey && !this.isSelectionTool) {
+    if (this.lastEndpoint && e.shiftKey && !this.isSelectionTool) {
       this.destArray = [this.lastEndpoint, this.origin];
     } else {
       this.destArray = [this.origin];
@@ -227,16 +228,16 @@ export class PencilAction extends FreeDrawAction {
         dashPattern: [7, 7],
         clearFirst: true
       }
-      draw(this.layerCanvas.staging.getContext("2d"), {
+      draw(this.utilityCanvas.staging.getContext("2d"), {
         action: "drawQuad",
         params
       });
-      draw(this.layerCanvas.staging.getContext("2d"), {
+      draw(this.utilityCanvas.staging.getContext("2d"), {
         action: "drawQuad",
         params: {...params, dashOffset: 7}
       });
     } else {
-      draw(this.layerCanvas.staging.getContext("2d"), {
+      draw(this.utilityCanvas.staging.getContext("2d"), {
         action: "drawQuad",
         params: {
           destArray: this.destArray,
@@ -252,7 +253,7 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onEnd() {
-    if (canvasIsBlank(this.layerCanvas.staging)) return;
+    if (canvasIsBlank(this.utilityCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (this.destArray.length < 2) {
         return this.dispatch(updateSelectionPath("clear"));
@@ -287,8 +288,8 @@ export class PencilAction extends FreeDrawAction {
 }
 
 export class BrushAction extends FreeDrawAction {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData, params);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params);
     this.width = params.width;
     this.opacity = params.opacity;
     this.hardness = params.hardness;
@@ -298,11 +299,11 @@ export class BrushAction extends FreeDrawAction {
     this.processing = document.createElement('canvas');
   }
 
-  onStart(ev) {
-    this.processing.width = this.layerCanvas.staging.width;
-    this.processing.height = this.layerCanvas.staging.height;
+  onStart(e) {
+    this.processing.width = this.utilityCanvas.staging.width;
+    this.processing.height = this.utilityCanvas.staging.height;
     this.processing.getContext("2d").imageSmoothingEnabled = false;
-    if (this.lastEndpoint && ev.shiftKey) {
+    if (this.lastEndpoint && e.shiftKey) {
       draw(this.processing.getContext("2d"), {
         action: "drawQuadPoints",
         params: {
@@ -316,7 +317,7 @@ export class BrushAction extends FreeDrawAction {
           clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
         }
       });
-      manipulate(this.layerCanvas.staging.getContext("2d"), {
+      manipulate(this.utilityCanvas.staging.getContext("2d"), {
         action: "paste",
         params: {
           sourceCtx: this.processing.getContext("2d"),
@@ -325,7 +326,7 @@ export class BrushAction extends FreeDrawAction {
         },
       });
     } else {
-      manipulate(this.layerCanvas.staging.getContext("2d"), {
+      manipulate(this.utilityCanvas.staging.getContext("2d"), {
         action: "paste",
         params: {
           sourceCtx: this.brushHead.getContext("2d"),
@@ -367,7 +368,7 @@ export class BrushAction extends FreeDrawAction {
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.processing.getContext("2d"),
@@ -380,14 +381,14 @@ export class BrushAction extends FreeDrawAction {
   }
 
   onEnd() {
-    if (canvasIsBlank(this.layerCanvas.staging)) return;
+    if (canvasIsBlank(this.utilityCanvas.staging)) return;
     this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
       () => manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.layerCanvas.staging.getContext("2d")
+          sourceCtx: this.utilityCanvas.staging.getContext("2d")
         }
       })
     ))
@@ -396,8 +397,8 @@ export class BrushAction extends FreeDrawAction {
 }
 
 export class FilterBrushAction extends FreeDrawAction {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData, params);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params);
     this.width = params.width;
     this.filter = params.filter;
     this.filterInput = params.filterInput;
@@ -409,7 +410,7 @@ export class FilterBrushAction extends FreeDrawAction {
     this.filtered = document.createElement('canvas');
   }
 
-  onStart(ev) {
+  onStart(e) {
     const ctx = this.layerCanvas[this.targetLayer].getContext("2d");
     this.processing.width = ctx.canvas.width;
     this.processing.height = ctx.canvas.height;
@@ -418,7 +419,7 @@ export class FilterBrushAction extends FreeDrawAction {
     const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
     this.filter(imageData.data, this.filterInput);
     this.filtered.getContext("2d").putImageData(imageData, 0, 0);
-    if (this.lastEndpoint && ev.shiftKey) {
+    if (this.lastEndpoint && e.shiftKey) {
       draw(this.processing.getContext("2d"), {
         action: "drawQuadPoints",
         params: {
@@ -445,14 +446,14 @@ export class FilterBrushAction extends FreeDrawAction {
         },
       });
     }
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.processing.getContext("2d"),
         clearFirst: true
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.filtered.getContext("2d"),
@@ -489,14 +490,14 @@ export class FilterBrushAction extends FreeDrawAction {
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.processing.getContext("2d"),
         clearFirst: true
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.filtered.getContext("2d"),
@@ -508,14 +509,14 @@ export class FilterBrushAction extends FreeDrawAction {
   }
 
   async onEnd() {
-    if (canvasIsBlank(this.layerCanvas.staging)) return;
+    if (canvasIsBlank(this.utilityCanvas.staging)) return;
     await this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
       () => manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
         action: "blend",
         params: {
-          source: this.layerCanvas.staging.getContext("2d")
+          source: this.utilityCanvas.staging.getContext("2d")
         }
       })
     ))
@@ -525,8 +526,8 @@ export class FilterBrushAction extends FreeDrawAction {
 }
 
 export class StampAction extends FreeDrawAction {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData, params);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params);
     this.width = params.width;
     this.hardness = params.hardness;
     this.clip = params.clip;
@@ -539,8 +540,8 @@ export class StampAction extends FreeDrawAction {
     this.stampDestination = params.stampData.destination;
   }
 
-  onStart(ev) {
-    if (ev.altKey) {
+  onStart(e) {
+    if (e.altKey) {
       this.dispatch(setStampData({
         canvas: this.layerCanvas[this.targetLayer],
         origin: this.origin,
@@ -566,7 +567,7 @@ export class StampAction extends FreeDrawAction {
       x: this.stampOrigin.x - this.stampDestination.x,
       y: this.stampOrigin.y - this.stampDestination.y,
     };
-    if (this.lastEndpoint && ev.shiftKey) {
+    if (this.lastEndpoint && e.shiftKey) {
       draw(this.processing.getContext("2d"), {
         action: "drawQuadPoints",
         params: {
@@ -593,7 +594,7 @@ export class StampAction extends FreeDrawAction {
         },
       });
     }
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.processing.getContext("2d"),
@@ -601,7 +602,7 @@ export class StampAction extends FreeDrawAction {
         clearFirst: true
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.stampCanvas.getContext("2d"),
@@ -640,7 +641,7 @@ export class StampAction extends FreeDrawAction {
         clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.processing.getContext("2d"),
@@ -648,7 +649,7 @@ export class StampAction extends FreeDrawAction {
         clearFirst: true
       }
     });
-    manipulate(this.layerCanvas.staging.getContext("2d"), {
+    manipulate(this.utilityCanvas.staging.getContext("2d"), {
       action: "paste",
       params: {
         sourceCtx: this.stampCanvas.getContext("2d"),
@@ -662,14 +663,14 @@ export class StampAction extends FreeDrawAction {
 
   async onEnd() {
     if (!this.stampCanvas) return;
-    if (canvasIsBlank(this.layerCanvas.staging)) return;
+    if (canvasIsBlank(this.utilityCanvas.staging)) return;
     await this.dispatch(putHistoryData(
       this.targetLayer,
       this.layerCanvas[this.targetLayer].getContext("2d"),
       () => manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
         action: "paste",
         params: {
-          sourceCtx: this.layerCanvas.staging.getContext("2d")
+          sourceCtx: this.utilityCanvas.staging.getContext("2d")
         }
       })
     ))
@@ -678,8 +679,8 @@ export class StampAction extends FreeDrawAction {
 }
 
 export class EraserAction extends FreeDrawAction {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData, params);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params);
     this.width = params.width;
     this.clip = params.clip;
     this.hardness = params.hardness;
@@ -689,12 +690,12 @@ export class EraserAction extends FreeDrawAction {
     this.usesStaging = false;
   }
 
-  onStart(ev) {
+  onStart(e) {
     const ctx = this.layerCanvas[this.targetLayer].getContext("2d");
     const viewWidth = Math.floor(ctx.canvas.width);
     const viewHeight = Math.floor(ctx.canvas.height);
     this.prevImgData = ctx.getImageData(0, 0, viewWidth, viewHeight);
-    if (this.lastEndpoint && ev.shiftKey) {
+    if (this.lastEndpoint && e.shiftKey) {
       draw(this.layerCanvas[this.targetLayer].getContext("2d"), {
         action: "drawQuadPoints",
         params: {
@@ -771,8 +772,8 @@ export class EraserAction extends FreeDrawAction {
 }
 
 export class ShapeAction extends ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.drawActionType = params.drawActionType;
     this.regularOnShift = params.regularOnShift;
     this.color = params.color;
@@ -781,20 +782,20 @@ export class ShapeAction extends ToolActionBase {
     this.isSelectionTool = this.targetLayer === "selection";
   }
 
-  onStart(ev) {
-    this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
+  onStart(e) {
+    this.origin = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
     if (this.isSelectionTool) {
-      this._selectionStart(ev);
+      this._selectionStart(e);
     }
   }
 
-  onMove(ev) {
-    this.dest = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
-    if (this.regularOnShift && ev.shiftKey) {
+  onMove(e) {
+    this.dest = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
+    if (this.regularOnShift && e.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
     };
     if (this.isSelectionTool) {
-      draw(this.layerCanvas.staging.getContext("2d"), {
+      draw(this.utilityCanvas.staging.getContext("2d"), {
         action: this.drawActionType,
         params: {
           orig: this.origin,
@@ -805,7 +806,7 @@ export class ShapeAction extends ToolActionBase {
           clearFirst: true
         }
       })
-      draw(this.layerCanvas.staging.getContext("2d"), {
+      draw(this.utilityCanvas.staging.getContext("2d"), {
         action: this.drawActionType,
         params: {
           orig: this.origin,
@@ -817,7 +818,7 @@ export class ShapeAction extends ToolActionBase {
         }
       })
     } else {
-      draw(this.layerCanvas.staging.getContext("2d"), {
+      draw(this.utilityCanvas.staging.getContext("2d"), {
         action: this.drawActionType,
         params: {
           orig: this.origin,
@@ -834,7 +835,7 @@ export class ShapeAction extends ToolActionBase {
   }
 
   onEnd() {
-    if (canvasIsBlank(this.layerCanvas.staging)) return;
+    if (canvasIsBlank(this.utilityCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (!this.dest) {
         return this.dispatch(updateSelectionPath("clear"));
@@ -870,8 +871,8 @@ export class ShapeAction extends ToolActionBase {
 }
 
 export class EyeDropperAction extends ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.renderOrder = params.renderOrder;
     this.modifier = window.navigator.platform.includes("Mac")
       ? "metaKey"
@@ -879,11 +880,11 @@ export class EyeDropperAction extends ToolActionBase {
     this.usesStaging = false;
   }
 
-  onStart(ev) {
+  onStart(e) {
     let color;
     for (let i = this.renderOrder.length - 1; i >= 0; i--) {
       const ctx = this.layerCanvas[this.renderOrder[i]].getContext("2d");
-      const {x, y} = this._getCoordinates(ev);
+      const {x, y} = this._getCoordinates(e);
       const pixel = ctx.getImageData(x, y, 1, 1);
       const data = pixel.data;
       if (data[3] === 0) {
@@ -894,29 +895,29 @@ export class EyeDropperAction extends ToolActionBase {
       }
     }
     if (color !== undefined) {
-      const palette = ev[this.modifier] ? "secondary" : "primary"
+      const palette = e[this.modifier] ? "secondary" : "primary"
       this.isDrawing = true;
       this.dispatch(updateColor(palette, color))
     };
   }
 
-  onMove(ev) {
+  onMove(e) {
     if (this.isDrawing) {
-      this.start(ev);
+      this.start(e);
     }
   }
 }
 
 export class MoveAction extends ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData) {
-    super(targetLayer, layerCanvas, dispatch, translateData);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.alwaysFire = true;
     this.usesStaging = false;
     this.renderOnEnd = false;
   }
 
-  onStart(ev) {
-    this.origin = {x: ev.screenX, y: ev.screenY};
+  onStart(e) {
+    this.origin = {x: e.screenX, y: e.screenY};
     this.offsetOrigin = {x: this.translateData.offX, y: this.translateData.offY};
     this.offset = this.offsetOrigin;
     this.sizeOrigin = {w: this.layerCanvas[this.targetLayer].width, h: this.layerCanvas[this.targetLayer].height};
@@ -927,10 +928,10 @@ export class MoveAction extends ToolActionBase {
     this.start({screenX: 0, screenY: 0});
   }
 
-  onMove(ev) {
+  onMove(e) {
     if (this.throttle) {return};
-    this._setLockedAxis(ev);
-    let [x, y] = [ev.screenX, ev.screenY]
+    this._setLockedAxis(e);
+    let [x, y] = [e.screenX, e.screenY]
     if (this.lockedAxis === "x") {
       x = this.origin.x;
     } else if (this.lockedAxis === "y") {
@@ -947,6 +948,7 @@ export class MoveAction extends ToolActionBase {
       this.targetLayer,
       null,
       newOffset,
+      "current",
       true
     ));
   }
@@ -979,8 +981,7 @@ export class MoveAction extends ToolActionBase {
       await dispatch(updateLayerPosition(
         this.targetLayer,
         newSize,
-        newOffset,
-        true
+        newOffset
       ));
       if (redrawData) {
         canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
@@ -1015,8 +1016,8 @@ export class MoveAction extends ToolActionBase {
 }
 
 export class FillAction extends ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.colorArray = params.colorArray;
     this.tolerance = params.tolerance;
     this.clip = params.clip;
@@ -1028,8 +1029,8 @@ export class FillAction extends ToolActionBase {
     this.selectionTarget = params.selectionTarget;
   }
 
-  onStart(ev) {
-    const orig = this._getCoordinates(ev);
+  onStart(e) {
+    const orig = this._getCoordinates(e);
     if (
       orig.x < 0 ||
       orig.x > this.translateData.documentWidth ||
@@ -1039,10 +1040,10 @@ export class FillAction extends ToolActionBase {
       return;
     }
     if (this.isSelectionTool) {
-      this._selectionStart(ev);
+      this._selectionStart(e);
       let dataCanvas;
       if (this.selectionTarget === "all") {
-        dataCanvas = this.layerCanvas.main;
+        dataCanvas = this.mainCanvas;
       } else {
         dataCanvas = getCanvas(this.translateData.documentWidth, this.translateData.documentHeight);
         manipulate(dataCanvas.getContext("2d"), {
@@ -1073,7 +1074,7 @@ export class FillAction extends ToolActionBase {
         () => manipulate(this.layerCanvas[this.targetLayer].getContext("2d"), {
           action: "fill",
           params: {
-            orig: this._getCoordinates(ev),
+            orig: this._getCoordinates(e),
             colorArray: this.colorArray,
             tolerance: this.tolerance,
             clip: this.clip,
@@ -1086,22 +1087,22 @@ export class FillAction extends ToolActionBase {
 }
 
 export class CropAction extends ToolActionBase {
-  constructor(targetLayer, layerCanvas, dispatch, translateData, params) {
-    super(targetLayer, layerCanvas, dispatch, translateData);
+  constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
+    super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.clip = params.clip;
   }
 
-  onStart(ev) {
-    this.origin = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
+  onStart(e) {
+    this.origin = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
     this.dispatch(updateSelectionPath("clear"));
   }
 
-  onMove(ev) {
-    this.dest = this._getCoordinates(ev, {autoCrop: this.isSelectionTool});
-    if (ev.shiftKey) {
+  onMove(e) {
+    this.dest = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
+    if (e.shiftKey) {
       this.dest = convertDestToRegularShape(this.origin, this.dest);
     };
-    draw(this.layerCanvas.staging.getContext("2d"), {
+    draw(this.utilityCanvas.staging.getContext("2d"), {
       action: "drawRect",
       params: {
         orig: this.origin,
@@ -1112,7 +1113,7 @@ export class CropAction extends ToolActionBase {
         clearFirst: true
       }
     })
-    draw(this.layerCanvas.staging.getContext("2d"), {
+    draw(this.utilityCanvas.staging.getContext("2d"), {
       action: "drawRect",
       params: {
         orig: this.origin,
@@ -1137,7 +1138,7 @@ export class CropAction extends ToolActionBase {
       }))
     } else {
       if (this.clip) {
-        const rect = getImageRect(this.layerCanvas.placeholder, this.clip, true);
+        const rect = getImageRect(this.utilityCanvas.placeholder, this.clip, true);
         this.dispatch(setCropIsActive(true, {
           startDimensions: rect
         }))

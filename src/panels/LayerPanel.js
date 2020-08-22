@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { PanelTitleSC, scrollbar } from "../styles/shared";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 
 import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
@@ -51,22 +52,32 @@ const LayerPanelButtonSC = styled(Button)`
   width: 80%;
 `
 
-export default function LayerPanel() {
-  const layerSettings = useSelector(state => state.main.present.layerSettings);
-  const renderOrder = useSelector(state => state.main.present.renderOrder);
-  const activeLayer = useSelector(state => state.main.present.activeLayer);
+export default function LayerPanel() {  
+  const [layerSettings, renderOrder, activeLayer] = useSelector(selectFromActiveProject(
+    "layerSettings", "renderOrder", "activeLayer"
+  ));
+
   const lastAction = useSelector(state => state.lastAction);
   const opacity = activeLayer ? layerSettings[activeLayer].opacity : null;
-  const dispatch = useDispatch();
 
+  return (
+    <LayerPanelSC>
+      <TitleSC>Layers</TitleSC>
+      <LayerPanelMainContent layerSettings={layerSettings} renderOrder={renderOrder} />
+      <LayerPanelBottomContent lastAction={lastAction} activeLayer={activeLayer} opacity={opacity} />
+    </LayerPanelSC>
+  );
+}
+
+
+function LayerPanelMainContent({layerSettings, renderOrder}) {
+  const dispatch = useDispatch();
   const onDragEnd = result => {
     const { destination, source } = result;
-    
-    if (!destination) return;
-
     if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
+      !destination ||
+      (destination.droppableId === source.droppableId &&
+      destination.index === source.index)
     ) return;
 
     const src = renderOrder.length - source.index - 1
@@ -75,6 +86,41 @@ export default function LayerPanel() {
     dispatch(updateRenderOrder(src, dest))
     dispatch(render());
   }
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <Droppable droppableId={"layersDroppable"}>
+        {(provided) => (
+          <LayerBoxSC 
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {renderOrder && renderOrder.length !== 0 &&
+              renderOrder
+                .slice()
+                .reverse()
+                .map((layerId, i) => {
+                  let layer = layerSettings[layerId];
+                  return (
+                    <LayerCard
+                      key={layerId}
+                      id={layerId}
+                      index={i}
+                      name={layer.name}
+                      nameEditable={layer.nameEditable}
+                      hidden={layer.hidden}
+                    />
+                  );
+                })}
+            {provided.placeholder}
+          </LayerBoxSC>)}
+      </Droppable>
+    </DragDropContext>
+  )
+}
+
+function LayerPanelBottomContent({ lastAction, activeLayer, opacity }) {
+  const dispatch = useDispatch();
 
   const inputHandler = value => {
     let ignoreHistory = false;
@@ -85,55 +131,23 @@ export default function LayerPanel() {
     ) {
       ignoreHistory = true;
     }
-    dispatch(updateLayerOpacity(activeLayer, value, ignoreHistory));
+    dispatch(updateLayerOpacity(activeLayer, value, "current", ignoreHistory));
     dispatch(render());
   };
 
   return (
-    <LayerPanelSC>
-      <TitleSC>Layers</TitleSC>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId={"layersDroppable"}>
-          {(provided) => (
-            <LayerBoxSC 
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
-              {renderOrder && renderOrder.length !== 0 &&
-                renderOrder
-                  .slice()
-                  .reverse()
-                  .map((layerId, i) => {
-                    if (["staging", "selection", "clipboard"].includes(layerId)) return null;
-                    let layer = layerSettings[layerId];
-                    return (
-                      <LayerCard
-                        key={layerId}
-                        id={layerId}
-                        index={i}
-                        name={layer.name}
-                        nameEditable={layer.nameEditable}
-                        hidden={layer.hidden}
-                      />
-                    );
-                  })}
-              {provided.placeholder}
-            </LayerBoxSC>)}
-        </Droppable>
-      </DragDropContext>
-      <BottomBoxSC>
-        <LayerPanelButtonSC title="New Layer" onClick={() => dispatch(createLayer("top"))}>
-          NEW LAYER
-        </LayerPanelButtonSC>
-        <SelectBlendMode />
-        <SliderInput 
-          onChange={inputHandler}
-          value={opacity}
-          name={"Opacity"}
-          min={0}
-          disabled={opacity === null}
-        />
-      </BottomBoxSC>
-    </LayerPanelSC>
-  );
+    <BottomBoxSC>
+      <LayerPanelButtonSC title="New Layer" onClick={() => dispatch(createLayer("top"))}>
+        NEW LAYER
+      </LayerPanelButtonSC>
+      <SelectBlendMode />
+      <SliderInput 
+        onChange={inputHandler}
+        value={opacity}
+        name={"Opacity"}
+        min={0}
+        disabled={opacity === null}
+      />
+    </BottomBoxSC>
+  )
 }

@@ -5,17 +5,20 @@ import {
 } from "./index";
 import manipulate from "../../reducers/custom/manipulateReducer";
 
-export default function createTransformObject(ev) {
+export default function createTransformObject(e) {
   return (dispatch, getState) => {
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
     const {
       layerCanvas,
       layerSettings,
       activeLayer,
       selectionPath,
-    } = getState().main.present;
+    } = getState().main.projects[activeProject].present;
+    const utilityCanvas = getState().main.utilityCanvas;
 
     const activeCtx = layerCanvas[activeLayer].getContext("2d"),
-      placeholderCtx = layerCanvas.placeholder.getContext("2d");
+      placeholderCtx = utilityCanvas.placeholder.getContext("2d");
 
     manipulate(placeholderCtx, {
       action: "paste",
@@ -41,8 +44,8 @@ export default function createTransformObject(ev) {
       setTransformTarget(activeLayer, {
         startEvent: {
           button: 0,
-          screenX: Math.floor(ev.screenX),
-          screenY: Math.floor(ev.screenY),
+          screenX: Math.floor(e.screenX),
+          screenY: Math.floor(e.screenY),
         },
       })
     );
