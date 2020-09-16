@@ -12,7 +12,7 @@ import {
   setMenuIsDisabled,
   setActiveTool,
   setHistoryIsDisabled,
-} from "../actions/redux/index";
+} from "../actions/redux";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping, isCanvas } from "../utils/helpers";

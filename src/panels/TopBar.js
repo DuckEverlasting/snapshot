@@ -6,7 +6,7 @@ import selectFromActiveProject from "../utils/selectFromActiveProject";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
 import menuAction from "../actions/redux/menuAction";
-import { setOverlay, setExportOptions } from "../actions/redux/index";
+import { setOverlay, setExportOptions } from "../actions/redux";
 
 import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";

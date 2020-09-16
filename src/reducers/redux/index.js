@@ -3,7 +3,7 @@ import mainReducer from "./mainReducer";
 import uiReducer from "./uiReducer";
 import {
   RESET_STATE
-} from "../../actions/redux/index";
+} from "../../actions/redux";
 
 const rootReducer = combineReducers({
   lastAction: lastActionReducer,

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
@@ -23,7 +23,7 @@ const LayerPanelSC = styled.div`
   overflow: hidden;
   border-top: 1px solid black;
   background: #666666;
-  z-index: 1;
+  z-index: ${props => props.isDragging ? 3 : 1};
 `;
 
 const LayerBoxSC = styled.div`
@@ -56,21 +56,22 @@ export default function LayerPanel() {
   const [layerSettings, renderOrder, activeLayer] = useSelector(selectFromActiveProject(
     "layerSettings", "renderOrder", "activeLayer"
   ));
+  const [isDragging, setIsDragging] = useState(false);
 
   const lastAction = useSelector(state => state.lastAction);
   const opacity = activeLayer ? layerSettings[activeLayer].opacity : null;
 
   return (
-    <LayerPanelSC>
+    <LayerPanelSC isDragging={isDragging}>
       <TitleSC>Layers</TitleSC>
-      <LayerPanelMainContent layerSettings={layerSettings} renderOrder={renderOrder} />
+      <LayerPanelMainContent layerSettings={layerSettings} renderOrder={renderOrder} setIsDragging={setIsDragging} />
       <LayerPanelBottomContent lastAction={lastAction} activeLayer={activeLayer} opacity={opacity} />
     </LayerPanelSC>
   );
 }
 
 
-function LayerPanelMainContent({layerSettings, renderOrder}) {
+function LayerPanelMainContent({ layerSettings, renderOrder, setIsDragging }) {
   const dispatch = useDispatch();
   const onDragEnd = result => {
     const { destination, source } = result;
@@ -83,15 +84,16 @@ function LayerPanelMainContent({layerSettings, renderOrder}) {
     const src = renderOrder.length - source.index - 1
     const dest = renderOrder.length - destination.index - 1
 
+    setIsDragging(false);
     dispatch(updateRenderOrder(src, dest))
     dispatch(render());
   }
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext onDragStart={() => setIsDragging(true)} onDragEnd={onDragEnd}>
       <Droppable droppableId={"layersDroppable"}>
         {(provided) => (
-          <LayerBoxSC 
+          <LayerBoxSC
             ref={provided.innerRef}
             {...provided.droppableProps}
           >

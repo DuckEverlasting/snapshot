@@ -64,17 +64,6 @@ const ZoomDisplaySC = styled.div`
   pointer-events: none;
 `;
 
-const NameDisplaySC = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.5);
-  color: rgb(235, 235, 235);
-  padding: 10px 20px;
-  border-bottom-right-radius: 3px;
-  pointer-events: none;
-`;
-
 const CanvasPaneSC = styled.div.attrs((props) => ({
   style: {
     width: props.width,
@@ -668,7 +657,6 @@ export default function Workspace() {
         <CropObject />
       )}
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
-      <NameDisplaySC>{documentName}</NameDisplaySC>
     </WorkspaceSC>
   );
 }

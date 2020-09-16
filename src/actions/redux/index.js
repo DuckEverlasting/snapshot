@@ -1,102 +1,27 @@
 import { getDiff } from "../custom/ctxActions";
 import moveLayer from "../redux/moveLayer";
 
-export const [
-  CREATE_NEW_PROJECT,
-  UNDO,
-  REDO,
-  PUT_HISTORY_DATA,
-  PUT_HISTORY_DATA_MULTIPLE,
-  CREATE_LAYER,
-  CREATE_LAYER_FROM,
-  DELETE_LAYER,
-  HIDE_LAYER,
-  UPDATE_UTILITY_CANVAS,
-  UPDATE_MAIN_CANVAS,
-  UPDATE_SELECTION_PATH,
-  UPDATE_CLIPBOARD_SETTINGS,
-  SET_TRANSFORM_TARGET,
-  SET_TRANSFORM_PARAMS,
-  SET_CROP_IS_ACTIVE,
-  SET_CROP_PARAMS,
-  UPDATE_LAYER_OPACITY,
-  UPDATE_LAYER_BLEND_MODE,
-  UPDATE_RENDER_ORDER,
-  UPDATE_LAYER_POSITION,
-  UPDATE_STAGING_POSITION,
-  SET_ENABLE_LAYER_RENAME,
-  UPDATE_LAYER_NAME,
-  DRAG_LAYERCARD,
-  END_DRAG_LAYERCARD,
-  MAKE_ACTIVE_LAYER,
-  SET_ACTIVE_TOOL,
-  UPDATE_TOOL_SETTINGS,
-  UPDATE_COLOR,
-  SWITCH_COLORS,
-  UPDATE_WORKSPACE_SETTINGS,
-  UPDATE_DOCUMENT_SETTINGS,
-  // MOVE_ALL_LAYERS,
-  SET_CLIPBOARD_IS_USED,
-  SET_OVERLAY,
-  SET_MENU_IS_DISABLED,
-  SET_HISTORY_IS_DISABLED,
-  SET_HELP_TOPIC,
-  SET_IMPORT_IMAGE_FILE,
-  SET_EXPORT_OPTIONS,
-  SET_STAMP_DATA,
-  SET_APP_IS_WAITING,
-  RESET_STATE
-] = [
-  "CREATE_NEW_PROJECT",
-  "UNDO",
-  "REDO",
-  "PUT_HISTORY_DATA",
-  "PUT_HISTORY_DATA_MULTIPLE",
-  "CREATE_LAYER",
-  "CREATE_LAYER_FROM",
-  "DELETE_LAYER",
-  "HIDE_LAYER",
-  "UPDATE_UTILITY_CANVAS",
-  "UPDATE_MAIN_CANVAS",
-  "UPDATE_SELECTION_PATH",
-  "UPDATE_CLIPBOARD_SETTINGS",
-  "SET_TRANSFORM_TARGET",
-  "SET_TRANSFORM_PARAMS",
-  "SET_CROP_IS_ACTIVE",
-  "SET_CROP_PARAMS",
-  "UPDATE_LAYER_OPACITY",
-  "UPDATE_LAYER_BLEND_MODE",
-  "UPDATE_RENDER_ORDER",
-  "UPDATE_LAYER_POSITION",
-  "UPDATE_STAGING_POSITION",
-  "SET_ENABLE_LAYER_RENAME",
-  "UPDATE_LAYER_NAME",
-  "DRAG_LAYERCARD",
-  "END_DRAG_LAYERCARD",
-  "MAKE_ACTIVE_LAYER",
-  "SET_ACTIVE_TOOL",
-  "UPDATE_TOOL_SETTINGS",
-  "UPDATE_COLOR",
-  "SWITCH_COLORS",
-  "UPDATE_WORKSPACE_SETTINGS",
-  "UPDATE_DOCUMENT_SETTINGS",
-  // "MOVE_ALL_LAYERS",
-  "SET_CLIPBOARD_IS_USED",
-  "SET_OVERLAY",
-  "SET_MENU_IS_DISABLED",
-  "SET_HISTORY_IS_DISABLED",
-  "SET_HELP_TOPIC",
-  "SET_IMPORT_IMAGE_FILE",
-  "SET_EXPORT_OPTIONS",
-  "SET_STAMP_DATA",
-  "SET_APP_IS_WAITING",
-  "RESET_STATE"
-];
+import * as t from "./types";
+export * from "./types";
 
 export const createNewProject = (name, width, height) => {
   return {
-    type: CREATE_NEW_PROJECT,
+    type: t.CREATE_NEW_PROJECT,
     payload: {name, width, height}
+  }
+}
+
+export const setActiveProject = (id) => {
+  return {
+    type: t.SET_ACTIVE_PROJECT,
+    payload: id
+  }
+}
+
+export const updateProjectTabOrder = (from, to) => {
+  return {
+    type: t.UPDATE_PROJECT_TAB_ORDER,
+    payload: {from, to}
   }
 }
 
@@ -133,7 +58,7 @@ export const undo = () => {
         }
       }
     }
-    await dispatch({type: UNDO})
+    await dispatch({type: t.UNDO})
     if (prevState && prevState.historyParams && prevState.historyParams.groupWithPrevious) {
       dispatch(undo());
     }
@@ -174,7 +99,7 @@ export const redo = () => {
         }
       }
     }
-    dispatch({type: REDO})
+    dispatch({type: t.REDO})
     if (nextState && nextState.historyParams && nextState.historyParams.groupWithPrevious) {
       dispatch(redo());
     }
@@ -194,7 +119,7 @@ export const putHistoryData = (id, ctx, callback, prevImgData, params={}) => {
     callback();
   }
   return {
-    type: PUT_HISTORY_DATA,
+    type: t.PUT_HISTORY_DATA,
     payload: {id, ...getDiff(ctx, {prevImgData}), params}
   }
 }
@@ -220,21 +145,21 @@ export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[],
   }
   
   return {
-    type: PUT_HISTORY_DATA_MULTIPLE,
+    type: t.PUT_HISTORY_DATA_MULTIPLE,
     payload: {array: differences, params}
   }
 }
 
 export const createLayer = (position, project="current", ignoreHistory=false, params={}) => {
   return {
-    type: CREATE_LAYER,
+    type: t.CREATE_LAYER,
     payload: {position, project, ignoreHistory, params}
   };
 };
 
 export const createLayerFrom = (position, source, project="current", ignoreHistory=false, params={}) => {
   return {
-    type: CREATE_LAYER,
+    type: t.CREATE_LAYER,
     payload: {position, project, source, ignoreHistory, params}
   };
 };
@@ -254,7 +179,7 @@ export const deleteLayer = (id, project="current", ignoreHistory=false) => {
       );
     }
     dispatch({
-      type: DELETE_LAYER,
+      type: t.DELETE_LAYER,
       payload: {id, project, data, ignoreHistory}
     });
   } 
@@ -262,35 +187,35 @@ export const deleteLayer = (id, project="current", ignoreHistory=false) => {
 
 export const hideLayer = (id, project="current") => {
   return {
-    type: HIDE_LAYER,
+    type: t.HIDE_LAYER,
     payload: {id, project}
   };
 };
 
 export const updateUtilityCanvas = (id, changes, ignoreHistory=true) => {
   return {
-    type: UPDATE_UTILITY_CANVAS,
+    type: t.UPDATE_UTILITY_CANVAS,
     payload: {id, changes, ignoreHistory}
   };
 };
 
 export const updateMainCanvas = (changes, project="current", ignoreHistory=true) => {
   return {
-    type: UPDATE_MAIN_CANVAS,
+    type: t.UPDATE_MAIN_CANVAS,
     payload: {changes, project, ignoreHistory}
   };
 };
 
 export const updateSelectionPath = (operation, changes, project="current") => {
   return {
-    type: UPDATE_SELECTION_PATH,
+    type: t.UPDATE_SELECTION_PATH,
     payload: {operation, project, changes, ignoreHistory: false}
   };
 };
 
 export const updateClipboardSettings = (changes) => {
   return {
-    type: UPDATE_SELECTION_PATH,
+    type: t.UPDATE_SELECTION_PATH,
     payload: {changes}
   };
 };
@@ -303,7 +228,7 @@ const defaultTransformParams = {
 
 export const setTransformTarget = (target, params=defaultTransformParams) => {
   return {
-    type: SET_TRANSFORM_TARGET,
+    type: t.SET_TRANSFORM_TARGET,
     payload: {
       params: params ? params : defaultTransformParams,
       target
@@ -313,7 +238,7 @@ export const setTransformTarget = (target, params=defaultTransformParams) => {
 
 export const setTransformParams = (params=defaultTransformParams) => {
   return {
-    type: SET_TRANSFORM_PARAMS,
+    type: t.SET_TRANSFORM_PARAMS,
     payload: {
       params: params ? params : defaultTransformParams
     }
@@ -322,200 +247,187 @@ export const setTransformParams = (params=defaultTransformParams) => {
 
 export const setCropIsActive = (bool, params={}) => {
   return {
-    type: SET_CROP_IS_ACTIVE,
+    type: t.SET_CROP_IS_ACTIVE,
     payload: {bool, params}
   };
 };
 
 export const setCropParams = (params) => {
   return {
-    type: SET_CROP_PARAMS,
+    type: t.SET_CROP_PARAMS,
     payload: params
   };
 };
 
 export const updateLayerOpacity = (id, opacity, project="current", ignoreHistory=false) => {
   return {
-    type: UPDATE_LAYER_OPACITY,
+    type: t.UPDATE_LAYER_OPACITY,
     payload: {id, project, opacity, ignoreHistory}
   };
 };
 
 export const updateLayerBlendMode = (id, blend, project="current", ignoreHistory=false) => {
   return {
-    type: UPDATE_LAYER_BLEND_MODE,
+    type: t.UPDATE_LAYER_BLEND_MODE,
     payload: {id, project, blend, ignoreHistory}
   };
 };
 
 export const updateRenderOrder = (from, to, project="current", ignoreHistory=false) => {
   return {
-    type: UPDATE_RENDER_ORDER,
+    type: t.UPDATE_RENDER_ORDER,
     payload: {from, to, project, ignoreHistory}
   };
 };
 
 export const updateLayerPosition = (id, size, offset, project="current", ignoreHistory=true) => {
   return {
-    type: UPDATE_LAYER_POSITION,
+    type: t.UPDATE_LAYER_POSITION,
     payload: {id, project, size, offset, ignoreHistory}
   };
 };
 
 export const updateStagingPosition = id => {
   return {
-    type: UPDATE_STAGING_POSITION,
+    type: t.UPDATE_STAGING_POSITION,
     payload: {id, ignoreHistory: true}
   };
 };
 
 export const setEnableLayerRename = (id, project="current", renamable=true) => {
   return {
-    type: SET_ENABLE_LAYER_RENAME,
+    type: t.SET_ENABLE_LAYER_RENAME,
     payload: {id, project, renamable, ignoreHistory: true}
   };
 };
 
 export const updateLayerName = (id, project="current", name) => {
   return {
-    type: UPDATE_LAYER_NAME,
+    type: t.UPDATE_LAYER_NAME,
     payload: {id, project, name}
   };
 };
 
-export const dragLayercard = position => {
-  return {
-    type: DRAG_LAYERCARD,
-    payload: position
-  };
-}
-
-export const endDragLayercard = () => {
-  return {
-    type: END_DRAG_LAYERCARD
-  };
-}
-
 export const makeActiveLayer = (layerId, project="current") => {
   return {
-    type: MAKE_ACTIVE_LAYER,
+    type: t.MAKE_ACTIVE_LAYER,
     payload: {layerId, project, ignoreHistory: true}
   };
 };
 
 export const setActiveTool = slug => {
   return {
-    type: SET_ACTIVE_TOOL,
+    type: t.SET_ACTIVE_TOOL,
     payload: slug
   };
 };
 
 export const updateToolSettings = (tool, changes) => {
   return {
-    type: UPDATE_TOOL_SETTINGS,
+    type: t.UPDATE_TOOL_SETTINGS,
     payload: {tool, changes}
   };
 };
 
 export const updateColor = (key, value) => {
   return {
-    type: UPDATE_COLOR,
+    type: t.UPDATE_COLOR,
     payload: {key, value}
   };
 };
 
 export const switchColors = () => {
   return {
-    type: SWITCH_COLORS
+    type: t.SWITCH_COLORS
   };
 };
 
 export const updateWorkspaceSettings = (changes) => {
   return {
-    type: UPDATE_WORKSPACE_SETTINGS,
+    type: t.UPDATE_WORKSPACE_SETTINGS,
     payload: changes
   }
 }
 
 export const updateDocumentSettings = (changes, project="current", ignoreHistory=false) => {
   return {
-    type: UPDATE_DOCUMENT_SETTINGS,
+    type: t.UPDATE_DOCUMENT_SETTINGS,
     payload: {changes, project, ignoreHistory}
   }
 }
 
 // export const moveAllLayers = (offsetDelta, project="current", ignoreHistory=true) => {
 //   return {
-//     type: MOVE_ALL_LAYERS,
+//     type: t.MOVE_ALL_LAYERS,
 //     payload: {offsetDelta, project, ignoreHistory}
 //   }
 // }
 
 export const setClipboardIsUsed = bool => {
   return {
-    type: SET_CLIPBOARD_IS_USED,
+    type: t.SET_CLIPBOARD_IS_USED,
     payload: {bool, ignoreHistory: true}
   }
 }
 
 export const setOverlay = (overlay, params={}) => {
   return {
-    type: SET_OVERLAY,
+    type: t.SET_OVERLAY,
     payload: {overlay, params}
   }
 }
 
 export const setMenuIsDisabled = bool => {
   return {
-    type: SET_MENU_IS_DISABLED,
+    type: t.SET_MENU_IS_DISABLED,
     payload: bool
   }
 }
 
 export const setHistoryIsDisabled = (bool, project="current") => {
   return {
-    type: SET_HISTORY_IS_DISABLED,
+    type: t.SET_HISTORY_IS_DISABLED,
     payload: {bool, project, ignoreHistory: true}
   }
 }
 
 export const setHelpTopic = (topic=null) => {
   return {
-    type: SET_HELP_TOPIC,
+    type: t.SET_HELP_TOPIC,
     payload: topic
   }
 }
 
 export const setImportImageFile = (file) => {
   return {
-    type: SET_IMPORT_IMAGE_FILE,
+    type: t.SET_IMPORT_IMAGE_FILE,
     payload: file
   }
 }
 
 export const setExportOptions = (type=null, compression=null) => {
   return {
-    type: SET_EXPORT_OPTIONS,
+    type: t.SET_EXPORT_OPTIONS,
     payload: { type, compression }
   }
 }
 
 export const setStampData = (changes, ignoreHistory=true) => {
   return {
-    type: SET_STAMP_DATA,
+    type: t.SET_STAMP_DATA,
     payload: { changes, ignoreHistory }
   }
 }
 
 export const setAppIsWaiting = bool => {
   return {
-    type: SET_APP_IS_WAITING,
+    type: t.SET_APP_IS_WAITING,
     payload: bool
   }
 }
 
 export const resetState = () => {
   return {
-    type: RESET_STATE
+    type: t.RESET_STATE
   }
 }

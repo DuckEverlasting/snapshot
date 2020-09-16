@@ -4,7 +4,7 @@ import {
   PUT_HISTORY_DATA,
   PUT_HISTORY_DATA_MULTIPLE,
   RESET_STATE
-} from "../../actions/redux/index";
+} from "../../actions/redux";
 
 export default function undoable(reducer, { filter = () => true, limit = 20 }) {
   const getInitState = () => ({

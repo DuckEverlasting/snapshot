@@ -1,5 +1,7 @@
 import {
   CREATE_NEW_PROJECT,
+  SET_ACTIVE_PROJECT,
+  UPDATE_PROJECT_TAB_ORDER,
   UPDATE_UTILITY_CANVAS,
   UPDATE_STAGING_POSITION,
   SET_STAMP_DATA,
@@ -31,6 +33,7 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
   switch (type) {
     case CREATE_NEW_PROJECT:
       const id = uuidv4();
+      console.log(id);
       return {
         ...state,
         projects: {
@@ -40,6 +43,24 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
         projectTabOrder: [...state.projectTabOrder, id],
         activeProject: id
       }
+
+    case SET_ACTIVE_PROJECT:
+      return {
+        ...state,
+        activeProject: payload
+      }
+    
+    case UPDATE_PROJECT_TAB_ORDER:
+      let { from, to } = payload;
+      console.log(payload)
+      let newOrder = state.projectTabOrder.slice();
+      newOrder.splice(to, 0, newOrder.splice(from, 1)[0]);
+      console.log(newOrder)
+      return {
+        ...state,
+        projectTabOrder: newOrder
+      };
+    
     case UPDATE_UTILITY_CANVAS:
       return {
         ...state,

@@ -23,7 +23,8 @@ const LayerCardSC = styled.div.attrs(props => ({
   }
 }))`
   position: relative;
-  border: 1px solid black;
+  border: ${props => props.isDragging ? "1px solid black" : 0};
+  border-bottom: 1px solid black;
   color: black;
   cursor: pointer;
 `;
@@ -128,13 +129,14 @@ export default function LayerCard(props) {
 
   return (
     <Draggable draggableId={props.id} index={props.index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <LayerCardSC
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           ref={provided.innerRef}
           onClick={clickHandler}
           active={props.id === activeLayer}
+          isDragging={snapshot.isDragging && !snapshot.isDropAnimating}
           layerHidden={props.hidden}
         >
           <HideButtonSC title="Hide Layer" onClick={hideHandler}>

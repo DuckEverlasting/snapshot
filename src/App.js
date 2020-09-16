@@ -6,10 +6,7 @@ import styled from "styled-components";
 import OverlayHandler from "./components/OverlayHandler.js";
 import WaitScreen from "./components/WaitScreen.js";
 import TopBar from "./panels/TopBar.js";
-import Workspace from "./panels/Workspace.js";
-import EmptyWorkspace from "./panels/EmptyWorkspace.js";
-import ToolPanel from "./panels/ToolPanel.js";
-import LayerPanel from "./panels/LayerPanel.js";
+import { Workspace, EmptyWorkspace, ToolPanel, LayerPanel, ProjectBar } from "./panels";
 
 import { setActiveTool } from "./actions/redux";
 import menuAction from "./actions/redux/menuAction";
@@ -39,6 +36,12 @@ const AppContainerSC = styled.div`
   align-items: stretch;
   user-select: none;
 `;
+
+const CenterSC = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+`
 
 function App() {
   const overlay = useSelector(state => state.ui.overlay);
@@ -77,7 +80,10 @@ function App() {
       <TopBar />
       <AppContainerSC>
         <ToolPanel />
-        {activeProject ? <Workspace /> : <EmptyWorkspace />}
+        <CenterSC>
+          <ProjectBar />
+          {activeProject ? <Workspace /> : <EmptyWorkspace />}
+        </CenterSC>
         <LayerPanel />
         <OverlayHandler />
       </AppContainerSC>

@@ -1,4 +1,4 @@
-import { putHistoryData, updateStagingPosition } from "../actions/redux/index";
+import { putHistoryData, updateStagingPosition } from "../actions/redux";
 
 import render from "../actions/redux/renderCanvas";
 

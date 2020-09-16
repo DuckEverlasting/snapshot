@@ -17,7 +17,7 @@ import {
   setStampData,
   putHistoryData,
   setCropIsActive
-} from "../actions/redux/index";
+} from "../actions/redux";
 
 import draw from "../reducers/custom/drawingReducer";
 import manipulate from "../reducers/custom/manipulateReducer";
