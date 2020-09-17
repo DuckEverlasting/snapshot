@@ -98,7 +98,7 @@ export default function Workspace() {
   const primary = useSelector((state) => state.ui.colorSettings.primary);
   const { activeTool, toolSettings, transformTarget, cropIsActive } = useSelector((state) => state.ui);
   const activeProject = useSelector(state => state.main.activeProject);
-  const { documentWidth, documentHeight, documentName } = useSelector((state) => state.main.projects[activeProject].present.documentSettings);
+  const { documentWidth, documentHeight } = useSelector((state) => state.main.projects[activeProject].present.documentSettings);
   const [activeLayer, selectionPath, selectionActive, layerCanvas, layerSettings, renderOrder, stampData] = useSelector(
     selectFromActiveProject("activeLayer", "selectionPath", "selectionActive", "layerCanvas", "layerSettings", "renderOrder", "stampData")
   );
@@ -182,15 +182,6 @@ export default function Workspace() {
 
   function buildAction() {
     switch (activeTool) {
-      // case "pencil":
-      //   if (!activeLayer) {return}
-      //   return new PencilAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
-      //     width: toolSettings.pencil.width,
-      //     color: addOpacity(primary, toolSettings.pencil.opacity / 100),
-      //     clip: selectionPath,
-      //     lastEndpoint,
-      //     setLastEndpoint
-      //   });
       case "pencil":
         if (!activeLayer) {return}
         if (toolSettings.pencil.smooth) {
@@ -613,11 +604,6 @@ export default function Workspace() {
       cursor={getCursor(isDragging ? "activeHand" : activeTool, keys)}
     >
       <DropZone onDrop={handleDrop} />
-      {/* <PixelGrid
-        sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50: 1}
-        sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
-        correction={correction}
-      /> */}
       <CanvasPaneSC
         ref={refRef}
         translateX={translateX}

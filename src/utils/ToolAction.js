@@ -234,7 +234,7 @@ export class PencilAction extends FreeDrawAction {
       });
       draw(this.utilityCanvas.staging.getContext("2d"), {
         action: "drawQuad",
-        params: {...params, dashOffset: 7}
+        params: {...params, strokeColor: "rgba(255, 255, 255, 1)", dashOffset: 7, clearFirst: false}
       });
     } else {
       draw(this.utilityCanvas.staging.getContext("2d"), {
