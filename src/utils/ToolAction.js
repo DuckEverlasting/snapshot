@@ -214,6 +214,18 @@ export class PencilAction extends FreeDrawAction {
     } else {
       this.destArray = [this.origin];
     }
+    draw(this.utilityCanvas.staging.getContext("2d"), {
+      action: "drawQuad",
+      params: {
+        destArray: this.destArray,
+        orig: this.destArray[0],
+        width: this.width,
+        strokeColor: this.color,
+        clip: this.clip,
+        clipOffset: {x: this.translateData.offX, y: this.translateData.offY},
+        clearFirst: true
+      }
+    });
   }
 
   onMove() {
@@ -266,7 +278,7 @@ export class PencilAction extends FreeDrawAction {
       this.dispatch(updateSelectionPath(this.selectionOperation, path));
     } else {
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
-      if (this.destArray.length > 1) {
+      if (this.destArray.length > 0) {
         this.dispatch(putHistoryData(
           this.targetLayer,
           activeCtx,
