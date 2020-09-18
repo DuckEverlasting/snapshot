@@ -2,6 +2,7 @@ import {
   CREATE_NEW_PROJECT,
   SET_ACTIVE_PROJECT,
   UPDATE_PROJECT_TAB_ORDER,
+  UPDATE_MAIN_CANVAS,
   UPDATE_UTILITY_CANVAS,
   UPDATE_STAGING_POSITION,
   SET_STAMP_DATA,
@@ -33,7 +34,11 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
   switch (type) {
     case CREATE_NEW_PROJECT:
       const id = uuidv4();
-      console.log(id);
+      state.utilityCanvas.placeholder.width = payload.width;
+      state.utilityCanvas.staging.width = payload.width;
+      state.utilityCanvas.placeholder.height = payload.height;
+      state.utilityCanvas.staging.height = payload.height;
+      
       return {
         ...state,
         projects: {
@@ -45,10 +50,27 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
       }
 
     case SET_ACTIVE_PROJECT:
+      const newActiveWidth = state.projects[payload].present.documentSettings.documentWidth,
+        newActiveHeight = state.projects[payload].present.documentSettings.documentHeight;
+
+      state.mainCanvas.width = newActiveWidth;
+      state.utilityCanvas.placeholder.width = newActiveWidth;
+      state.utilityCanvas.staging.width = newActiveWidth;
+      state.mainCanvas.height = newActiveHeight;
+      state.utilityCanvas.placeholder.height = newActiveHeight;
+      state.utilityCanvas.staging.height = newActiveHeight;
+
       return {
         ...state,
         activeProject: payload
       }
+
+    case UPDATE_MAIN_CANVAS:
+      console.log("YO")
+      return {
+        ...state,
+        mainCanvas: payload
+      };
     
     case UPDATE_PROJECT_TAB_ORDER:
       let { from, to } = payload;

@@ -199,10 +199,10 @@ export const updateUtilityCanvas = (id, changes, ignoreHistory=true) => {
   };
 };
 
-export const updateMainCanvas = (changes, project="current", ignoreHistory=true) => {
+export const updateMainCanvas = changes => {
   return {
     type: t.UPDATE_MAIN_CANVAS,
-    payload: {changes, project, ignoreHistory}
+    payload: changes
   };
 };
 

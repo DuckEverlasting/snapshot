@@ -2,7 +2,6 @@ import {
   CREATE_LAYER,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_MAIN_CANVAS,
   UPDATE_SELECTION_PATH,
   UPDATE_LAYER_OPACITY,
   UPDATE_LAYER_BLEND_MODE,
@@ -14,7 +13,7 @@ import {
   UPDATE_DOCUMENT_SETTINGS,
   // MOVE_ALL_LAYERS,
   SET_HISTORY_IS_DISABLED
-} from "../../actions/redux";
+} from "../../actions/redux/types";
 
 import undoable from "./undoable";
 import { MarchingSquaresAllPaths } from "../../utils/marchingSquaresAllPaths";
@@ -93,12 +92,6 @@ const projectReducer = (state = {}, {type, payload}) => {
         activeLayer
       }
 
-    case UPDATE_MAIN_CANVAS:
-      return {
-        ...state,
-        mainCanvas: payload.changes
-      };
-
     case UPDATE_SELECTION_PATH:
       let newPath, selectionIsActive, newPreviousSelection;
 
@@ -154,8 +147,8 @@ const projectReducer = (state = {}, {type, payload}) => {
         newPreviousSelection = state.selectionPath;
       } else {
         const maskCanvas = getMaskCanvas(
-          state.mainCanvas.width, 
-          state.mainCanvas.height, 
+          state.documentSettings.documentWidth, 
+          state.documentSettings.documentHeight,
           payload.operation,
           state.selectionActive ? new Path2D(state.selectionPath) : null,
           payload.changes

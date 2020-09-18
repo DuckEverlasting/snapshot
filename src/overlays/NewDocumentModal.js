@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { setOverlay, createNewProject, updateDocumentSettings } from "../actions/redux";
+import { setOverlay, createNewProject } from "../actions/redux";
+import render from "../actions/redux/renderCanvas";
 
 import Button from "../components/Button";
 import NumberInput from "../components/NumberInput";
@@ -29,8 +30,8 @@ export default function NewDocumentModal() {
 
   const documentSettings = useSelector(selectFromActiveProject("documentSettings"));
   const {documentWidth, documentHeight} = documentSettings ? documentSettings : {};
-  const [width, setWidth] = useState(documentWidth);
-  const [height, setHeight] = useState(documentHeight);
+  const [width, setWidth] = useState(documentWidth || 500);
+  const [height, setHeight] = useState(documentHeight || 500);
   const [name, setName] = useState("My Great Document")
 
   function handleCreate(e) {
@@ -40,13 +41,10 @@ export default function NewDocumentModal() {
 
   function create() {
     dispatch(async dispatch => {
-      await dispatch(createNewProject());
-      dispatch(updateDocumentSettings({
-        documentWidth: width,
-        documentHeight: height,
-        documentName: name
-      }, "current", true));
+      await dispatch(createNewProject(name, width, height));
+      dispatch(render());
     });
+    dispatch(setOverlay(null));
   }
   
   function handleCancel(e) {
@@ -55,7 +53,7 @@ export default function NewDocumentModal() {
   }
 
   function cancel() {
-    dispatch(setOverlay("newDocument"));
+    dispatch(setOverlay(null));
   }
 
   function handleInput(e, type) {

@@ -21,7 +21,6 @@ const TopBarSC = styled.div`
   position: relative;
   display: flex;
   justify-content: space-between;
-  z-index: ${props => props.overlay ? 1 : 3};
   pointer-events: ${props => props.overlay ? "none" : "auto"};
 `;
 

@@ -23,7 +23,6 @@ export const getInitProjectState = (id, name="My Great Document", width=getInitW
       documentHeight: height,
       documentName: name
     },
-    mainCanvas: null,
     layerCanvas: {
       1: getCanvas(width, height)
     },
@@ -60,6 +59,7 @@ export const getInitMainState = (width=getInitWidth(), height=getInitHeight(), i
     projects: initProject ? {[initProject.id]: initProject} : {},
     projectTabOrder: initProject ? [initProject.id] : [],
     activeProject: initProject ? initProject.id : null,
+    mainCanvas: null,
     utilityCanvas: {
       clipboard: getCanvas(width, height),
       placeholder: getCanvas(width, height),
@@ -119,7 +119,7 @@ export const getInitUiState = () => ({
   },
   draggedLayercard: null,
   activeTool: "pencil",
-  overlay: null,
+  overlay: "newDocument",
   menuIsDisabled: false,
   currentHelpTopic: "tools",
   currentFilter: null,

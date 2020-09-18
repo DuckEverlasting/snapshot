@@ -1039,6 +1039,7 @@ export class FillAction extends ToolActionBase {
     this.renderOnEnd = false;
     this.isSelectionTool = this.targetLayer === "selection";
     this.selectionTarget = params.selectionTarget;
+    this.mainCanvas = params.mainCanvas
   }
 
   onStart(e) {

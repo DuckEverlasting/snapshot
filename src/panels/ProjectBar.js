@@ -83,9 +83,11 @@ export default function ProjectBar() {
     dispatch(updateProjectTabOrder(source.index, destination.index))
   }
 
-  const handleClick = async (projectId) => {
-    dispatch(setActiveProject(projectId));
-    return dispatch(render());
+  const handleClick = projectId => {
+    dispatch(async dispatch => {
+      await dispatch(setActiveProject(projectId));
+      dispatch(render());
+    });
   }
 
   return (

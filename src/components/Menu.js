@@ -45,6 +45,7 @@ const MenuPanelSC = styled.div`
   position: absolute;
   background: ${(props) => props.color};
   padding: ${(props) => props.size * 4}px 0;
+  z-index: 4;
 `;
 const MenuLabelSC = styled.div`
   display: flex;

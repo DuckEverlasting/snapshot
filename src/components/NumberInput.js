@@ -44,6 +44,10 @@ export default function NumberInput({
     }
   }
 
+  function clickHandler(e) {
+    e.target.select();
+  }
+
   function inputHandler(e) {
     let newValue = Number(e.target.value);
     if (e.target.value === "-" || e.target.value === "") {
@@ -80,6 +84,7 @@ export default function NumberInput({
         <span>{name}</span>
         <PickerSC
           value={parseValue(value)}
+          onClick={clickHandler}
           onKeyDown={keydownHandler}
           onChange={inputHandler}
           onBlur={blurHandler}

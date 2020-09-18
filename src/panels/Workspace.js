@@ -89,7 +89,6 @@ const CanvasPaneSC = styled.div.attrs((props) => ({
 let animationFrame = 0;
 let lastFrame = 0;
 let currentAction = null;
-// let isDrawing = false;
 
 export default function Workspace() {
   const { translateX, translateY, zoomPct } = useSelector(
@@ -98,6 +97,7 @@ export default function Workspace() {
   const primary = useSelector((state) => state.ui.colorSettings.primary);
   const { activeTool, toolSettings, transformTarget, cropIsActive } = useSelector((state) => state.ui);
   const activeProject = useSelector(state => state.main.activeProject);
+  const mainCanvas = useSelector(state => state.main.mainCanvas);
   const { documentWidth, documentHeight } = useSelector((state) => state.main.projects[activeProject].present.documentSettings);
   const [activeLayer, selectionPath, selectionActive, layerCanvas, layerSettings, renderOrder, stampData] = useSelector(
     selectFromActiveProject("activeLayer", "selectionPath", "selectionActive", "layerCanvas", "layerSettings", "renderOrder", "stampData")
@@ -166,19 +166,6 @@ export default function Workspace() {
       Math.max(minY, Math.min(maxY, translateY))
     ]
   }
-
-  // function eventIsWithinCanvas(e) {
-  //   const translateData = getTranslateData(),
-  //     x = Math.floor(e.nativeEvent.offsetX) - translateData.x,
-  //     y = Math.floor(e.nativeEvent.offsetY) - translateData.y;
-
-  //   return (
-  //     x > 0 &&
-  //     y > 0 &&
-  //     x < (documentWidth * zoomPct) / 100 &&
-  //     y < (documentHeight * zoomPct) / 100
-  //   );
-  // }
 
   function buildAction() {
     switch (activeTool) {
@@ -318,7 +305,8 @@ export default function Workspace() {
         if (!activeLayer) {return}
         return new FillAction("selection", layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           tolerance: toolSettings.selectionFill.tolerance,
-          selectionTarget: toolSettings.selectionFill.targetAll ? "all" : activeLayer
+          selectionTarget: toolSettings.selectionFill.targetAll ? "all" : activeLayer,
+          mainCanvas
         });
       case "saturate":
         if (!activeLayer) {return}
@@ -610,8 +598,6 @@ export default function Workspace() {
         translateY={translateY}
         width={documentWidth}
         height={documentHeight}
-        workspaceWidth={workspaceDimensions.w}
-        workspaceHeight={workspaceDimensions.h}
         zoomPct={zoomPct}
       >
         <MainCanvas />

@@ -32,7 +32,7 @@ export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
     const activeProject = getState().main.activeProject;
     if (!activeProject) {return;}
-    const mainCanvas = getState().main.projects[activeProject].present.mainCanvas,
+    const mainCanvas = getState().main.mainCanvas,
       fileName = getState().main.projects[activeProject].present.documentSettings.documentName;
 
     const href = mainCanvas.toDataURL(type, compression);
@@ -102,7 +102,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
           documentWidth: width,
           documentHeight: height,
         }
-        const action = new MoveAction(targetLayer, layerCanvas, dispatch, translateData);
+        const action = new MoveAction(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
         action.manualStart();
         action.manualEnd({x: -parsedOffset.x, y: -parsedOffset.y}, true);
       })
@@ -298,7 +298,7 @@ export default function menuAction(action) {
       return (dispatch, getState) => {
         const activeProject = getState().main.activeProject;
         if (!activeProject) {return;}
-        const mainCanvas = getState().main.projects[activeProject].present.mainCanvas,
+        const mainCanvas = getState().main.mainCanvas,
           { type, compression } = getState().ui.exportOptions,
           fileName = getState().main.projects[activeProject].present.documentSettings.documentName;
 
