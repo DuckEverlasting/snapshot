@@ -74,6 +74,7 @@ export default function LayerPanel() {
 function LayerPanelMainContent({ layerSettings, renderOrder, setIsDragging }) {
   const dispatch = useDispatch();
   const onDragEnd = result => {
+    setIsDragging(false);
     const { destination, source } = result;
     if (
       !destination ||
@@ -84,7 +85,6 @@ function LayerPanelMainContent({ layerSettings, renderOrder, setIsDragging }) {
     const src = renderOrder.length - source.index - 1
     const dest = renderOrder.length - destination.index - 1
 
-    setIsDragging(false);
     dispatch(updateRenderOrder(src, dest))
     dispatch(render());
   }

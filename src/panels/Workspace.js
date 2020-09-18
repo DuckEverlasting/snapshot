@@ -114,6 +114,10 @@ export default function Workspace() {
     ctrl: false,
     alt: false,
   });
+  const [cursorState, setCursorState] = useState({
+    button: null,
+    buttons: 0
+  });
   const workspaceRef = useRef(null);
   const refRef = useRef(null);
 
@@ -493,6 +497,7 @@ export default function Workspace() {
   useEventListener("keyup", handleKeys);
 
   const handleMouseDown = (e) => {
+    setCursorState({button: e.button, buttons: e.buttons});
     if (e.buttons === 4 || activeTool === "hand") {
       setIsDragging(true);
       setDragOrigin({
@@ -513,6 +518,7 @@ export default function Workspace() {
   };
 
   const handleMouseLeave = (e) => {
+    setCursorState({button: null, buttons: 0});
     if (currentAction && e.buttons === 1) {
       // if (isDrawing) {
       //   currentAction.end();
@@ -547,6 +553,7 @@ export default function Workspace() {
   };
 
   const handleMouseUp = (e) => {
+    setCursorState({button: e.button, buttons: e.buttons});
     if (e.button === 1 || (e.button === 0 && activeTool === "hand")) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
@@ -589,7 +596,7 @@ export default function Workspace() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
-      cursor={getCursor(isDragging ? "activeHand" : activeTool, keys)}
+      cursor={getCursor(isDragging ? "activeHand" : activeTool, keys, cursorState)}
     >
       <DropZone onDrop={handleDrop} />
       <CanvasPaneSC

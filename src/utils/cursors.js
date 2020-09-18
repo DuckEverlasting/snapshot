@@ -7,7 +7,7 @@ import smallArrowPlusImg from "../cursors/small_arrow_plus.png";
 import smallArrowMinusImg from "../cursors/small_arrow_minus.png";
 import smallArrowCrossImg from "../cursors/small_arrow_cross.png";
 
-export default function getCursor(cursorName, keys) {
+export default function getCursor(cursorName, keys, cursorState) {
   function getSelectionArrow() {
     if (keys.alt && keys.shift) {
       return smallArrowCrossImg
@@ -18,6 +18,9 @@ export default function getCursor(cursorName, keys) {
     } else {
       return smallArrowImg
     }
+  }
+  if (cursorState.button === 1 && cursorState.buttons === 4) {
+    return "grabbing";
   }
   switch (cursorName) {
     case "pencil":
