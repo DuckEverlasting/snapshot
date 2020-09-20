@@ -130,17 +130,25 @@ function getMotionBlurArray(size, angle) {
   return result;
 }
 
+/**
+ * Adds a horizontal or vertical motion blur to an array of pixel data.
+ * 
+ * @param {Uint8ClampedArray} data 
+ * @param {number} size - In this case size refers to the radius of the blur.
+ * @param {number} width 
+ * @param {"horizontal" | "vertical"} type 
+ */
 function motionBlurPerpendicular(data, size, width, type) {
   const dataCopy = new Uint8ClampedArray(data),
-    listCount = type === "horizontal" ? data.length / (width*4) : width,
-    listLength = type === "horizontal" ? width : data.length / (width*4),
+    lineCount = type === "horizontal" ? data.length / (width*4) : width,
+    lineLength = type === "horizontal" ? width : data.length / (width*4),
     increment = type === "horizontal" ? 1 : width;
 
-  for (let listIndex=0; listIndex<listCount; listIndex++) {
+  for (let lineIndex=0; lineIndex<lineCount; lineIndex++) {
     let current = 0,
       currentIndex = type === "horizontal" ?
-        listIndex * width * 4 :
-        listIndex * 4,
+        lineIndex * width * 4 :
+        lineIndex * 4,
       count = size + 1,
       total = [
         dataCopy[currentIndex],
@@ -149,20 +157,24 @@ function motionBlurPerpendicular(data, size, width, type) {
         dataCopy[currentIndex + 3]
       ];
 
+    // initialize "total" array
     for (let i=increment*4; i<=size*increment*4; i+=increment*4) {
       for (let j=0; j<4; j++) {
         total[j] += dataCopy[currentIndex + i + j] 
       }
     }
 
+    // set data for first point
     total.forEach((num, i) => {
       data[currentIndex + i] = num / count;  
     });
 
-    while (current + 1 < listLength) {
+    // use a sliding window to update rest of points in line
+    while (current + 1 < lineLength) {
       current++;
       currentIndex += increment * 4;
-      if (current + size + 1 > listLength) {
+      // these conditionals handle edge cases where the blur would go beyond the line
+      if (current + size + 1 > lineLength) {
         count--;
       } else {
         for (let i=0; i<4; i++) {
