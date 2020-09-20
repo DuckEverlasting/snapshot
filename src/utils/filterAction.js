@@ -4,10 +4,13 @@ import render from "../actions/redux/renderCanvas";
 
 export default function filterAction(apply, input, preview) {
   return (dispatch, getState) => {
-    const { activeLayer, selectionPath, stagingPinnedTo } = getState().main.present;
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
+    const stagingPinnedTo = getState.main.stagingPinnedTo;
+    const { activeLayer, selectionPath } = getState().main.projects[activeProject].present;
     if (!activeLayer) return;
-    const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
-    const stagingCtx = getState().main.present.layerCanvas.staging.getContext("2d");
+    const ctx = getState().main.projects[activeProject].present.layerCanvas[activeLayer].getContext("2d");
+    const stagingCtx = getState().main.utilityCanvas.staging.getContext("2d");
     if (stagingPinnedTo !== activeLayer) dispatch(updateStagingPosition(activeLayer));
     if (preview) {
       previewFilter(ctx, {

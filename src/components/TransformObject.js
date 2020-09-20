@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 import useEventListener from "../hooks/useEventListener";
 import menuAction from "../actions/redux/menuAction";
 import manipulate from "../reducers/custom/manipulateReducer";
@@ -197,8 +198,10 @@ export default function TransformObject({
       zoom: settings.zoomPct / 100,
     };
   });
-  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
-  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const [documentSettings, activeLayer] = useSelector(selectFromActiveProject(
+    "documentSettings", "activeLayer"
+  ));
+  const { documentWidth, documentHeight } = documentSettings ? documentSettings : {};
   const activeTool = useSelector(state => state.ui.activeTool);
 
   const [initLayer, ] = useState(activeLayer);
@@ -298,12 +301,12 @@ export default function TransformObject({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTool, activeLayer, initLayer, initialized]);
 
-  function handleMouseDown(ev, actionType) {
-    if (ev.button !== 0) return;
-    ev.stopPropagation && ev.stopPropagation();
+  function handleMouseDown(e, actionType) {
+    if (e.button !== 0) return;
+    e.stopPropagation && e.stopPropagation();
     if (!actionType) return;
     currentTransformAction = transformActionFactory(
-      ev,
+      e,
       { 
         size,
         setSize,
@@ -318,14 +321,14 @@ export default function TransformObject({
       },
       { actionType }
     );
-    currentTransformAction.start(ev);
+    currentTransformAction.start(e);
   }
 
-  function handleMouseMove(ev) {
+  function handleMouseMove(e) {
     if (!currentTransformAction) {
       return;
     }
-    currentTransformAction.move(ev);
+    currentTransformAction.move(e);
   }
 
   function handleMouseUp() {
@@ -340,16 +343,16 @@ export default function TransformObject({
   }
 
   const handleKeyDown = useCallback(
-    (ev) => {
-      ev.preventDefault();
+    (e) => {
+      e.preventDefault();
       let modifier = window.navigator.platform.includes("Mac")
-        ? ev.metaKey
-        : ev.ctrlKey;
-      if (ev.key === "Escape") {
+        ? e.metaKey
+        : e.ctrlKey;
+      if (e.key === "Escape") {
         cancel();
-      } else if (ev.key === "Enter") {
+      } else if (e.key === "Enter") {
         apply();
-      } else if (modifier && ev.key === "r") {
+      } else if (modifier && e.key === "r") {
         dispatch(setTransformParams({resizable: true, rotatable: true}))
       }
     },
@@ -388,12 +391,12 @@ export default function TransformObject({
 
   return (
     <BoundingBoxSC
-      onMouseDown={(ev) => handleMouseDown(ev, rotatable ? "rotate" : null)}
+      onMouseDown={(e) => handleMouseDown(e, rotatable ? "rotate" : null)}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onKeyDown={handleKeyDown}
-      onDragOver={(ev) => ev.preventDefault()}
-      onDrop={(ev) => ev.preventDefault()}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
       overrideCursor={
         currentTransformAction ? currentTransformAction.actionType : null
       }
@@ -404,7 +407,7 @@ export default function TransformObject({
         zoom={zoom}
         anchorPoint={anchorPoint}
         rotation={rotation}
-        onMouseDown={(ev) => handleMouseDown(ev, "move")}
+        onMouseDown={(e) => handleMouseDown(e, "move")}
         overrideCursor={
           currentTransformAction ? currentTransformAction.actionType : null
         }
@@ -424,35 +427,35 @@ export default function TransformObject({
         </ClipCheckSC>
         {resizable && <>
           <NResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "n-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "n-resize")}
           />
           <SResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "s-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "s-resize")}
           />
           <EResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "e-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "e-resize")}
           />
           <WResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "w-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "w-resize")}
           />
           <NEResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "ne-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "ne-resize")}
           />
           <SEResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "se-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "se-resize")}
           />
           <SWResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "sw-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "sw-resize")}
           />
           <NWResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "nw-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "nw-resize")}
           />
         </>}
         {rotatable && <AnchorPointSC
           anchorPoint={{x: anchorPoint.x * size.w, y: anchorPoint.y * size.h}}
           ref={anchorRef}
           zoom={zoom}
-          onMouseDown={(ev) => handleMouseDown(ev, "move-anchor")}
+          onMouseDown={(e) => handleMouseDown(e, "move-anchor")}
         >
           <AnchorPointRectSC />
           <AnchorPointCircleSC />

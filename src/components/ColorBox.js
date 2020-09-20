@@ -73,13 +73,13 @@ export default function ColorBox() {
   const { hex: primaryHex, opacity: primaryOpacity } = toHex(primaryRgba);
   const { hex: secondaryHex, opacity: secondaryOpacity } = toHex(secondaryRgba);
 
-  const primaryColorHandler = ev => {
-    let value = toRgba(ev.target.value, primaryOpacity);
+  const primaryColorHandler = e => {
+    let value = toRgba(e.target.value, primaryOpacity);
     dispatch(updateColor("primary", value))
   }
 
-  const secondaryColorHandler = ev => {
-    let value = toRgba(ev.target.value, secondaryOpacity);
+  const secondaryColorHandler = e => {
+    let value = toRgba(e.target.value, secondaryOpacity);
     dispatch(updateColor("secondary", value))
   }
 

@@ -2,6 +2,7 @@ import { getDiff } from "../custom/ctxActions";
 import moveLayer from "../redux/moveLayer";
 
 export const [
+  CREATE_NEW_PROJECT,
   UNDO,
   REDO,
   PUT_HISTORY_DATA,
@@ -10,8 +11,10 @@ export const [
   CREATE_LAYER_FROM,
   DELETE_LAYER,
   HIDE_LAYER,
-  UPDATE_CANVAS,
+  UPDATE_UTILITY_CANVAS,
+  UPDATE_MAIN_CANVAS,
   UPDATE_SELECTION_PATH,
+  UPDATE_CLIPBOARD_SETTINGS,
   SET_TRANSFORM_TARGET,
   SET_TRANSFORM_PARAMS,
   SET_CROP_IS_ACTIVE,
@@ -32,7 +35,7 @@ export const [
   SWITCH_COLORS,
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_DOCUMENT_SETTINGS,
-  MOVE_ALL_LAYERS,
+  // MOVE_ALL_LAYERS,
   SET_CLIPBOARD_IS_USED,
   SET_OVERLAY,
   SET_MENU_IS_DISABLED,
@@ -44,6 +47,7 @@ export const [
   SET_APP_IS_WAITING,
   RESET_STATE
 ] = [
+  "CREATE_NEW_PROJECT",
   "UNDO",
   "REDO",
   "PUT_HISTORY_DATA",
@@ -52,8 +56,10 @@ export const [
   "CREATE_LAYER_FROM",
   "DELETE_LAYER",
   "HIDE_LAYER",
-  "UPDATE_CANVAS",
+  "UPDATE_UTILITY_CANVAS",
+  "UPDATE_MAIN_CANVAS",
   "UPDATE_SELECTION_PATH",
+  "UPDATE_CLIPBOARD_SETTINGS",
   "SET_TRANSFORM_TARGET",
   "SET_TRANSFORM_PARAMS",
   "SET_CROP_IS_ACTIVE",
@@ -74,7 +80,7 @@ export const [
   "SWITCH_COLORS",
   "UPDATE_WORKSPACE_SETTINGS",
   "UPDATE_DOCUMENT_SETTINGS",
-  "MOVE_ALL_LAYERS",
+  // "MOVE_ALL_LAYERS",
   "SET_CLIPBOARD_IS_USED",
   "SET_OVERLAY",
   "SET_MENU_IS_DISABLED",
@@ -87,9 +93,18 @@ export const [
   "RESET_STATE"
 ];
 
+export const createNewProject = (name, width, height) => {
+  return {
+    type: CREATE_NEW_PROJECT,
+    payload: {name, width, height}
+  }
+}
+
 export const undo = () => {
   return async (dispatch, getState) => {
-    const prevState = getState().main.past[getState().main.past.length - 1]
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
+    const prevState = getState().main.projects[activeProject].past[getState().main.projects[activeProject].past.length - 1]
     if (prevState && prevState.onUndo) {
       if (prevState.onUndo.length) {
         prevState.onUndo.forEach(el => executeUndo(el));
@@ -127,8 +142,10 @@ export const undo = () => {
 
 export const redo = () => {
   return (dispatch, getState) => {
-    const currState = getState().main.present;
-    const nextState = getState().main.future[0];
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
+    const currState = getState().main.projects[activeProject].present;
+    const nextState = getState().main.projects[activeProject].future[0];
     if (currState && currState.onRedo) {
       if (currState.onRedo.length) {
         currState.onRedo.forEach(el => executeRedo(el));
@@ -208,25 +225,25 @@ export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[],
   }
 }
 
-export const createLayer = (position, ignoreHistory=false, params={}) => {
+export const createLayer = (position, project="current", ignoreHistory=false, params={}) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, ignoreHistory, params}
+    payload: {position, project, ignoreHistory, params}
   };
 };
 
-export const createLayerFrom = (position, source, ignoreHistory=false, params={}) => {
+export const createLayerFrom = (position, source, project="current", ignoreHistory=false, params={}) => {
   return {
     type: CREATE_LAYER,
-    payload: {position, source, ignoreHistory, params}
+    payload: {position, project, source, ignoreHistory, params}
   };
 };
 
-export const deleteLayer = (id, ignoreHistory=false) => {
+export const deleteLayer = (id, project="current", ignoreHistory=false) => {
   return (dispatch, getState) => {
     let data = null;
     if (!ignoreHistory) {
-      const ctx = getState().main.present.layerCanvas[id].getContext("2d");
+      const ctx = getState().main.projects[project].present.layerCanvas[id].getContext("2d");
       const viewWidth = Math.floor(ctx.canvas.width);
       const viewHeight = Math.floor(ctx.canvas.height);
       data = ctx.getImageData(
@@ -238,29 +255,43 @@ export const deleteLayer = (id, ignoreHistory=false) => {
     }
     dispatch({
       type: DELETE_LAYER,
-      payload: {id, data, ignoreHistory}
+      payload: {id, project, data, ignoreHistory}
     });
   } 
 };
 
-export const hideLayer = id => {
+export const hideLayer = (id, project="current") => {
   return {
     type: HIDE_LAYER,
-    payload: id
+    payload: {id, project}
   };
 };
 
-export const updateCanvas = (id, changes, ignoreHistory=true) => {
+export const updateUtilityCanvas = (id, changes, ignoreHistory=true) => {
   return {
-    type: UPDATE_CANVAS,
+    type: UPDATE_UTILITY_CANVAS,
     payload: {id, changes, ignoreHistory}
   };
 };
 
-export const updateSelectionPath = (operation, changes) => {
+export const updateMainCanvas = (changes, project="current", ignoreHistory=true) => {
+  return {
+    type: UPDATE_MAIN_CANVAS,
+    payload: {changes, project, ignoreHistory}
+  };
+};
+
+export const updateSelectionPath = (operation, changes, project="current") => {
   return {
     type: UPDATE_SELECTION_PATH,
-    payload: {changes, operation, ignoreHistory: false}
+    payload: {operation, project, changes, ignoreHistory: false}
+  };
+};
+
+export const updateClipboardSettings = (changes) => {
+  return {
+    type: UPDATE_SELECTION_PATH,
+    payload: {changes}
   };
 };
 
@@ -303,31 +334,31 @@ export const setCropParams = (params) => {
   };
 };
 
-export const updateLayerOpacity = (id, opacity, ignoreHistory=false) => {
+export const updateLayerOpacity = (id, opacity, project="current", ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_OPACITY,
-    payload: {id, opacity, ignoreHistory}
+    payload: {id, project, opacity, ignoreHistory}
   };
 };
 
-export const updateLayerBlendMode = (id, blend, ignoreHistory=false) => {
+export const updateLayerBlendMode = (id, blend, project="current", ignoreHistory=false) => {
   return {
     type: UPDATE_LAYER_BLEND_MODE,
-    payload: {id, blend, ignoreHistory}
+    payload: {id, project, blend, ignoreHistory}
   };
 };
 
-export const updateRenderOrder = (from, to, ignoreHistory=false) => {
+export const updateRenderOrder = (from, to, project="current", ignoreHistory=false) => {
   return {
     type: UPDATE_RENDER_ORDER,
-    payload: {from, to, ignoreHistory}
+    payload: {from, to, project, ignoreHistory}
   };
 };
 
-export const updateLayerPosition = (id, size, offset, ignoreHistory=false) => {
+export const updateLayerPosition = (id, size, offset, project="current", ignoreHistory=true) => {
   return {
     type: UPDATE_LAYER_POSITION,
-    payload: {id, size, offset, ignoreHistory}
+    payload: {id, project, size, offset, ignoreHistory}
   };
 };
 
@@ -338,17 +369,17 @@ export const updateStagingPosition = id => {
   };
 };
 
-export const setEnableLayerRename = (id, renamable=true) => {
+export const setEnableLayerRename = (id, project="current", renamable=true) => {
   return {
     type: SET_ENABLE_LAYER_RENAME,
-    payload: {id, renamable, ignoreHistory: true}
+    payload: {id, project, renamable, ignoreHistory: true}
   };
 };
 
-export const updateLayerName = (id, name) => {
+export const updateLayerName = (id, project="current", name) => {
   return {
     type: UPDATE_LAYER_NAME,
-    payload: {id, name}
+    payload: {id, project, name}
   };
 };
 
@@ -365,10 +396,10 @@ export const endDragLayercard = () => {
   };
 }
 
-export const makeActiveLayer = layerId => {
+export const makeActiveLayer = (layerId, project="current") => {
   return {
     type: MAKE_ACTIVE_LAYER,
-    payload: {layerId, ignoreHistory: true}
+    payload: {layerId, project, ignoreHistory: true}
   };
 };
 
@@ -406,19 +437,19 @@ export const updateWorkspaceSettings = (changes) => {
   }
 }
 
-export const updateDocumentSettings = (changes, ignoreHistory=false) => {
+export const updateDocumentSettings = (changes, project="current", ignoreHistory=false) => {
   return {
     type: UPDATE_DOCUMENT_SETTINGS,
-    payload: {changes, ignoreHistory}
+    payload: {changes, project, ignoreHistory}
   }
 }
 
-export const moveAllLayers = (offsetDelta, ignoreHistory=true) => {
-  return {
-    type: MOVE_ALL_LAYERS,
-    payload: {offsetDelta, ignoreHistory}
-  }
-}
+// export const moveAllLayers = (offsetDelta, project="current", ignoreHistory=true) => {
+//   return {
+//     type: MOVE_ALL_LAYERS,
+//     payload: {offsetDelta, project, ignoreHistory}
+//   }
+// }
 
 export const setClipboardIsUsed = bool => {
   return {
@@ -441,10 +472,10 @@ export const setMenuIsDisabled = bool => {
   }
 }
 
-export const setHistoryIsDisabled = bool => {
+export const setHistoryIsDisabled = (bool, project="current") => {
   return {
     type: SET_HISTORY_IS_DISABLED,
-    payload: {bool, ignoreHistory: true}
+    payload: {bool, project, ignoreHistory: true}
   }
 }
 

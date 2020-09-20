@@ -1,7 +1,7 @@
 import { getDistance } from "../utils/helpers";
 
 class TransformActionBase {
-  constructor(ev, { size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef }, params) {
+  constructor(e, { size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef }, params) {
     this.size = size;
     this.setSize = setSize;
     this.offset = offset;
@@ -14,8 +14,8 @@ class TransformActionBase {
     this.anchorRef = anchorRef;
     this.params = params;
     this.origin = {
-      x: Math.floor(ev.screenX),
-      y: Math.floor(ev.screenY),
+      x: Math.floor(e.screenX),
+      y: Math.floor(e.screenY),
       w: size.w,
       h: size.h,
       offX: offset.x,
@@ -31,19 +31,19 @@ class TransformActionBase {
 }
 
 class ResizeTransformAction extends TransformActionBase {
-  move(ev) {
+  move(e) {
     let x, y, calculatedWidth, calculatedHeight, calculatedOffsetX, calculatedOffsetY;
     calculatedWidth = this.size.w;
     calculatedHeight = this.size.h;
     calculatedOffsetX = this.offset.x;
     calculatedOffsetY = this.offset.y;
-    x = Math.floor(ev.screenX);
-    y = Math.floor(ev.screenY);
+    x = Math.floor(e.screenX);
+    y = Math.floor(e.screenY);
 
     let lockAspectRatio;
     if (
-      (!ev.shiftKey && !this.params.invertShiftOnResize) ||
-      (ev.shiftKey && this.params.invertShiftOnResize) ||
+      (!e.shiftKey && !this.params.invertShiftOnResize) ||
+      (e.shiftKey && this.params.invertShiftOnResize) ||
       this.params.direction.length > 2
     ) {
       lockAspectRatio = true;
@@ -105,12 +105,12 @@ class ResizeTransformAction extends TransformActionBase {
 }
 
 class MoveTransformAction extends TransformActionBase {
-  move(ev) {
-    let x = (Math.floor(ev.screenX) - (this.origin.x - this.origin.offX * this.zoom)) / this.zoom;
-    let y = (Math.floor(ev.screenY) - (this.origin.y - this.origin.offY * this.zoom)) / this.zoom;
+  move(e) {
+    let x = (Math.floor(e.screenX) - (this.origin.x - this.origin.offX * this.zoom)) / this.zoom;
+    let y = (Math.floor(e.screenY) - (this.origin.y - this.origin.offY * this.zoom)) / this.zoom;
 
-    if (ev.shiftKey) {
-      if (Math.abs(Math.floor(ev.screenX) - this.origin.x) > Math.abs(Math.floor(ev.screenY) - this.origin.y)) {
+    if (e.shiftKey) {
+      if (Math.abs(Math.floor(e.screenX) - this.origin.x) > Math.abs(Math.floor(e.screenY) - this.origin.y)) {
         y = this.origin.offY;
       } else {
         x = this.origin.offX;
@@ -124,21 +124,21 @@ class MoveTransformAction extends TransformActionBase {
 }
 
 class RotateTransformAction extends TransformActionBase {
-  constructor(ev, {size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params}) {
-    super(ev, {size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params});
+  constructor(e, {size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params}) {
+    super(e, {size, setSize, offset, setOffset, anchorPoint, setAnchorPoint, rotation, setRotation, zoom, anchorRef, params});
     const anchorRect = anchorRef.current.getBoundingClientRect();
     this.origin.anchorPos = {
       x: anchorRect.x + .5 * anchorRect.width,
       y: anchorRect.y + .5 * anchorRect.height,
     }
     this.origin.rotation = rotation;
-    this.origin.angle = Math.atan2(ev.clientY - this.origin.anchorPos.y, ev.clientX - this.origin.anchorPos.x);
+    this.origin.angle = Math.atan2(e.clientY - this.origin.anchorPos.y, e.clientX - this.origin.anchorPos.x);
   }
 
-  move(ev) {
-    const newAngle = Math.atan2(ev.clientY - this.origin.anchorPos.y, ev.clientX - this.origin.anchorPos.x);
+  move(e) {
+    const newAngle = Math.atan2(e.clientY - this.origin.anchorPos.y, e.clientX - this.origin.anchorPos.x);
     let newRotation = this.origin.rotation - (this.origin.angle - newAngle);
-    if (ev.shiftKey) {
+    if (e.shiftKey) {
       newRotation = Math.floor((this.origin.rotation - (this.origin.angle - newAngle)) / (.25 * Math.PI)) * (.25 * Math.PI);
     }
     this.setRotation(newRotation);
@@ -146,13 +146,13 @@ class RotateTransformAction extends TransformActionBase {
 }
 
 class MoveAnchorPointTransformAction extends TransformActionBase {
-  move(ev) {
-    const posX = (Math.floor(ev.screenX) - this.origin.x + this.anchorPoint.x * this.size.w * this.zoom) / this.zoom;
-    const posY = (Math.floor(ev.screenY) - this.origin.y + this.anchorPoint.y * this.size.h * this.zoom) / this.zoom;
+  move(e) {
+    const posX = (Math.floor(e.screenX) - this.origin.x + this.anchorPoint.x * this.size.w * this.zoom) / this.zoom;
+    const posY = (Math.floor(e.screenY) - this.origin.y + this.anchorPoint.y * this.size.h * this.zoom) / this.zoom;
     let pctX = posX / this.size.w;
     let pctY = posY / this.size.h;
 
-    if (!ev.shiftKey) {
+    if (!e.shiftKey) {
       for (let x = 0; x <= 1; x+=.5) {
         let end = false;
         for (let y = 0; y <= 1; y+=.5) {
@@ -171,30 +171,30 @@ class MoveAnchorPointTransformAction extends TransformActionBase {
   }
 }
 
-export default function transformActionFactory(ev, transformData, params) {
+export default function transformActionFactory(e, transformData, params) {
   switch(params.actionType) {
     case "move":
-      return new MoveTransformAction(ev, transformData, params);
+      return new MoveTransformAction(e, transformData, params);
     case "rotate":
-      return new RotateTransformAction(ev, transformData, params);
+      return new RotateTransformAction(e, transformData, params);
     case "n-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "n"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "n"});
     case "s-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "s"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "s"});
     case "e-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "e"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "e"});
     case "w-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "w"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "w"});
     case "ne-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "ne"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "ne"});
     case "se-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "se"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "se"});
     case "sw-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "sw"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "sw"});
     case "nw-resize":
-      return new ResizeTransformAction(ev, transformData, {...params, direction: "nw"});
+      return new ResizeTransformAction(e, transformData, {...params, direction: "nw"});
     case "move-anchor":
-      return new MoveAnchorPointTransformAction(ev, transformData, {...params, direction: "nw"});
+      return new MoveAnchorPointTransformAction(e, transformData, {...params, direction: "nw"});
     default:
       break;
   }

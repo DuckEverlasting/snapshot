@@ -4,9 +4,10 @@ import useEventListener from "./hooks/useEventListener";
 import styled from "styled-components";
 
 import OverlayHandler from "./components/OverlayHandler.js";
-import TopBar from "./panels/TopBar.js";
 import WaitScreen from "./components/WaitScreen.js";
+import TopBar from "./panels/TopBar.js";
 import Workspace from "./panels/Workspace.js";
+import EmptyWorkspace from "./panels/EmptyWorkspace.js";
 import ToolPanel from "./panels/ToolPanel.js";
 import LayerPanel from "./panels/LayerPanel.js";
 
@@ -43,23 +44,24 @@ function App() {
   const overlay = useSelector(state => state.ui.overlay);
   const transformTarget = useSelector(state => state.ui.transformTarget);
   const importImageFile = useSelector(state => state.ui.importImageFile);
-  const appIsWaiting = useSelector(state =>state.ui.appIsWaiting);
+  const appIsWaiting = useSelector(state => state.ui.appIsWaiting);
+  const activeProject = useSelector(state => state.main.activeProject);
 
   const dispatch = useDispatch();
 
-  const handleKeyDown = useCallback(ev => {
+  const handleKeyDown = useCallback(e => {
     if (overlay || transformTarget || importImageFile) {return}
     let keyCombo;
     let modifier = window.navigator.platform.includes("Mac")
-      ? ev.metaKey
-      : ev.ctrlKey;
+      ? e.metaKey
+      : e.ctrlKey;
     if (modifier) {
-      keyCombo = hotkeyCtrl[ev.key];
+      keyCombo = hotkeyCtrl[e.key];
     } else {
-      keyCombo = hotkey[ev.key];
+      keyCombo = hotkey[e.key];
     }
     if (keyCombo === undefined) return;
-    ev.preventDefault();
+    e.preventDefault();
     if (keyCombo.type === "activeTool") {
       dispatch(setActiveTool(keyCombo.payload));
     } else {
@@ -75,7 +77,7 @@ function App() {
       <TopBar />
       <AppContainerSC>
         <ToolPanel />
-        <Workspace />
+        {activeProject ? <Workspace /> : <EmptyWorkspace />}
         <LayerPanel />
         <OverlayHandler />
       </AppContainerSC>

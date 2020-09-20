@@ -58,11 +58,9 @@ const PreviewWrapperSC = styled.div`
 
 export default function ResizeModal() {
   const dispatch = useDispatch();
-  // const mainCanvas = useSelector(
-  //   state => state.main.present.layerCanvas.main
-  // );
+  const activeProject = useSelector(state => state.main.activeProject);
   const {documentWidth, documentHeight} = useSelector(
-    state => state.main.present.documentSettings
+    state => state.main.projects[activeProject].present.documentSettings
   );
   const [isRescaling, setIsRescaling] = useState(false);
   const [anchor, setAnchor] = useState("center-center");
@@ -76,9 +74,9 @@ export default function ResizeModal() {
   });
   const [unit, setUnit] = useState("pixels")
 
-  function handleApply(ev) {
+  function handleApply(e) {
     apply();
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   function apply() {
@@ -86,9 +84,9 @@ export default function ResizeModal() {
     dispatch(setOverlay("resize"));
   }
   
-  function handleCancel(ev) {
+  function handleCancel(e) {
     cancel();
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   function cancel() {
@@ -180,7 +178,7 @@ export default function ResizeModal() {
             />
             <label>
               Unit
-              <select style={{marginLeft: "5px"}} onChange={ev => handleInput(ev.target.value, "unit")}>
+              <select style={{marginLeft: "5px"}} onChange={e => handleInput(e.target.value, "unit")}>
                 <option value="pixels">pixels</option>
                 <option value="percent">percent</option>
               </select>

@@ -40,6 +40,7 @@ import MainCanvas from "../components/MainCanvas";
 import PixelGrid from "../components/PixelGrid";
 import render from "../actions/redux/renderCanvas";
 import useUpdateOnResize from "../hooks/useUpdateOnResize";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 
 const WorkspaceSC = styled.div`
   position: relative;
@@ -107,18 +108,13 @@ export default function Workspace() {
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
   const { activeTool, toolSettings, transformTarget, cropIsActive } = useSelector((state) => state.ui);
-  const { documentWidth, documentHeight, documentName } = useSelector(
-    (state) => state.main.present.documentSettings
+  const activeProject = useSelector(state => state.main.activeProject);
+  const { documentWidth, documentHeight, documentName } = useSelector((state) => state.main.projects[activeProject].present.documentSettings);
+  const [activeLayer, selectionPath, selectionActive, layerCanvas, layerSettings, renderOrder, stampData] = useSelector(
+    selectFromActiveProject("activeLayer", "selectionPath", "selectionActive", "layerCanvas", "layerSettings", "renderOrder", "stampData")
   );
-  const {
-    activeLayer,
-    selectionPath,
-    selectionActive,
-    layerCanvas,
-    layerSettings,
-    renderOrder,
-    stampData,
-  } = useSelector((state) => state.main.present);
+  
+  const utilityCanvas = useSelector((state) => state.main.utilityCanvas);
   const importImageFile = useSelector((state) => state.ui.importImageFile);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -182,10 +178,10 @@ export default function Workspace() {
     ]
   }
 
-  // function eventIsWithinCanvas(ev) {
+  // function eventIsWithinCanvas(e) {
   //   const translateData = getTranslateData(),
-  //     x = Math.floor(ev.nativeEvent.offsetX) - translateData.x,
-  //     y = Math.floor(ev.nativeEvent.offsetY) - translateData.y;
+  //     x = Math.floor(e.nativeEvent.offsetX) - translateData.x,
+  //     y = Math.floor(e.nativeEvent.offsetY) - translateData.y;
 
   //   return (
   //     x > 0 &&
@@ -199,7 +195,7 @@ export default function Workspace() {
     switch (activeTool) {
       // case "pencil":
       //   if (!activeLayer) {return}
-      //   return new PencilAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+      //   return new PencilAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
       //     width: toolSettings.pencil.width,
       //     color: addOpacity(primary, toolSettings.pencil.opacity / 100),
       //     clip: selectionPath,
@@ -209,7 +205,7 @@ export default function Workspace() {
       case "pencil":
         if (!activeLayer) {return}
         if (toolSettings.pencil.smooth) {
-          return new PencilAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          return new PencilAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
             width: toolSettings.pencil.width,
             color: addOpacity(primary, toolSettings.pencil.opacity / 100),
             clip: selectionPath,
@@ -217,7 +213,7 @@ export default function Workspace() {
             setLastEndpoint
           });
         } else {
-          return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+          return new BrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
             width: toolSettings.pencil.width,
             color: primary,
             opacity: toolSettings.pencil.opacity,
@@ -230,7 +226,7 @@ export default function Workspace() {
         }
       case "brush":
         if (!activeLayer) {return}
-        return new BrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new BrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.brush.width,
           color: primary,
           opacity: toolSettings.brush.opacity,
@@ -241,7 +237,7 @@ export default function Workspace() {
         });
       case "line":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           drawActionType: "drawLine",
           color: addOpacity(primary, toolSettings.line.opacity / 100),
           width: toolSettings.line.width,
@@ -249,7 +245,7 @@ export default function Workspace() {
         });
       case "fillRect":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           drawActionType: "fillRect",
           color: addOpacity(primary, toolSettings.fillRect.opacity / 100),
           regularOnShift: true,
@@ -257,7 +253,7 @@ export default function Workspace() {
         });
       case "drawRect":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           drawActionType: "drawRect",
           color: addOpacity(primary, toolSettings.drawRect.opacity / 100),
           width: toolSettings.drawRect.width,
@@ -266,7 +262,7 @@ export default function Workspace() {
         });
       case "fillEllipse":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           drawActionType: "fillEllipse",
           color: addOpacity(primary, toolSettings.fillEllipse.opacity / 100),
           regularOnShift: true,
@@ -274,7 +270,7 @@ export default function Workspace() {
         });
       case "drawEllipse":
         if (!activeLayer) {return}
-        return new ShapeAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new ShapeAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           drawActionType: "drawEllipse",
           color: addOpacity(primary, toolSettings.drawEllipse.opacity / 100),
           width: toolSettings.drawEllipse.width,
@@ -283,7 +279,7 @@ export default function Workspace() {
         });
       case "eraser":
         if (!activeLayer) {return}
-        return new EraserAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new EraserAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.eraser.width,
           color: "rgba(0, 0, 0, 1)",
           opacity: 100,
@@ -293,21 +289,21 @@ export default function Workspace() {
           setLastEndpoint
         });
       case "eyeDropper":
-        return new EyeDropperAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new EyeDropperAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           renderOrder: renderOrder,
         });
       case "selectRect":
-        return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
+        return new ShapeAction("selection", layerCanvas, utilityCanvas, dispatch, getTranslateData(true), {
           drawActionType: "drawRect",
           regularOnShift: true
         });
       case "selectEllipse":
-        return new ShapeAction("selection", layerCanvas, dispatch, getTranslateData(true), {
+        return new ShapeAction("selection", layerCanvas, utilityCanvas, dispatch, getTranslateData(true), {
           drawActionType: "drawEllipse",
           regularOnShift: true
         });
       case "lasso":
-        return new PencilAction("selection", layerCanvas, dispatch, getTranslateData(true), {
+        return new PencilAction("selection", layerCanvas, utilityCanvas, dispatch, getTranslateData(true), {
           clip: selectionPath,
           lastEndpoint,
           setLastEndpoint
@@ -316,10 +312,10 @@ export default function Workspace() {
         if (!activeLayer || selectionActive) {
           return;
         }
-        return new MoveAction(activeLayer, layerCanvas, dispatch, getTranslateData());
+        return new MoveAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData());
       case "stamp":
         if (!activeLayer) {return}
-        return new StampAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new StampAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           stampData,
           width: toolSettings.stamp.width,
           hardness: toolSettings.stamp.hardness,
@@ -330,7 +326,7 @@ export default function Workspace() {
         });
       case "bucketFill":
         if (!activeLayer) {return}
-        return new FillAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new FillAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           colorArray: toArrayFromRgba(
             primary,
             toolSettings.bucketFill.opacity / 100
@@ -340,13 +336,13 @@ export default function Workspace() {
         });
       case "selectionFill":
         if (!activeLayer) {return}
-        return new FillAction("selection", layerCanvas, dispatch, getTranslateData(), {
+        return new FillAction("selection", layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           tolerance: toolSettings.selectionFill.tolerance,
           selectionTarget: toolSettings.selectionFill.targetAll ? "all" : activeLayer
         });
       case "saturate":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new FilterBrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.saturate.width,
           hardness: toolSettings.saturate.hardness,
           filter: filter.saturation.apply,
@@ -357,7 +353,7 @@ export default function Workspace() {
         });
       case "dodge":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new FilterBrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.dodge.width,
           hardness: toolSettings.dodge.hardness,
           filter: filter.dodge.apply,
@@ -371,7 +367,7 @@ export default function Workspace() {
         });
       case "burn":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new FilterBrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.burn.width,
           hardness: toolSettings.burn.hardness,
           filter: filter.burn.apply,
@@ -385,7 +381,7 @@ export default function Workspace() {
         });
       case "blur":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new FilterBrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.blur.width,
           hardness: toolSettings.blur.hardness,
           filter: filter.blur.apply,
@@ -399,7 +395,7 @@ export default function Workspace() {
         });
       case "sharpen":
         if (!activeLayer) {return}
-        return new FilterBrushAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new FilterBrushAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           width: toolSettings.sharpen.width,
           hardness: toolSettings.sharpen.hardness,
           filter: filter.sharpen.apply,
@@ -412,7 +408,7 @@ export default function Workspace() {
           setLastEndpoint
         });
       case "crop":
-        return new CropAction(activeLayer, layerCanvas, dispatch, getTranslateData(), {
+        return new CropAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData(), {
           clip: selectionPath
         });
       // case "TEST":
@@ -422,10 +418,10 @@ export default function Workspace() {
     }
   }
 
-  const zoom = (steps, ev) => {
+  const zoom = (steps, e) => {
     const newZoomPct = getZoomAmount(steps, zoomPct),
-      toLeft = ev.nativeEvent ? ev.nativeEvent.offsetX : ev.offsetX,
-      toTop = ev.nativeEvent ? ev.nativeEvent.offsetY : ev.offsetY,
+      toLeft = e.nativeEvent ? e.nativeEvent.offsetX : e.offsetX,
+      toTop = e.nativeEvent ? e.nativeEvent.offsetY : e.offsetY,
       zoomFraction = (newZoomPct / 100) / (zoomPct / 100);
 
     let transX, transY;
@@ -453,14 +449,14 @@ export default function Workspace() {
     );
   };
 
-  const zoomTool = (ev, zoomOut) => {
+  const zoomTool = (e, zoomOut) => {
     let steps;
     if (!zoomOut) {
-      steps = ev.shiftKey ? 2 : 1;
-      zoom(steps, ev);
+      steps = e.shiftKey ? 2 : 1;
+      zoom(steps, e);
     } else {
-      steps = ev.shiftKey ? -2 : -1;
-      zoom(steps, ev);
+      steps = e.shiftKey ? -2 : -1;
+      zoom(steps, e);
     }
     dispatch(render());
   };
@@ -475,24 +471,24 @@ export default function Workspace() {
     );
   };
 
-  const translateTool = (ev) => {
-    const str = ev.shiftKey ? 3 : 1;
+  const translateTool = (e) => {
+    const str = e.shiftKey ? 3 : 1;
     let dir;
     let modifier = window.navigator.platform.includes("Mac")
-      ? ev.metaKey
-      : ev.ctrlKey;
-    if (ev.deltaX && ev.deltaY) {
+      ? e.metaKey
+      : e.ctrlKey;
+    if (e.deltaX && e.deltaY) {
       // FIGURE THIS OUT LATER(?)
       return;
-    } else if (ev.deltaX) {
-      dir = ev.deltaX > 0 ? -1 : 1;
+    } else if (e.deltaX) {
+      dir = e.deltaX > 0 ? -1 : 1;
       if (modifier) {
         translate(0, 10 * dir * str);
       } else {
         translate(10 * dir * str, 0);
       }
-    } else if (ev.deltaY) {
-      dir = ev.deltaY > 0 ? -1 : 1;
+    } else if (e.deltaY) {
+      dir = e.deltaY > 0 ? -1 : 1;
       if (modifier) {
         translate(10 * dir * str, 0);
       } else {
@@ -501,55 +497,55 @@ export default function Workspace() {
     }
   };
 
-  const handleMouseWheel = useCallback((ev) => {
-      ev.preventDefault();
-      if (ev.buttons !== 0) {return}
-      if (ev.altKey) {
-        zoomTool(ev, ev.deltaY > 0);
+  const handleMouseWheel = useCallback((e) => {
+      e.preventDefault();
+      if (e.buttons !== 0) {return}
+      if (e.altKey) {
+        zoomTool(e, e.deltaY > 0);
       } else {
-        translateTool(ev);
+        translateTool(e);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [translateX, translateY, zoomPct]);
 
   useEventListener("wheel", handleMouseWheel, workspaceElement);
 
-  const handleKeys = useCallback((ev) => {
+  const handleKeys = useCallback((e) => {
     let modifier = window.navigator.platform.includes("Mac")
-      ? ev.metaKey
-      : ev.ctrlKey;
+      ? e.metaKey
+      : e.ctrlKey;
     setKeys({
-      shift: ev.shiftKey,
+      shift: e.shiftKey,
       ctrl: modifier,
-      alt: ev.altKey,
+      alt: e.altKey,
     });
   }, []);
 
   useEventListener("keydown", handleKeys);
   useEventListener("keyup", handleKeys);
 
-  const handleMouseDown = (ev) => {
-    if (ev.buttons === 4 || activeTool === "hand") {
+  const handleMouseDown = (e) => {
+    if (e.buttons === 4 || activeTool === "hand") {
       setIsDragging(true);
       setDragOrigin({
-        x: ((Math.floor(ev.screenX) - translateX) * 100) / zoomPct,
-        y: ((Math.floor(ev.screenY) - translateY) * 100) / zoomPct,
+        x: ((Math.floor(e.screenX) - translateX) * 100) / zoomPct,
+        y: ((Math.floor(e.screenY) - translateY) * 100) / zoomPct,
       });
-    } else if (ev.buttons === 1) {
+    } else if (e.buttons === 1) {
       if (activeTool === "move" && selectionActive) {
-        return dispatch(createTransformObject(ev));
+        return dispatch(createTransformObject(e));
       }
       currentAction = buildAction();
       if (!currentAction) {return}
-      currentAction.start(ev);
-      // if (eventIsWithinCanvas(ev)) {
+      currentAction.start(e);
+      // if (eventIsWithinCanvas(e)) {
       //   isDrawing = true;
       // }
     }
   };
 
-  const handleMouseLeave = (ev) => {
-    if (currentAction && ev.buttons === 1) {
+  const handleMouseLeave = (e) => {
+    if (currentAction && e.buttons === 1) {
       // if (isDrawing) {
       //   currentAction.end();
       //   isDrawing = false;
@@ -559,14 +555,14 @@ export default function Workspace() {
     }
   };
 
-  const handleMouseMove = (ev) => {
+  const handleMouseMove = (e) => {
     if (isDragging) {
       if (animationFrame === lastFrame) return;
       lastFrame = animationFrame;
       const transX =
-        Math.floor(ev.screenX) - dragOrigin.x * (zoomPct / 100);
+        Math.floor(e.screenX) - dragOrigin.x * (zoomPct / 100);
       const transY =
-        Math.floor(ev.screenY) - dragOrigin.y * (zoomPct / 100);
+        Math.floor(e.screenY) - dragOrigin.y * (zoomPct / 100);
       const [newTranslateX, newTranslateY] = capTranslate(transX, transY);
       dispatch(
         updateWorkspaceSettings({
@@ -574,21 +570,21 @@ export default function Workspace() {
           translateY: newTranslateY,
         })
       );
-    } else if (currentAction && ev.buttons === 1) {
-      currentAction.move(ev);
-      // if (!isDrawing && eventIsWithinCanvas(ev)) {
+    } else if (currentAction && e.buttons === 1) {
+      currentAction.move(e);
+      // if (!isDrawing && eventIsWithinCanvas(e)) {
       //   isDrawing = true;
       // }
     }
   };
 
-  const handleMouseUp = (ev) => {
-    if (ev.button === 1 || (ev.button === 0 && activeTool === "hand")) {
+  const handleMouseUp = (e) => {
+    if (e.button === 1 || (e.button === 0 && activeTool === "hand")) {
       setIsDragging(false);
       setDragOrigin({ x: null, y: null });
-    } else if (ev.button === 0 && activeTool === "zoom") {
-      zoomTool(ev, ev.altKey);
-    } else if (currentAction && ev.button === 0) {
+    } else if (e.button === 0 && activeTool === "zoom") {
+      zoomTool(e, e.altKey);
+    } else if (currentAction && e.button === 0) {
       // if (isDrawing || currentAction.alwaysFire) {
       //   currentAction.end();
       //   isDrawing = false;
@@ -598,22 +594,22 @@ export default function Workspace() {
     }
   };
 
-  const handleDrop = async (ev) => {
+  const handleDrop = async (e) => {
     let file;
-    if (ev.dataTransfer.items) {
-      for (let i = 0; i < ev.dataTransfer.items.length; i++) {
-        if (ev.dataTransfer.items[i].kind === "file") {
-          file = ev.dataTransfer.items[i].getAsFile();
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind === "file") {
+          file = e.dataTransfer.items[i].getAsFile();
           break;
         }
       }
     } else {
-      file = ev.dataTransfer.files[0];
+      file = e.dataTransfer.files[0];
     }
     if (!file || !file.type.startsWith("image")) {return}
     const name = file.name.replace(/\.[^/.]+$/, "");
     dispatch(async (dispatch) => {
-      await dispatch(createLayer(renderOrder.length, false, { name }));
+      await dispatch(createLayer(renderOrder.length, "current", false, { name }));
       dispatch(setImportImageFile(file));
     });
   };
@@ -661,7 +657,7 @@ export default function Workspace() {
       )}
       {transformTarget && (
         <TransformObject
-          source={layerCanvas.placeholder}
+          source={utilityCanvas.placeholder}
           target={transformTarget}
           targetCtx={layerCanvas[transformTarget].getContext("2d")}
           targetOffset={layerSettings[transformTarget].offset}

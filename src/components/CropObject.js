@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 import useEventListener from "../hooks/useEventListener";
 import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
 import transformActionFactory from "../utils/TransformAction";
@@ -132,8 +133,10 @@ export default function CropObject() {
       zoom: settings.zoomPct / 100,
     };
   });
-  const { documentWidth, documentHeight } = useSelector(state => state.main.present.documentSettings);
-  const activeLayer = useSelector(state => state.main.present.activeLayer);
+  const [documentSettings, activeLayer] = useSelector(
+    selectFromActiveProject("documentSettings", "activeLayer")
+  );
+  const { documentWidth, documentHeight } = documentSettings ? documentSettings : {};
   const activeTool = useSelector(state => state.ui.activeTool);
   const startDimensions = useSelector(state => state.ui.cropParams.startDimensions);
   const [initLayer, ] = useState(activeLayer);
@@ -160,12 +163,12 @@ export default function CropObject() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDimensions]);
 
-  function handleMouseDown(ev, actionType) {
-    if (ev.button !== 0) return;
-    ev.stopPropagation && ev.stopPropagation();
+  function handleMouseDown(e, actionType) {
+    if (e.button !== 0) return;
+    e.stopPropagation && e.stopPropagation();
     if (!actionType) return;
     currentTransformAction = transformActionFactory(
-      ev,
+      e,
       { 
         size,
         setSize,
@@ -175,14 +178,14 @@ export default function CropObject() {
       },
       { actionType, invertShiftOnResize: true }
     );
-    currentTransformAction.start(ev);
+    currentTransformAction.start(e);
   }
 
-  function handleMouseMove(ev) {
+  function handleMouseMove(e) {
     if (!currentTransformAction) {
       return;
     }
-    currentTransformAction.move(ev);
+    currentTransformAction.move(e);
   }
 
   function handleMouseUp() {
@@ -214,11 +217,11 @@ export default function CropObject() {
   }, [activeTool, activeLayer, initLayer, initialized]);
 
   const handleKeyDown = useCallback(
-    (ev) => {
-      ev.preventDefault();
-      if (ev.key === "Escape") {
+    (e) => {
+      e.preventDefault();
+      if (e.key === "Escape") {
         cancel();
-      } else if (ev.key === "Enter") {
+      } else if (e.key === "Enter") {
         apply();
       }
     },
@@ -233,8 +236,8 @@ export default function CropObject() {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onKeyDown={handleKeyDown}
-      onDragOver={(ev) => ev.preventDefault()}
-      onDrop={(ev) => ev.preventDefault()}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
       overrideCursor={
         currentTransformAction ? currentTransformAction.actionType : null
       }
@@ -243,7 +246,7 @@ export default function CropObject() {
         offset={calculateOffset()}
         size={size}
         zoom={zoom}
-        onMouseDown={(ev) => handleMouseDown(ev, "move")}
+        onMouseDown={(e) => handleMouseDown(e, "move")}
         overrideCursor={
           currentTransformAction ? currentTransformAction.actionType : null
         }
@@ -255,28 +258,28 @@ export default function CropObject() {
         </ClipCheckSC>
         <>
           <NResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "n-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "n-resize")}
           />
           <SResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "s-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "s-resize")}
           />
           <EResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "e-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "e-resize")}
           />
           <WResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "w-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "w-resize")}
           />
           <NEResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "ne-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "ne-resize")}
           />
           <SEResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "se-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "se-resize")}
           />
           <SWResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "sw-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "sw-resize")}
           />
           <NWResizeSC
-            onMouseDown={(ev) => handleMouseDown(ev, "nw-resize")}
+            onMouseDown={(e) => handleMouseDown(e, "nw-resize")}
           />
         </>
       </ContainerSC>

@@ -38,16 +38,16 @@ export default function NumberInput({
   stopKeydown = true,
   inputWidth = null
 }) {
-  function keydownHandler(ev) {
+  function keydownHandler(e) {
     if (stopKeydown) {
-      ev.stopPropagation();
+      e.stopPropagation();
     }
   }
 
-  function inputHandler(ev) {
-    let newValue = Number(ev.target.value);
-    if (ev.target.value === "-" || ev.target.value === "") {
-      newValue = ev.target.value;
+  function inputHandler(e) {
+    let newValue = Number(e.target.value);
+    if (e.target.value === "-" || e.target.value === "") {
+      newValue = e.target.value;
     } else if (Number.isNaN(newValue)) {
       newValue = value;
     } else if (min && newValue < min) {

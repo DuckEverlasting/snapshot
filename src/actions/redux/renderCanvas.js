@@ -2,19 +2,21 @@ import manipulate from "../../reducers/custom/manipulateReducer";
 
 export default function renderCanvas(start, end, params={}) {
   return (dispatch, getState) => {
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
     const {
       layerCanvas,
+      mainCanvas,
       layerSettings,
       renderOrder,
-      stagingPinnedTo,
       selectionPath,
-      selectionActive
-    } = getState().main.present;
-
+      selectionActive,
+    } = getState().main.projects[activeProject].present;
+    const stagingPinnedTo = getState().main.stagingPinnedTo;
+    const utilityCanvas = getState().main.utilityCanvas;
     const zoom = getState().ui.workspaceSettings.zoomPct / 100;
+    const ctx = params.ctx ? params.ctx : mainCanvas.getContext("2d");
 
-    const ctx = params.ctx ? params.ctx : layerCanvas.main.getContext("2d");
-    
     if (!params.noClear) {
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     }
@@ -40,7 +42,7 @@ export default function renderCanvas(start, end, params={}) {
         manipulate(ctx, {
           action: "paste",
           params: {
-            sourceCtx: layerCanvas.staging.getContext("2d"),
+            sourceCtx: utilityCanvas.staging.getContext("2d"),
             dest: offset,
             globalAlpha: opacity / 100,
             composite: blend
@@ -66,7 +68,7 @@ export default function renderCanvas(start, end, params={}) {
       manipulate(ctx, {
         action: "paste",
         params: {
-          sourceCtx: layerCanvas.staging.getContext("2d"),
+          sourceCtx: utilityCanvas.staging.getContext("2d"),
           dest: {x: 0, y: 0}
         }
       })
