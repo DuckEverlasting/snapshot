@@ -89,7 +89,7 @@ export default function FilterTool() {
     if (showPreview) {
       previewDelay = setTimeout(() => {
         if (showPreview) {
-          withWaiting(() => {
+          withWaiting(() => { 
               dispatch(filterAction(
               filter.apply,
               { ...input, width: stagingCanvas.width },
