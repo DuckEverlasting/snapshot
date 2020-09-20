@@ -130,9 +130,61 @@ function getMotionBlurArray(size, angle) {
   return result;
 }
 
-function motionBlurHorizontal() {
+function motionBlurHorizontal(data, size, width) {
+  const dataCopy = new Uint8ClampedArray(data),
+    numOfRows = data.length / (width*4);
+  for (let row=0; row<numOfRows; row++) {
+    let current = 0,
+      currentIndex = (row * width) * 4,
+      count = size + 1;
+    const total = [
+      dataCopy[currentIndex],
+      dataCopy[currentIndex] + 1,
+      dataCopy[currentIndex] + 2,
+      dataCopy[currentIndex] + 3
+    ];
 
-}
+    for (let i=1; i<=size; i++) {
+      total[0] += dataCopy[currentIndex + i];
+      total[1] += dataCopy[currentIndex + i];
+      total[2] += dataCopy[currentIndex + i];
+      total[3] += dataCopy[currentIndex + i];
+    }
+
+    data[currentIndex] = total[0] / count;
+    data[currentIndex + 1] = total[1] / count;
+    data[currentIndex + 2] = total[2] / count;
+    data[currentIndex + 3] = total[3] / count;
+
+    while (current < width - 1) {
+      current++;
+      currentIndex += 4;
+  
+      if (current + size >= width) {
+        count--;
+      } else {
+        total[0] += dataCopy[currentIndex + size];
+        total[1] += dataCopy[currentIndex + size];
+        total[2] += dataCopy[currentIndex + size];
+        total[3] += dataCopy[currentIndex + size];
+      }
+
+      if (current - size < 0) {
+        count++;
+      } else {
+        total[0] -= dataCopy[currentIndex - size];
+        total[1] -= dataCopy[currentIndex - size];
+        total[2] -= dataCopy[currentIndex - size];
+        total[3] -= dataCopy[currentIndex - size];
+      }
+
+      data[currentIndex] = total[0] / count;
+      data[currentIndex + 1] = total[1] / count;
+      data[currentIndex + 2] = total[2] / count;
+      data[currentIndex + 3] = total[3] / count;
+    };
+  };
+};
 
 function motionBlurVertical() {
   
@@ -231,7 +283,6 @@ export const motionBlur = new Filter("Motion Blur", {size: {...size, max: 100}, 
   const dataCopy = new Uint8ClampedArray(data),
     weighted = getMotionBlurArray(size, angle),
     numOfRows = data.length / (width*4);
-  console.log(weighted);
   for (let row=0; row<numOfRows; row++) {
     for (let col=0; col<width; col++) {
       const index = (row * width + col) * 4;
