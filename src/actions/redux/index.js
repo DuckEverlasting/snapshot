@@ -168,6 +168,9 @@ export const deleteLayer = (id, project="current", ignoreHistory=false) => {
   return (dispatch, getState) => {
     let data = null;
     if (!ignoreHistory) {
+      if (project === "current") {
+        project = getState().main.activeProject;
+      }
       const ctx = getState().main.projects[project].present.layerCanvas[id].getContext("2d");
       const viewWidth = Math.floor(ctx.canvas.width);
       const viewHeight = Math.floor(ctx.canvas.height);
