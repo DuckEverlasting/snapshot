@@ -107,6 +107,50 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
   }
 }
 
+function convolve1d(data, width, matrix, type) {
+  matrix = normalize1d(matrix);
+  const dataCopy = new Uint8ClampedArray(data),
+    lineCount = type === "horizontal" ? data.length / (width*4) : width,
+    lineLength = type === "horizontal" ? width : data.length / (width*4),
+    increment = type === "horizontal" ? 1 : width,
+    radius = (matrix.length - 1) / 2;
+  
+  for (let lineIndex=0; lineIndex<lineCount; lineIndex++) {
+    let current = 0,
+      currentIndex = type === "horizontal" ?
+      lineIndex * width * 4 :
+      lineIndex * 4;
+
+    while (current < lineLength) {
+      const total = new Array(4).fill(0),
+        start = current - radius,
+        startIndex = currentIndex - radius * increment * 4;
+      let normalize = false,
+        currentMatrix = matrix.map((num, i) => {
+          if (start + i < 0 || start + i >= lineLength) {
+            normalize = true;
+            return 0;
+          }
+          return num;
+      });
+      if (normalize) {
+        currentMatrix = normalize1d(currentMatrix);
+      }
+      for (let i = 0; i < currentMatrix.length; i++) {
+        if (currentMatrix[i] === 0) {continue;}
+        for (let j=0; j<4; j++) {
+          total[j] += (dataCopy[startIndex + i * increment * 4 + j] || 0) * currentMatrix[i];
+        }
+      }
+      for (let i=0; i<3; i++) {
+        data[currentIndex + i] = total[i];
+      }
+      current++;
+      currentIndex += increment * 4;
+    };
+  };
+}
+
 function getMotionBlurArray(size, angle) {
   let a, b, result = []
   let slope = Math.tan(angle*Math.PI/180);
@@ -221,26 +265,22 @@ function getMatrixAt(data, width, index, matrixLength, checkOpacity, rgb) {
   return matrix;
 }
 
-function getGaussianKernel(radius) {
-  const sigma = radius / 2;
-  const size = (Math.ceil(radius) * 2) + 1;
-  const a = (1 / (2 * Math.PI * sigma * sigma));
-  function gaussian(x2PlusY2) {
-    return a * Math.pow(Math.E, -(x2PlusY2) / (2 * sigma * sigma));
+function getGaussianKernel1d(radius, sigma = radius / 2) {
+  function gaussian(x){
+    return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.pow(Math.E, -.5 * (x / sigma) * (x / sigma))
   }
-  const result = new Array(size);
-  const row = new Array(size);
-  const solutions = {};
-  for (let i=0; i<size; i++) {
-    const y = i - (size - 1) / 2;
-    result[i] = [...row];
-    for (let j=0; j<size; j++) {
-      const x = j - (size - 1) / 2;
-      let key = x*x + y*y;
-      result[i][j] = solutions[key] || gaussian(key);
-    }
+  const inital = [gaussian(0)];
+  for (let i=1; i<=radius; i++) {
+    inital.push(gaussian(i));
+    inital.unshift(gaussian(i));
   }
-  return result;
+  const total = inital.reduce((prev, curr) => prev + curr);
+  return inital.map(num => num / total);
+}
+
+function normalize1d(matrix) {
+  const total = matrix.reduce((prev, curr) => prev + curr);
+  return matrix.map(num => num / total);
 }
 
 export const motionBlur = new Filter("Motion Blur", {size: {...size, max: 100}, angle}, (data, {size, angle, width}) => {
@@ -350,9 +390,13 @@ export const posterize = new Filter("Posturize", {levels}, (data, {levels}) => {
 });
 
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
-  const matrix = getGaussianKernel(amount / 10);
-  convolve(data, width, matrix, 0, true);
-}, 500);
+  const matrix = getGaussianKernel1d(amount / 10);
+  const old = [...data];
+  convolve1d(data, width, matrix, "horizontal");
+  convolve1d(data, width, matrix, "vertical");
+  console.log(old)
+  console.log(data)
+});
 
 export const boxBlur = new Filter("Box Blur", {size: {...size, max: 100}}, (data, {size, width}) => {
   motionBlurPerpendicular(data, size, width, "horizontal");

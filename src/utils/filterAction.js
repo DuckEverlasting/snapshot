@@ -6,7 +6,7 @@ export default function filterAction(apply, input, preview) {
   return (dispatch, getState) => {
     const activeProject = getState().main.activeProject;
     if (!activeProject) {return;}
-    const stagingPinnedTo = getState.main.stagingPinnedTo;
+    const stagingPinnedTo = getState().main.stagingPinnedTo;
     const { activeLayer, selectionPath } = getState().main.projects[activeProject].present;
     if (!activeLayer) return;
     const ctx = getState().main.projects[activeProject].present.layerCanvas[activeLayer].getContext("2d");
