@@ -66,7 +66,6 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
       }
 
     case UPDATE_MAIN_CANVAS:
-      console.log("YO")
       return {
         ...state,
         mainCanvas: payload
@@ -74,10 +73,8 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
     
     case UPDATE_PROJECT_TAB_ORDER:
       let { from, to } = payload;
-      console.log(payload)
       let newOrder = state.projectTabOrder.slice();
       newOrder.splice(to, 0, newOrder.splice(from, 1)[0]);
-      console.log(newOrder)
       return {
         ...state,
         projectTabOrder: newOrder

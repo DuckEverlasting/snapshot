@@ -31,7 +31,8 @@ export default function undoable(reducer, { filter = () => true, limit = 20 }) {
               historyParams: params
             }
           ],
-          present: { ...present }
+          present: { ...present },
+          future: []
         };
       case PUT_HISTORY_DATA_MULTIPLE:
         const onUndoArray = payload.array.map(el => {
@@ -51,7 +52,8 @@ export default function undoable(reducer, { filter = () => true, limit = 20 }) {
               historyParams: payload.params
             }
           ],
-          present: { ...present }
+          present: { ...present },
+          future: []
         };
       case UNDO:
         if (!past.length) {

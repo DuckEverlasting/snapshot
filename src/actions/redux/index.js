@@ -58,7 +58,7 @@ export const undo = () => {
         }
       }
     }
-    await dispatch({type: t.UNDO})
+    await dispatch({type: t.UNDO, payload: {project: "current"}});
     if (prevState && prevState.historyParams && prevState.historyParams.groupWithPrevious) {
       dispatch(undo());
     }
@@ -99,7 +99,7 @@ export const redo = () => {
         }
       }
     }
-    dispatch({type: t.REDO})
+    dispatch({type: t.REDO, payload: {project: "current"}});
     if (nextState && nextState.historyParams && nextState.historyParams.groupWithPrevious) {
       dispatch(redo());
     }
@@ -120,7 +120,7 @@ export const putHistoryData = (id, ctx, callback, prevImgData, params={}) => {
   }
   return {
     type: t.PUT_HISTORY_DATA,
-    payload: {id, ...getDiff(ctx, {prevImgData}), params}
+    payload: {id, project: "current", ...getDiff(ctx, {prevImgData}), params}
   }
 }
 
