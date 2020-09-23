@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { setOverlay, resetState, updateDocumentSettings } from "../actions/redux";
+import { setOverlay, createNewProject } from "../actions/redux";
+import render from "../actions/redux/renderCanvas";
 
 import Button from "../components/Button";
 import NumberInput from "../components/NumberInput";
 import DraggableWindow from "../components/DraggableWindow";
+import selectFromActiveProject from "../utils/selectFromActiveProject";
 
 const NewDocumentModalSC = styled.div`
   display: flex;
@@ -26,48 +28,44 @@ const InputRowSC = styled.div`
 export default function NewDocumentModal() {
   const dispatch = useDispatch();
 
-  const {documentWidth, documentHeight} = useSelector(
-    state => state.main.present.documentSettings
-  );
-  const [width, setWidth] = useState(documentWidth);
-  const [height, setHeight] = useState(documentHeight);
+  const documentSettings = useSelector(selectFromActiveProject("documentSettings"));
+  const {documentWidth, documentHeight} = documentSettings ? documentSettings : {};
+  const [width, setWidth] = useState(documentWidth || 500);
+  const [height, setHeight] = useState(documentHeight || 500);
   const [name, setName] = useState("My Great Document")
 
-  function handleCreate(ev) {
+  function handleCreate(e) {
     create();
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   function create() {
     dispatch(async dispatch => {
-      await dispatch(resetState());
-      dispatch(updateDocumentSettings({
-        documentWidth: width,
-        documentHeight: height,
-        documentName: name
-      }, true));
+      await dispatch(createNewProject(name, width, height));
+      dispatch(render());
     });
+    dispatch(setOverlay(null));
   }
   
-  function handleCancel(ev) {
+  function handleCancel(e) {
     cancel();
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   function cancel() {
-    dispatch(setOverlay("newDocument"));
+    dispatch(setOverlay(null));
   }
 
-  function handleInput(ev, type) {
+  function handleInput(e, type) {
     switch (type) {
       case "width":
-        setWidth(ev);
+        setWidth(e);
         break;
       case "height":
-        setHeight(ev);
+        setHeight(e);
         break;
       case "name":
-        setName(ev.target.value);
+        setName(e.target.value);
         break;
       default:
         break;

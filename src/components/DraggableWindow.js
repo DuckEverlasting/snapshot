@@ -135,33 +135,33 @@ export default function DraggableWindow({
     boundingBoxRef.current.focus();
   }, [])
 
-  function handleMouseDown(ev, resizeType = "") {
-    if (ev.button !== 0) return;
+  function handleMouseDown(e, resizeType = "") {
+    if (e.button !== 0) return;
     setIsDragging(true);
     if (resizeType) {
       setIsResizing(resizeType);
     }
     setDragOrigin({
-      x: Math.floor(ev.screenX),
-      y: Math.floor(ev.screenY),
+      x: Math.floor(e.screenX),
+      y: Math.floor(e.screenY),
       w: modalDimensions.w,
       h: modalDimensions.h,
       offX: offset.x,
       offY: offset.y,
     });
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
-  function handleMouseMove(ev) {
+  function handleMouseMove(e) {
     if (!isDragging) {
       return;
     }
-    if (isDragging && ev.buttons === 0) {
+    if (isDragging && e.buttons === 0) {
       if (isResizing) setIsResizing("");
       return setIsDragging(false);
     }
-    const x = Math.floor(ev.screenX) - (dragOrigin.x - dragOrigin.offX);
-    const y = Math.floor(ev.screenY) - (dragOrigin.y - dragOrigin.offY);
+    const x = Math.floor(e.screenX) - (dragOrigin.x - dragOrigin.offX);
+    const y = Math.floor(e.screenY) - (dragOrigin.y - dragOrigin.offY);
 
     if (!isResizing) {
       setOffset({
@@ -172,11 +172,11 @@ export default function DraggableWindow({
       setModalDimensions({
         w: Math.min(Math.max(
           minSize.w,
-          dragOrigin.w + (Math.floor(ev.screenX) - dragOrigin.x)
+          dragOrigin.w + (Math.floor(e.screenX) - dragOrigin.x)
         ), boundingDimensions.w - dragOrigin.offX),
         h: Math.min(Math.max(
           minSize.h,
-          dragOrigin.h + (Math.floor(ev.screenY) - dragOrigin.y)
+          dragOrigin.h + (Math.floor(e.screenY) - dragOrigin.y)
         ), boundingDimensions.h - dragOrigin.offY),
       });
     } else if (isResizing === "sw") {
@@ -189,10 +189,10 @@ export default function DraggableWindow({
       }));
       setModalDimensions({
         w: Math.min(
-          Math.max(minSize.w, dragOrigin.w - (ev.screenX - dragOrigin.x)),
+          Math.max(minSize.w, dragOrigin.w - (e.screenX - dragOrigin.x)),
           dragOrigin.offX + dragOrigin.w
         ),
-        h: Math.max(minSize.h, dragOrigin.h + (ev.screenY - dragOrigin.y)),
+        h: Math.max(minSize.h, dragOrigin.h + (e.screenY - dragOrigin.y)),
       });
     }
   }
@@ -203,21 +203,21 @@ export default function DraggableWindow({
     if (isResizing) setIsResizing("");
   }
 
-  function handleClickOutside(ev) {
+  function handleClickOutside(e) {
     setCaution(true);
     setTimeout(() => setCaution(false), 100);
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
-  function handleKeyDown(ev) {
-    if (onEscape && ev.key === "Escape") {
-      onEscape(ev);
+  function handleKeyDown(e) {
+    if (onEscape && e.key === "Escape") {
+      onEscape(e);
     }
-    if (onEnter && ev.key === "Enter") {
-      onEscape(ev);
+    if (onEnter && e.key === "Enter") {
+      onEnter(e);
     }
     if (stopKeydown) {
-      ev.stopPropagation();
+      e.stopPropagation();
     }
   }
 
@@ -233,7 +233,7 @@ export default function DraggableWindow({
       <InnerModalSC
         ref={modalRef}
         onMouseMove={handleMouseMove}
-        onMouseDown={(ev) => ev.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
         dragging={isDragging}
         offset={offset}
         dimensions={modalDimensions}
@@ -250,11 +250,11 @@ export default function DraggableWindow({
         {resizable && (
           <>
             <SWResizeSC
-              onMouseDown={(ev) => handleMouseDown(ev, "sw")}
+              onMouseDown={(e) => handleMouseDown(e, "sw")}
               onMouseMove={handleMouseMove}
             />
             <SEResizeSC
-              onMouseDown={(ev) => handleMouseDown(ev, "se")}
+              onMouseDown={(e) => handleMouseDown(e, "se")}
               onMouseMove={handleMouseMove}
             />
           </>

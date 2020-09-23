@@ -1,6 +1,4 @@
 import {
-  DRAG_LAYERCARD,
-  END_DRAG_LAYERCARD,
   SET_ACTIVE_TOOL,
   UPDATE_TOOL_SETTINGS,
   UPDATE_WORKSPACE_SETTINGS,
@@ -23,18 +21,6 @@ import { getInitUiState } from "./initState";
 
 const uiReducer = (state = getInitUiState(), {type, payload}) => {
   switch (type) {
-    case DRAG_LAYERCARD:
-      return {
-        ...state,
-        draggedLayercard: payload
-      };
-
-    case END_DRAG_LAYERCARD:
-      return {
-        ...state,
-        draggedLayercard: null,
-      }
-
     case SET_ACTIVE_TOOL:
       return {
         ...state,

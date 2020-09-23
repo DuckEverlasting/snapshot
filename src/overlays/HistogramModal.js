@@ -1,15 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateCanvas, setOverlay } from '../actions/redux'
+import { updateUtilityCanvas, setOverlay } from '../actions/redux'
 
 import DraggableWindow from "../components/DraggableWindow";
 import Histogram from "../utils/Histogram";
 
 function HistogramModal() {
   const activeCtx = useSelector(state => {
-    const activeLayer = state.main.present.activeLayer;
-    return state.main.present.layerCanvas[activeLayer].getContext("2d");
+    const activeProject = state.main.activeProject;
+    const activeLayer = state.main.projects[activeProject].present.activeLayer;
+    return state.main.projects[activeProject].present.layerCanvas[activeLayer].getContext("2d");
   });
   return (
     <DraggableWindow name={"Histogram"} resizable initSize={{w: 256, h: 256}} minimumSize={{w: 100, h: 100}}>
@@ -53,9 +54,9 @@ function HistogramCanvas({sourceCtx}) {
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    dispatch(updateCanvas("histogram", canvasRef.current));
+    dispatch(updateUtilityCanvas("histogram", canvasRef.current));
 
-    return () => dispatch(updateCanvas("histogram", null));
+    return () => dispatch(updateUtilityCanvas("histogram", null));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -64,9 +65,9 @@ function HistogramCanvas({sourceCtx}) {
     histogram.drawAll(canvasRef.current.getContext("2d"));
   }, [sourceCtx])
 
-  function handleMouseDown(ev) {
+  function handleMouseDown(e) {
     dispatch(setOverlay("histogram"));
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   return <HistogramWrapperSC onEscape={() => dispatch(setOverlay("histogram"))}>

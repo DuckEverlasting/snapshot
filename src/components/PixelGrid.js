@@ -33,8 +33,9 @@ const LayerSC = styled.canvas`
 
 function PixelGrid({ transX, transY, sizeW, sizeH, refRef }) {
   const canvasRef = useRef(null),
-    documentHeight = useSelector(state => state.main.present.documentSettings.documentHeight),
-    documentWidth = useSelector(state => state.main.present.documentSettings.documentWidth),
+  activeProject = useSelector(state => state.main.activeProject),
+  documentHeight = useSelector(state => state.main.projects[activeProject].present.documentSettings.documentHeight),
+  documentWidth = useSelector(state => state.main.projects[activeProject].present.documentSettings.documentWidth),
     { translateX, translateY, zoomPct } = useSelector(state => state.ui.workspaceSettings),
     zoom = zoomPct / 100,
     docSize = {w: documentWidth, h: documentHeight};

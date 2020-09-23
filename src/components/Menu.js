@@ -45,6 +45,7 @@ const MenuPanelSC = styled.div`
   position: absolute;
   background: ${(props) => props.color};
   padding: ${(props) => props.size * 4}px 0;
+  z-index: 4;
 `;
 const MenuLabelSC = styled.div`
   display: flex;
@@ -195,8 +196,8 @@ function MenuGroup({ children, disabled }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [disabled])
 
-  function handleClickInside(ev) {
-    ev.stopPropagation();
+  function handleClickInside(e) {
+    e.stopPropagation();
     setMenuIsActive(!menuIsActive);
   }
 
@@ -258,11 +259,11 @@ export function MenuBranch({ id, label, children }) {
     clearTimeout(delay);
   }
 
-  function handleClick(ev) {
+  function handleClick(e) {
     clearTimeout(delay);
     setIsOpen(true);
     setActiveMenuBranch(id);
-    ev.stopPropagation();
+    e.stopPropagation();
   }
 
   function handleMouseEnterChildren() {
@@ -306,12 +307,12 @@ export function MenuItem({
 }) {
   const { menuIsDisabled, colors, size, resetMenu } = useContext(MenuSettings);
 
-  const clickHandler = (ev) => {
+  const clickHandler = (e) => {
     if (disabled || menuIsDisabled) {
-      return ev.stopPropagation();
+      return e.stopPropagation();
     }
     resetMenu();
-    return onClick(ev);
+    return onClick(e);
   };
 
   return (

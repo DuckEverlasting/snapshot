@@ -19,7 +19,12 @@
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0",
     "redux-undo": "^1.0.1",
-    "styled-components": "^4.3.2"
+    "styled-components": "^4.3.2",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "redux-devtools-extension": "^2.13.8",
+    "redux-logger": "^3.0.6"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -41,9 +46,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "redux-devtools-extension": "^2.13.8",
-    "redux-logger": "^3.0.6"
   }
 }

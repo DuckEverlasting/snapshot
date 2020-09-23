@@ -14,6 +14,7 @@ import {
   setTransformParams,
   updateLayerPosition,
   updateDocumentSettings,
+  updateClipboardSettings
 } from "./index";
 
 import { MoveAction } from "../../utils/ToolAction";
@@ -29,8 +30,10 @@ import { getCanvas } from "../../utils/helpers";
 
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {
-    const mainCanvas = getState().main.present.layerCanvas.main,
-      fileName = getState().main.present.documentSettings.documentName;
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
+    const mainCanvas = getState().main.mainCanvas,
+      fileName = getState().main.projects[activeProject].present.documentSettings.documentName;
 
     const href = mainCanvas.toDataURL(type, compression);
   
@@ -58,9 +61,12 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
   }
 
   return async (dispatch, getState) => {
-    const { documentWidth, documentHeight } = getState().main.present.documentSettings;
-    const layerSettings = getState().main.present.layerSettings;
-    const layerCanvas = getState().main.present.layerCanvas;
+    const activeProject = getState().main.activeProject;
+    if (!activeProject) {return;}
+    const { documentWidth, documentHeight } = getState().main.projects[activeProject].present.documentSettings;
+    const layerSettings = getState().main.projects[activeProject].present.layerSettings;
+    const layerCanvas = getState().main.projects[activeProject].present.layerCanvas;
+    const utilityCanvas = getState().main.utilityCanvas;
 
     const offsetConversion = {
       "top-left": {x: 0, y: 0},
@@ -74,34 +80,34 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
       "bottom-right": {x: documentWidth - width, y: documentHeight - height}
     }
 
-    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
+    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}, {ignoreHistory: true}));
 
-    await dispatch(menuAction("deselect"));
-    layerCanvas.staging.width = width;
-    layerCanvas.staging.height = height;
-    layerCanvas.placeholder.width = width;
-    layerCanvas.placeholder.height = height;
+    await dispatch(updateSelectionPath("clear", null, {ignoreHistory: true}));
+    utilityCanvas.staging.width = width;
+    utilityCanvas.staging.height = height;
+    utilityCanvas.placeholder.width = width;
+    utilityCanvas.placeholder.height = height;
     const temp = getCanvas(documentWidth, documentHeight);
-    temp.getContext("2d").drawImage(layerCanvas.clipboard, 0, 0);
-    layerCanvas.clipboard.width = width;
-    layerCanvas.clipboard.height = height;
-    layerCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
+    temp.getContext("2d").drawImage(utilityCanvas.clipboard, 0, 0);
+    utilityCanvas.clipboard.width = width;
+    utilityCanvas.clipboard.height = height;
+    utilityCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
 
     if (offset) {
       const parsedOffset = typeof offset === "string" ? offsetConversion[offset] : offset;
-      await getState().main.present.renderOrder.forEach(targetLayer => {
+      await getState().main.projects[activeProject].present.renderOrder.forEach(targetLayer => {
         const translateData = {
           offX: layerSettings[targetLayer].offset.x,
           offY: layerSettings[targetLayer].offset.y,
           documentWidth: width,
           documentHeight: height,
         }
-        const action = new MoveAction(targetLayer, layerCanvas, dispatch, translateData);
+        const action = new MoveAction(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
         action.manualStart();
         action.manualEnd({x: -parsedOffset.x, y: -parsedOffset.y}, true);
       })
     } else {
-      await getState().main.present.renderOrder.forEach(targetLayer => {
+      await getState().main.projects[activeProject].present.renderOrder.forEach(targetLayer => {
         const widthFactor = width / documentWidth;
         const heightFactor = height / documentHeight;
         temp.width = layerCanvas[targetLayer].width * widthFactor;
@@ -129,7 +135,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
           x: layerSettings[targetLayer].offset.x * widthFactor,
           y: layerSettings[targetLayer].offset.y * heightFactor
         }
-        dispatch(updateLayerPosition(targetLayer, null, newOffset, true));
+        dispatch(updateLayerPosition(targetLayer, null, newOffset, {ignoreHistory: true}));
       });
     }
 
@@ -148,7 +154,9 @@ export default function menuAction(action) {
       };
     case "reselect":
       return (dispatch, getState) => {
-        const prevSelection = getState().main.present.previousSelection;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const prevSelection = getState().main.projects[activeProject].present.previousSelection;
         if (prevSelection) {
           dispatch(updateSelectionPath("new", prevSelection));
           dispatch(render());
@@ -156,20 +164,23 @@ export default function menuAction(action) {
       }
     case "duplicate":
       return (dispatch, getState) => {
-        const { activeLayer } = getState().main.present;
-        const source = getState().main.present.layerCanvas[activeLayer];
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer } = getState().main.projects[activeProject].present;
+        const source = getState().main.projects[activeProject].present.layerCanvas[activeLayer];
         dispatch(createLayerFrom(activeLayer, source));
         dispatch(render());
       };
     case "copy":
-      // PROBABLY SHOULD MOVE CLIPBOARD TO ITS OWN REDUCER???
       return (dispatch, getState) => {
-        const { activeLayer, selectionPath } = getState().main.present;
-        const ctx = getState().main.present.layerCanvas.clipboard.getContext("2d");
-        const sourceCtx = getState().main.present.layerCanvas[
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer, selectionPath } = getState().main.projects[activeProject].present;
+        const ctx = getState().main.utilityCanvas.clipboard.getContext("2d");
+        const sourceCtx = getState().main.projects[activeProject].present.layerCanvas[
           activeLayer
         ].getContext("2d");
-        const offset = getState().main.present.layerSettings[activeLayer].offset;
+        const offset = getState().main.projects[activeProject].present.layerSettings[activeLayer].offset;
         manipulate(ctx, {
           action: "paste",
           params: {
@@ -181,15 +192,17 @@ export default function menuAction(action) {
           }
         });
         dispatch(setClipboardIsUsed(true));
-        dispatch(updateLayerPosition("clipboard", null, offset, true));
+        dispatch(updateClipboardSettings("clipboard", offset));
       };
     case "paste":
       return (dispatch, getState) => {
-        const { activeLayer } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer } = getState().main.projects[activeProject].present;
         if (!activeLayer) return;
-        const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
-        const sourceCtx = getState().main.present.layerCanvas.clipboard.getContext("2d");
-        const offset = getState().main.present.layerSettings.clipboard.offset;
+        const ctx = getState().main.projects[activeProject].present.layerCanvas[activeLayer].getContext("2d");
+        const sourceCtx = getState().main.utilityCanvas.clipboard.getContext("2d");
+        const offset = getState().main.clipboardSettings.offset;
         putHistoryData(activeLayer, ctx, () =>
           manipulate(ctx, {
             action: "paste",
@@ -213,7 +226,9 @@ export default function menuAction(action) {
       }
     case "newLayer":
       return (dispatch, getState) => {
-        const { activeLayer, renderOrder } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer, renderOrder } = getState().main.projects[activeProject].present;
         if (activeLayer) {
           dispatch(createLayer(activeLayer));
         } else {
@@ -222,7 +237,9 @@ export default function menuAction(action) {
       };
     case "deleteLayer":
       return (dispatch, getState) => {
-        const { activeLayer } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer } = getState().main.projects[activeProject].present;
         if (activeLayer) {
           dispatch(deleteLayer(activeLayer));
           dispatch(render());
@@ -230,7 +247,9 @@ export default function menuAction(action) {
       };
     case "hideLayer":
       return (dispatch, getState) => {
-        const { activeLayer } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer } = getState().main.projects[activeProject].present;
         if (activeLayer) {
           dispatch(hideLayer(activeLayer));
           dispatch(render());
@@ -238,10 +257,12 @@ export default function menuAction(action) {
       };
     case "clear":
       return async (dispatch, getState) => {
-        const { activeLayer, selectionPath, selectionActive } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer, selectionPath, selectionActive } = getState().main.projects[activeProject].present;
         if (!selectionActive || !activeLayer || !selectionPath) return; 
-        const ctx = getState().main.present.layerCanvas[activeLayer].getContext("2d");
-        const offset = getState().main.present.layerSettings[activeLayer].offset;
+        const ctx = getState().main.projects[activeProject].present.layerCanvas[activeLayer].getContext("2d");
+        const offset = getState().main.projects[activeProject].present.layerSettings[activeLayer].offset;
         await dispatch(
           putHistoryData(activeLayer, ctx, () =>
             manipulate(ctx, {
@@ -257,6 +278,8 @@ export default function menuAction(action) {
       };
     case "import":
       return async (dispatch, getState) => {
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
         const fileInput = document.createElement("input");
         fileInput.type = "file";
         fileInput.accept = "image/*";
@@ -266,16 +289,18 @@ export default function menuAction(action) {
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
           dispatch(setTransformParams({resizable: true, rotatable: true}))
-          dispatch(createLayer(getState().main.present.renderOrder.length, false, {name}));
+          dispatch(createLayer(getState().main.projects[activeProject].present.renderOrder.length, {name}));
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }
       }
     case "export":
       return (dispatch, getState) => {
-        const mainCanvas = getState().main.present.layerCanvas.main,
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const mainCanvas = getState().main.mainCanvas,
           { type, compression } = getState().ui.exportOptions,
-          fileName = getState().main.present.documentSettings.documentName;
+          fileName = getState().main.projects[activeProject].present.documentSettings.documentName;
 
         if (!type) return;
 
@@ -287,10 +312,13 @@ export default function menuAction(action) {
       }
     case "transform":
       return async (dispatch, getState) => {
-        const { activeLayer, layerCanvas, layerSettings, selectionPath } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer, layerCanvas, layerSettings, selectionPath } = getState().main.projects[activeProject].present;
+        const utilityCanvas = getState().main.utilityCanvas;
         if (!activeLayer) return
         const activeCtx = layerCanvas[activeLayer].getContext("2d"),
-          placeholderCtx = layerCanvas.placeholder.getContext("2d");
+          placeholderCtx = utilityCanvas.placeholder.getContext("2d");
         manipulate(placeholderCtx, {
           action: "paste",
           params: {
@@ -319,7 +347,9 @@ export default function menuAction(action) {
       }
     case "desaturate":
       return async (dispatch, getState) => {
-        const { activeLayer, layerCanvas } = getState().main.present;
+        const activeProject = getState().main.activeProject;
+        if (!activeProject) {return;}
+        const { activeLayer, layerCanvas } = getState().main.projects[activeProject].present;
         if (!activeLayer) return
         const ctx = layerCanvas[activeLayer].getContext("2d");
         const activeData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);

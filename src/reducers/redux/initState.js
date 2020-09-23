@@ -1,72 +1,84 @@
 import { getCanvas } from "../../utils/helpers";
 
-const initWidth = Math.floor((window.innerWidth - 300) * .8);
-const initHeight = Math.floor((window.innerHeight - 30) * .8);
-const initSelectionPath = new Path2D();
-initSelectionPath.rect(0, 0, initWidth, initHeight);
-
+const getInitWidth = () => Math.floor((window.innerWidth - 300) * .8);
+const getInitHeight = () => Math.floor((window.innerHeight - 30) * .8);
 // NOTE: Opacity uses 0 - 100 instead of 0 - 1. 
 // This is so the number input component won't get confused.
 // Opacity is converted to 0 - 1 format when drawn.
 
-export const getInitMainState = () => ({
-  onUndo: null,
-  onRedo: null,
-  documentSettings: {
-    documentWidth: initWidth,
-    documentHeight: initHeight,
-    documentName: "My Great Document"
-  },
-  layerCanvas: {
-    main: null,
-    1: getCanvas(initWidth, initHeight),
-    clipboard: getCanvas(initWidth, initHeight),
-    placeholder: getCanvas(initWidth, initHeight),
-    staging: getCanvas(initWidth, initHeight)
-  },
-  layerSettings: {
-    1: {
-      name: "Layer 1",
-      type: "raster",
-      nameEditable: false,
-      size: {
-        w: initWidth,
-        h: initHeight
-      },
-      offset: {
-        x: 0,
-        y: 0
-      },
-      hidden: false,
-      opacity: 100,
-      blend: "source-over"
+const getInitSelectionPath = (width=getInitWidth(), height=getInitHeight()) => {
+  const initSelectionPath = new Path2D();
+  initSelectionPath.rect(0, 0, width, height);
+}
+
+export const getInitProjectState = (id, name="My Great Document", width=getInitWidth(), height=getInitHeight()) => ({
+  past: [],
+  future: [],
+  present: {
+    id,
+    onUndo: null,
+    onRedo: null,
+    documentSettings: {
+      documentWidth: width,
+      documentHeight: height,
+      documentName: name
     },
-    "clipboard": {
-      size: {
-        w: initWidth,
-        h: initHeight
-      },
+    layerCanvas: {
+      1: getCanvas(width, height)
+    },
+    layerSettings: {
+      1: {
+        name: "Layer 1",
+        type: "raster",
+        nameEditable: false,
+        size: {
+          w: width,
+          h: height
+        },
+        offset: {
+          x: 0,
+          y: 0
+        },
+        hidden: false,
+        opacity: 100,
+        blend: "source-over"
+      }
+    },
+    selectionPath: getInitSelectionPath(width, height),
+    selectionActive: false,
+    previousSelection: null,
+    renderOrder: [1],
+    layerCounter: 2,
+    activeLayer: 1,
+    historyIsDisabled: false
+  }
+});
+
+export const getInitMainState = (width=getInitWidth(), height=getInitHeight(), initProject) => {
+  return {
+    projects: initProject ? {[initProject.id]: initProject} : {},
+    projectTabOrder: initProject ? [initProject.id] : [],
+    activeProject: initProject ? initProject.id : null,
+    mainCanvas: null,
+    utilityCanvas: {
+      clipboard: getCanvas(width, height),
+      placeholder: getCanvas(width, height),
+      staging: getCanvas(width, height)
+    },
+    stagingPinnedTo: 1,
+    clipboardUsed: false,
+    clipboardSettings: {
       offset: {
         x: 0,
         y: 0
       }
+    },
+    stampData: {
+      canvas: null,
+      origin: null,
+      destination: null
     }
-  },
-  selectionPath: initSelectionPath,
-  selectionActive: false,
-  previousSelection: null,
-  stagingPinnedTo: 1,
-  renderOrder: [1],
-  layerCounter: 2,
-  activeLayer: 1,
-  clipboardUsed: false,
-  stampData: {
-    canvas: null,
-    origin: null,
-    destination: null
-  },
-  historyIsDisabled: false
-});
+}};
 
 export const getInitUiState = () => ({
   workspaceSettings: {
@@ -107,7 +119,7 @@ export const getInitUiState = () => ({
   },
   draggedLayercard: null,
   activeTool: "pencil",
-  overlay: null,
+  overlay: "newDocument",
   menuIsDisabled: false,
   currentHelpTopic: "tools",
   currentFilter: null,

@@ -79,16 +79,16 @@ const LabelSC = styled.label`
 `;
 
 export default function SliderInput({onChange, value, name, min=1, max=100, step=1, disabled=false, stopKeydown=true}) {
-  const handleKeyDown = ev => {
+  const handleKeyDown = e => {
     if (stopKeydown) {
-      ev.stopPropagation();
+      e.stopPropagation();
     }
   };
 
-  const handleInput = ev => {
-    let newValue = Number(ev.target.value);
-    if (ev.target.value === "-" || ev.target.value === "") {
-      newValue = ev.target.value;
+  const handleInput = e => {
+    let newValue = Number(e.target.value);
+    if (e.target.value === "-" || e.target.value === "") {
+      newValue = e.target.value;
     } else if (Number.isNaN(newValue)) {
       newValue = value;
     } else if (newValue < min) {

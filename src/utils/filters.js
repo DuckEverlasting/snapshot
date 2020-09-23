@@ -107,6 +107,50 @@ function convolve(data, width, matrix, offset=0, opacity=false, divisor) {
   }
 }
 
+function convolve1d(data, width, matrix, type) {
+  matrix = normalize1d(matrix);
+  const dataCopy = new Uint8ClampedArray(data),
+    lineCount = type === "horizontal" ? data.length / (width*4) : width,
+    lineLength = type === "horizontal" ? width : data.length / (width*4),
+    increment = type === "horizontal" ? 1 : width,
+    radius = (matrix.length - 1) / 2;
+  
+  for (let lineIndex=0; lineIndex<lineCount; lineIndex++) {
+    let current = 0,
+      currentIndex = type === "horizontal" ?
+      lineIndex * width * 4 :
+      lineIndex * 4;
+
+    while (current < lineLength) {
+      const total = new Array(4).fill(0),
+        start = current - radius,
+        startIndex = currentIndex - radius * increment * 4;
+      let normalize = false,
+        currentMatrix = matrix.map((num, i) => {
+          if (start + i < 0 || start + i >= lineLength) {
+            normalize = true;
+            return 0;
+          }
+          return num;
+      });
+      if (normalize) {
+        currentMatrix = normalize1d(currentMatrix);
+      }
+      for (let i = 0; i < currentMatrix.length; i++) {
+        if (currentMatrix[i] === 0) {continue;}
+        for (let j=0; j<4; j++) {
+          total[j] += (dataCopy[startIndex + i * increment * 4 + j] || 0) * currentMatrix[i];
+        }
+      }
+      for (let i=0; i<3; i++) {
+        data[currentIndex + i] = total[i];
+      }
+      current++;
+      currentIndex += increment * 4;
+    };
+  };
+}
+
 function getMotionBlurArray(size, angle) {
   let a, b, result = []
   let slope = Math.tan(angle*Math.PI/180);
@@ -130,12 +174,69 @@ function getMotionBlurArray(size, angle) {
   return result;
 }
 
-function motionBlurHorizontal() {
+/**
+ * Adds a horizontal or vertical motion blur to an array of pixel data.
+ * 
+ * @param {Uint8ClampedArray} data 
+ * @param {number} size - In this case size refers to the radius of the blur.
+ * @param {number} width 
+ * @param {"horizontal" | "vertical"} type 
+ */
+function motionBlurPerpendicular(data, size, width, type) {
+  const dataCopy = new Uint8ClampedArray(data),
+    lineCount = type === "horizontal" ? data.length / (width*4) : width,
+    lineLength = type === "horizontal" ? width : data.length / (width*4),
+    increment = type === "horizontal" ? 1 : width;
 
-}
+  for (let lineIndex=0; lineIndex<lineCount; lineIndex++) {
+    let current = 0,
+      currentIndex = type === "horizontal" ?
+        lineIndex * width * 4 :
+        lineIndex * 4,
+      count = size + 1,
+      total = [
+        dataCopy[currentIndex],
+        dataCopy[currentIndex + 1],
+        dataCopy[currentIndex + 2],
+        dataCopy[currentIndex + 3]
+      ];
 
-function motionBlurVertical() {
-  
+    // initialize "total" array
+    for (let i=increment*4; i<=size*increment*4; i+=increment*4) {
+      for (let j=0; j<4; j++) {
+        total[j] += dataCopy[currentIndex + i + j] 
+      }
+    }
+
+    // set data for first point
+    total.forEach((num, i) => {
+      data[currentIndex + i] = num / count;  
+    });
+
+    // use a sliding window to update rest of points in line
+    while (current + 1 < lineLength) {
+      current++;
+      currentIndex += increment * 4;
+      // these conditionals handle edge cases where the blur would go beyond the line
+      if (current + size + 1 > lineLength) {
+        count--;
+      } else {
+        for (let i=0; i<4; i++) {
+          total[i] += dataCopy[currentIndex + i + size * increment * 4];
+        }
+      }
+      if (current - size < 0) {
+        count++;
+      } else {
+        for (let i=0; i<4; i++) {
+          total[i] -= dataCopy[currentIndex + i - size * increment * 4];
+        }
+      }
+      for (let i=0; i<4; i++) {
+        data[currentIndex + i] = total[i] / count;
+      }
+    };
+  };
 }
 
 function getMatrixAt(data, width, index, matrixLength, checkOpacity, rgb) {
@@ -164,83 +265,46 @@ function getMatrixAt(data, width, index, matrixLength, checkOpacity, rgb) {
   return matrix;
 }
 
-function getGaussianKernel(radius) {
-  const sigma = radius / 2;
-  const size = (Math.ceil(radius) * 2) + 1;
-  const a = (1 / (2 * Math.PI * sigma * sigma));
-  function gaussian(x2PlusY2) {
-    return a * Math.pow(Math.E, -(x2PlusY2) / (2 * sigma * sigma));
+function getGaussianKernel1d(radius, sigma = radius / 2) {
+  function gaussian(x){
+    return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.pow(Math.E, -.5 * (x / sigma) * (x / sigma))
   }
-  const result = new Array(size);
-  const row = new Array(size);
-  const solutions = {};
-  for (let i=0; i<size; i++) {
-    const y = i - (size - 1) / 2;
-    result[i] = [...row];
-    for (let j=0; j<size; j++) {
-      const x = j - (size - 1) / 2;
-      let key = x*x + y*y;
-      result[i][j] = solutions[key] || gaussian(key);
-    }
+  const inital = [gaussian(0)];
+  for (let i=1; i<=radius; i++) {
+    inital.push(gaussian(i));
+    inital.unshift(gaussian(i));
   }
-  return result;
+  const total = inital.reduce((prev, curr) => prev + curr);
+  return inital.map(num => num / total);
 }
 
-/* new idea: 
-  - do a motion blur linearly. The method that works for horizontal and vertical should work for diagonal cases too.
-  - start at corner. move along through all diagonal lines, adding the next value and removing the last trailing value from the average.
-  - tricky part is figuring out how to move along the lines, and making sure no pixels get skipped / overlapped.
-  - but you've already done this! the equation below will get you there, and applied to the full image, there should be no overlaps or missed pixels.
-  - (NO STRUCTURAL DAMAGE! ONLY DAMAGE TO THE CREATURE! That's how I see it going down.)
+function normalize1d(matrix) {
+  const total = matrix.reduce((prev, curr) => prev + curr);
+  return matrix.map(num => num / total);
+}
 
-  scribblings so far:
-
-  function getPointAt(x, y) {
-    if ("validationisbad") {
-      return null;
-    }
-    return (x + Math.round(y * slope) * width) * 4;
-  }
-  const forward = Math.ceil(size / 2),
-    backward = Math.floor(size / 2);
-  for (let x = 0; x < width; x++) {
-    let total = 0;
-    let currSize = size;
-    for (let y = 0; y < numOfRows; y++) {
-      const thisPoint = getPointAt(x, y);
-      if (thisPoint === null) {
-
-      }
-      const toAdd = getPointAt(x + forward, y + forward),
-        toSubtract = getPointAt(x - backward, y - backward);
-      toSubtract === null ? total -= toSubtract : currSize--;
-      toAdd === null ? total += toAdd : currSize--;
-      data[xy] = total / currSize;
-    }
-  }
-*/
 export const motionBlur = new Filter("Motion Blur", {size: {...size, max: 100}, angle}, (data, {size, angle, width}) => {
+  if (size <= 0) {return;}
   angle = angle % 180;
   if (angle === 0) {
-    motionBlurHorizontal(data, size, width);
+    motionBlurPerpendicular(data, size, width, "horizontal");
     return;
   } else if (angle === 90) {
-    motionBlurVertical(data, size, width);
+    motionBlurPerpendicular(data, size, width, "vertical");
     return;
   }
   const dataCopy = new Uint8ClampedArray(data),
     weighted = getMotionBlurArray(size, angle),
     numOfRows = data.length / (width*4);
-  console.log(weighted);
   for (let row=0; row<numOfRows; row++) {
     for (let col=0; col<width; col++) {
       const index = (row * width + col) * 4;
       let count = 1,
         total = [
           dataCopy[index],
-          dataCopy[index] + 1,
-          dataCopy[index] + 2,
-          dataCopy[index] + 3
+          dataCopy[index + 1],
+          dataCopy[index + 2],
+          dataCopy[index + 3]
         ];
       weighted.forEach(delta => {
         if (
@@ -326,77 +390,17 @@ export const posterize = new Filter("Posturize", {levels}, (data, {levels}) => {
 });
 
 export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amount, width}) => {
-  const matrix = getGaussianKernel(amount / 10);
-  convolve(data, width, matrix, 0, true);
-}, 500);
+  const matrix = getGaussianKernel1d(amount / 10);
+  const old = [...data];
+  convolve1d(data, width, matrix, "horizontal");
+  convolve1d(data, width, matrix, "vertical");
+  console.log(old)
+  console.log(data)
+});
 
-export const boxBlur = new Filter("Box Blur", {size}, (data, {size, width}) => {
-  let count = null, total = null;
-  for (let i = 0; i < data.length; i += 4) {
-    const x = (i / 4) % width;
-    if (x === width - 1) {
-      count = null;
-      total = null;
-    }
-    if (data[i + 3] === 0) continue;
-    if (x === 0 || count === null) {
-      [count, total] = getAverage(x, i);
-    } else {
-      [count, total] = getAverageWithPrev(count, total, x, i);
-    }
-    data[i] = count[0] / total;
-    data[i + 1] = count[1] / total;
-    data[i + 2] = count[2] / total
-    if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0) {
-      break;
-    }
-  }
-  
-  function getAverage(x, i) {
-    let count = [0, 0, 0], total = 0;
-    for (let w = -size; w <= size; w++) {
-      for (let v = -size; v <= size; v++) {
-        const index = i + (v + w * width) * 4;
-        if (
-          data[index + 4] &&
-          x + v >= 0 &&
-          x + v < width
-        ) {
-          count[0] += data[index];
-          count[1] += data[index + 1];
-          count[2] += data[index + 2];
-          total++;
-        }
-      }
-    }
-    return [count, total]
-  }
-
-  function getAverageWithPrev(count, total, x, i) {
-    let leftIndex, rightIndex;
-    if (x + size < width) {
-      for (let w = -size; w <= size; w++) {
-        if (!data[i + w * width + 4]) continue;
-        leftIndex = i + (i - size + w * width) * 4;
-        rightIndex = i + (i + size + w * width) * 4;
-        count[0] -= data[leftIndex];
-        count[0] += data[rightIndex];
-        count[1] -= data[leftIndex + 1];
-        count[1] += data[rightIndex + 1];
-        count[2] -= data[leftIndex + 2];
-        count[2] += data[rightIndex + 2];
-      }
-    } else {
-      for (let w = -size; w <= size; w++) {
-        if (!data[i + w * width + 4]) continue;
-        count[0] -= data[leftIndex];
-        count[1] -= data[leftIndex + 1];
-        count[2] -= data[leftIndex + 2];
-        total--;
-      }
-    }
-    return [count, total]
-  }
+export const boxBlur = new Filter("Box Blur", {size: {...size, max: 100}}, (data, {size, width}) => {
+  motionBlurPerpendicular(data, size, width, "horizontal");
+  motionBlurPerpendicular(data, size, width, "vertical");
 });
 
 export const sharpen = new Filter("Sharpen", {amount: {...amount, min:0}}, (data, {amount, width}) => {

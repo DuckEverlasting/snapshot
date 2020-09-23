@@ -9,12 +9,12 @@ const DropZoneSC = styled.div`
 `
 
 const DropZone = ({ onDrop }) => {
-  const handleDragOver = ev => {
-    ev.preventDefault();
+  const handleDragOver = e => {
+    e.preventDefault();
   };
-  const handleDrop = ev => {
-    ev.preventDefault();
-    onDrop(ev);
+  const handleDrop = e => {
+    e.preventDefault();
+    onDrop(e);
   };
   return (
     <DropZoneSC
