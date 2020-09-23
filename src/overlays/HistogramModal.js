@@ -9,7 +9,7 @@ import Histogram from "../utils/Histogram";
 function HistogramModal() {
   const activeCtx = useSelector(state => {
     const activeProject = state.main.activeProject;
-    const activeLayer = state.main.present.activeLayer;
+    const activeLayer = state.main.projects[activeProject].present.activeLayer;
     return state.main.projects[activeProject].present.layerCanvas[activeLayer].getContext("2d");
   });
   return (

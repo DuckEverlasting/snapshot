@@ -214,7 +214,7 @@ export default function DraggableWindow({
       onEscape(e);
     }
     if (onEnter && e.key === "Enter") {
-      onEscape(e);
+      onEnter(e);
     }
     if (stopKeydown) {
       e.stopPropagation();

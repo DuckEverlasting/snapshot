@@ -558,7 +558,7 @@ export class StampAction extends FreeDrawAction {
         canvas: this.layerCanvas[this.targetLayer],
         origin: this.origin,
         destination: null
-      }, false));
+      }));
       this.stampCanvas = null;
       return;
     } else if (!this.stampCanvas) {
@@ -573,7 +573,7 @@ export class StampAction extends FreeDrawAction {
       this.stampDestination = this.origin;
       this.dispatch(setStampData({
         origin: this.origin
-      }));
+      }, {ignoreHistory: true}));
     }
     this.stampOffset = {
       x: this.stampOrigin.x - this.stampDestination.x,
@@ -960,8 +960,7 @@ export class MoveAction extends ToolActionBase {
       this.targetLayer,
       null,
       newOffset,
-      "current",
-      true
+      {ignoreHistory: true}
     ));
   }
 
@@ -1107,7 +1106,7 @@ export class CropAction extends ToolActionBase {
 
   onStart(e) {
     this.origin = this._getCoordinates(e, {autoCrop: this.isSelectionTool});
-    this.dispatch(updateSelectionPath("clear"));
+    this.dispatch(updateSelectionPath("clear", null, {ignoreHistory: true}));
   }
 
   onMove(e) {

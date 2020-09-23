@@ -105,7 +105,7 @@ export default function LayerCard(props) {
   };
 
   const enableRenameHandler = () => {
-    dispatch(setEnableLayerRename(props.id))
+    dispatch(setEnableLayerRename(props.id, {ignoreHistory: true}))
     document.addEventListener('mousedown', clickOutsideHandler, false)
   }
 
@@ -124,7 +124,7 @@ export default function LayerCard(props) {
 
   const cancelRename = () => {
     document.removeEventListener('mousedown', clickOutsideHandler, false)
-    dispatch(setEnableLayerRename(props.id, "current", false));
+    dispatch(setEnableLayerRename(props.id));
   }
 
   return (

@@ -133,7 +133,7 @@ function LayerPanelBottomContent({ lastAction, activeLayer, opacity }) {
     ) {
       ignoreHistory = true;
     }
-    dispatch(updateLayerOpacity(activeLayer, value, "current", ignoreHistory));
+    dispatch(updateLayerOpacity(activeLayer, value, { ignoreHistory }));
     dispatch(render());
   };
 

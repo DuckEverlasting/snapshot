@@ -80,9 +80,9 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
       "bottom-right": {x: documentWidth - width, y: documentHeight - height}
     }
 
-    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}));
+    await dispatch(updateDocumentSettings({documentWidth: width, documentHeight: height}, {ignoreHistory: true}));
 
-    await dispatch(menuAction("deselect"));
+    await dispatch(updateSelectionPath("clear", null, {ignoreHistory: true}));
     utilityCanvas.staging.width = width;
     utilityCanvas.staging.height = height;
     utilityCanvas.placeholder.width = width;
@@ -135,7 +135,7 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
           x: layerSettings[targetLayer].offset.x * widthFactor,
           y: layerSettings[targetLayer].offset.y * heightFactor
         }
-        dispatch(updateLayerPosition(targetLayer, null, newOffset));
+        dispatch(updateLayerPosition(targetLayer, null, newOffset, {ignoreHistory: true}));
       });
     }
 
@@ -289,7 +289,7 @@ export default function menuAction(action) {
         async function addFile() {
           const name = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
           dispatch(setTransformParams({resizable: true, rotatable: true}))
-          dispatch(createLayer(getState().main.projects[activeProject].present.renderOrder.length, "current", false, {name}));
+          dispatch(createLayer(getState().main.projects[activeProject].present.renderOrder.length, {name}));
           dispatch(setImportImageFile(fileInput.files[0]));
           fileInput.removeEventListener("change", addFile, false);
         }

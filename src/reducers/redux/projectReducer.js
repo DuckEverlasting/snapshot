@@ -298,7 +298,7 @@ const projectReducer = (state = {}, {type, payload}) => {
 };
 
 const undoableProjectReducer = undoable(projectReducer, {
-  filter: (action, state) => !action.payload.ignoreHistory && !state.present.historyIsDisabled,
+  filter: (action, state) => action.payload.params && !action.payload.params.ignoreHistory && !state.present.historyIsDisabled,
   limit: 20
 });
 

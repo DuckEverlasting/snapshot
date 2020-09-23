@@ -1,4 +1,5 @@
 import { getDiff } from "../custom/ctxActions";
+import { getCanvas } from "../../utils/helpers";
 import moveLayer from "../redux/moveLayer";
 
 import * as t from "./types";
@@ -25,11 +26,33 @@ export const updateProjectTabOrder = (from, to) => {
   }
 }
 
+const reconcileSizing = (fromState, toState, utilityCanvas) => {
+  if (!toState) {return;}
+  if (
+    toState.documentSettings.width !== fromState.documentSettings.width ||
+    toState.documentSettings.height !== fromState.documentSettings.height
+  ) {
+    const { width, height } = toState.documentSettings;
+    utilityCanvas.staging.width = width;
+    utilityCanvas.staging.height = height;
+    utilityCanvas.placeholder.width = width;
+    utilityCanvas.placeholder.height = height;
+    const temp = getCanvas(fromState.documentSettings.width, fromState.documentSettings.height);
+    temp.getContext("2d").drawImage(utilityCanvas.clipboard, 0, 0);
+    utilityCanvas.clipboard.width = width;
+    utilityCanvas.clipboard.height = height;
+    utilityCanvas.clipboard.getContext("2d").drawImage(temp, 0, 0);
+  }
+}
+
 export const undo = () => {
   return async (dispatch, getState) => {
     const activeProject = getState().main.activeProject;
     if (!activeProject) {return;}
-    const prevState = getState().main.projects[activeProject].past[getState().main.projects[activeProject].past.length - 1]
+    const currState = getState().main.projects[activeProject].present,
+      prevState = getState().main.projects[activeProject].past[getState().main.projects[activeProject].past.length - 1],
+      utilityCanvas = getState().main.utilityCanvas;
+    reconcileSizing(currState, prevState, utilityCanvas);
     if (prevState && prevState.onUndo) {
       if (prevState.onUndo.length) {
         prevState.onUndo.forEach(el => executeUndo(el));
@@ -41,16 +64,16 @@ export const undo = () => {
         if (onUndo.move) {
           await dispatch(moveLayer(onUndo.id, onUndo.move));
         } else {
-          const ctx = prevState.layerCanvas[onUndo.id].getContext("2d")
-          const changeData = onUndo.data
-          const viewWidth = Math.floor(ctx.canvas.width);
-          const viewHeight = Math.floor(ctx.canvas.height);
-          const imgData = ctx.getImageData(
-            0,
-            0,
-            viewWidth,
-            viewHeight
-          );
+          const ctx = prevState.layerCanvas[onUndo.id].getContext("2d"),
+            changeData = onUndo.data,
+            viewWidth = Math.floor(ctx.canvas.width),
+            viewHeight = Math.floor(ctx.canvas.height),
+            imgData = ctx.getImageData(
+              0,
+              0,
+              viewWidth,
+              viewHeight
+            );
           for (let index in changeData) {
             imgData.data[index] = changeData[index];
           }
@@ -69,8 +92,10 @@ export const redo = () => {
   return (dispatch, getState) => {
     const activeProject = getState().main.activeProject;
     if (!activeProject) {return;}
-    const currState = getState().main.projects[activeProject].present;
-    const nextState = getState().main.projects[activeProject].future[0];
+    const currState = getState().main.projects[activeProject].present,
+      nextState = getState().main.projects[activeProject].future[0],
+      utilityCanvas = getState().main.utilityCanvas;
+    reconcileSizing(currState, nextState, utilityCanvas);
     if (currState && currState.onRedo) {
       if (currState.onRedo.length) {
         currState.onRedo.forEach(el => executeRedo(el));
@@ -82,16 +107,16 @@ export const redo = () => {
         if (onRedo.move) {
           dispatch(moveLayer(onRedo.id, onRedo.move));
         } else {
-          const ctx = currState.layerCanvas[onRedo.id].getContext("2d")
-          const changeData = onRedo.data
-          const viewWidth = Math.floor(ctx.canvas.width);
-          const viewHeight = Math.floor(ctx.canvas.height);
-          const imgData = ctx.getImageData(
-            0,
-            0,
-            viewWidth,
-            viewHeight
-          );
+          const ctx = currState.layerCanvas[onRedo.id].getContext("2d"),
+            changeData = onRedo.data,
+            viewWidth = Math.floor(ctx.canvas.width),
+            viewHeight = Math.floor(ctx.canvas.height),
+            imgData = ctx.getImageData(
+              0,
+              0,
+              viewWidth,
+              viewHeight
+            );
           for (let index in changeData) {
             imgData.data[index] = changeData[index];
           }
@@ -150,25 +175,26 @@ export const putHistoryDataMultiple = (ids, ctxs, callbacks=[], prevImgDatas=[],
   }
 }
 
-export const createLayer = (position, project="current", ignoreHistory=false, params={}) => {
+export const createLayer = (position, params={}) => {
   return {
     type: t.CREATE_LAYER,
-    payload: {position, project, ignoreHistory, params}
+    payload: {position, project: params.project || "current", params}
   };
 };
 
-export const createLayerFrom = (position, source, project="current", ignoreHistory=false, params={}) => {
+export const createLayerFrom = (position, source, params={}) => {
   return {
     type: t.CREATE_LAYER,
-    payload: {position, project, source, ignoreHistory, params}
+    payload: {position, project: params.project || "current", source, params}
   };
 };
 
-export const deleteLayer = (id, project="current", ignoreHistory=false) => {
+export const deleteLayer = (id, params={}) => {
   return (dispatch, getState) => {
-    let data = null;
-    if (!ignoreHistory) {
-      if (project === "current") {
+    let data = null,
+      project = params.project;
+    if (!params.ignoreHistory) {
+      if (!project) {
         project = getState().main.activeProject;
       }
       const ctx = getState().main.projects[project].present.layerCanvas[id].getContext("2d");
@@ -183,22 +209,22 @@ export const deleteLayer = (id, project="current", ignoreHistory=false) => {
     }
     dispatch({
       type: t.DELETE_LAYER,
-      payload: {id, project, data, ignoreHistory}
+      payload: {id, project, data, params}
     });
   } 
 };
 
-export const hideLayer = (id, project="current") => {
+export const hideLayer = (id, params={}) => {
   return {
     type: t.HIDE_LAYER,
-    payload: {id, project}
+    payload: {id, project: params.project || "current"}
   };
 };
 
-export const updateUtilityCanvas = (id, changes, ignoreHistory=true) => {
+export const updateUtilityCanvas = (id, changes) => {
   return {
     type: t.UPDATE_UTILITY_CANVAS,
-    payload: {id, changes, ignoreHistory}
+    payload: {id, changes}
   };
 };
 
@@ -209,10 +235,10 @@ export const updateMainCanvas = changes => {
   };
 };
 
-export const updateSelectionPath = (operation, changes, project="current") => {
+export const updateSelectionPath = (operation, changes, params={}) => {
   return {
     type: t.UPDATE_SELECTION_PATH,
-    payload: {operation, project, changes, ignoreHistory: false}
+    payload: {operation, project: params.project || "current", changes}
   };
 };
 
@@ -262,59 +288,59 @@ export const setCropParams = (params) => {
   };
 };
 
-export const updateLayerOpacity = (id, opacity, project="current", ignoreHistory=false) => {
+export const updateLayerOpacity = (id, opacity, params={}) => {
   return {
     type: t.UPDATE_LAYER_OPACITY,
-    payload: {id, project, opacity, ignoreHistory}
+    payload: {id, project: params.project || "current", opacity, params}
   };
 };
 
-export const updateLayerBlendMode = (id, blend, project="current", ignoreHistory=false) => {
+export const updateLayerBlendMode = (id, blend, params={}) => {
   return {
     type: t.UPDATE_LAYER_BLEND_MODE,
-    payload: {id, project, blend, ignoreHistory}
+    payload: {id, project: params.project || "current", blend, params}
   };
 };
 
-export const updateRenderOrder = (from, to, project="current", ignoreHistory=false) => {
+export const updateRenderOrder = (from, to, params={}) => {
   return {
     type: t.UPDATE_RENDER_ORDER,
-    payload: {from, to, project, ignoreHistory}
+    payload: {from, to, project: params.project || "current", params}
   };
 };
 
-export const updateLayerPosition = (id, size, offset, project="current", ignoreHistory=true) => {
+export const updateLayerPosition = (id, size, offset, params={}) => {
   return {
     type: t.UPDATE_LAYER_POSITION,
-    payload: {id, project, size, offset, ignoreHistory}
+    payload: {id, project: params.project || "current", size, offset, params: {ignoreHistory: true, ...params}}
   };
 };
 
 export const updateStagingPosition = id => {
   return {
     type: t.UPDATE_STAGING_POSITION,
-    payload: {id, ignoreHistory: true}
+    payload: {id, params: {ignoreHistory: true}}
   };
 };
 
-export const setEnableLayerRename = (id, project="current", renamable=true) => {
+export const setEnableLayerRename = (id, renamable=true, params={}) => {
   return {
     type: t.SET_ENABLE_LAYER_RENAME,
-    payload: {id, project, renamable, ignoreHistory: true}
+    payload: {id, project: params.project || "current", renamable, params}
   };
 };
 
-export const updateLayerName = (id, project="current", name) => {
+export const updateLayerName = (id, name, params={}) => {
   return {
     type: t.UPDATE_LAYER_NAME,
-    payload: {id, project, name}
+    payload: {id, project: params.project || "current", name, params}
   };
 };
 
-export const makeActiveLayer = (layerId, project="current") => {
+export const makeActiveLayer = (layerId, params={}) => {
   return {
     type: t.MAKE_ACTIVE_LAYER,
-    payload: {layerId, project, ignoreHistory: true}
+    payload: {layerId, project: params.project || "current", params: {ignoreHistory: true, ...params}}
   };
 };
 
@@ -352,24 +378,24 @@ export const updateWorkspaceSettings = (changes) => {
   }
 }
 
-export const updateDocumentSettings = (changes, project="current", ignoreHistory=false) => {
+export const updateDocumentSettings = (changes, params={}) => {
   return {
     type: t.UPDATE_DOCUMENT_SETTINGS,
-    payload: {changes, project, ignoreHistory}
+    payload: {changes, project: params.project || "current", params}
   }
 }
 
-// export const moveAllLayers = (offsetDelta, project="current", ignoreHistory=true) => {
+// export const moveAllLayers = (offsetDelta, params={}) => {
 //   return {
 //     type: t.MOVE_ALL_LAYERS,
-//     payload: {offsetDelta, project, ignoreHistory}
+//     payload: {offsetDelta, project: params.project || "current", params: {ignoreHistory: true, ...params}}
 //   }
 // }
 
 export const setClipboardIsUsed = bool => {
   return {
     type: t.SET_CLIPBOARD_IS_USED,
-    payload: {bool, ignoreHistory: true}
+    payload: {bool, params: {ignoreHistory: true}}
   }
 }
 
@@ -387,10 +413,10 @@ export const setMenuIsDisabled = bool => {
   }
 }
 
-export const setHistoryIsDisabled = (bool, project="current") => {
+export const setHistoryIsDisabled = (bool, params={}) => {
   return {
     type: t.SET_HISTORY_IS_DISABLED,
-    payload: {bool, project, ignoreHistory: true}
+    payload: {bool, project: params.project || "current", params: {ignoreHistory: true, ...params}}
   }
 }
 
@@ -415,10 +441,10 @@ export const setExportOptions = (type=null, compression=null) => {
   }
 }
 
-export const setStampData = (changes, ignoreHistory=true) => {
+export const setStampData = (changes, params={}) => {
   return {
     type: t.SET_STAMP_DATA,
-    payload: { changes, ignoreHistory }
+    payload: { changes, params }
   }
 }
 
