@@ -14,7 +14,7 @@ const NewDocumentModalSC = styled.div`
   flex-direction: column;
   width: 100%;
   font-size: ${props => props.theme.fontSizes.small};
-`
+`;
 
 const InputRowSC = styled.div`
   display: flex;
