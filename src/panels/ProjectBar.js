@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import { setActiveProject ,updateProjectTabOrder } from "../actions/redux"
+import { setActiveProject ,updateProjectTabOrder } from "../store/actions/redux"
 import { useSelector, useDispatch } from "react-redux";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 
 const ProjectBarSC = styled.div`
   position: absolute;

@@ -394,8 +394,6 @@ export const blur = new Filter("Blur", {amount: {...amount, min:0}}, (data, {amo
   const old = [...data];
   convolve1d(data, width, matrix, "horizontal");
   convolve1d(data, width, matrix, "vertical");
-  console.log(old)
-  console.log(data)
 });
 
 export const boxBlur = new Filter("Box Blur", {size: {...size, max: 100}}, (data, {size, width}) => {

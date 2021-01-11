@@ -1,4 +1,4 @@
-import { getCanvas } from "../../utils/helpers";
+import { getCanvas } from "../../../utils/helpers";
 
 const getInitWidth = () => Math.floor((window.innerWidth - 300) * .8);
 const getInitHeight = () => Math.floor((window.innerHeight - 30) * .8);
@@ -86,6 +86,7 @@ export const getInitUiState = () => ({
     translateY: 0,
     zoomPct: 100
   },
+  dpi: window.devicePixelRatio,
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100, smooth: true },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },

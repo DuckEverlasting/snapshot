@@ -6,7 +6,7 @@ import {
   blend,
   getDiff,
   swapData
-} from '../../actions/custom/ctxActions.js'
+} from "../../actions/custom/ctxActions";
 
 export default function(ctx, { action, params }) {
   if (params.clearFirst) {
@@ -22,15 +22,15 @@ export default function(ctx, { action, params }) {
   if (params.composite) {
     ctx.globalCompositeOperation = params.composite;
   }
-  if (params.clip) {
-    if (params.clipOffset) {
-      ctx.translate(Math.floor(-params.clipOffset.x), Math.floor(-params.clipOffset.y))
-    }
-    ctx.clip(params.clip);
-    if (params.clipOffset) {
-      ctx.translate(Math.floor(params.clipOffset.x), Math.floor(params.clipOffset.y))
-    }
-  }
+  // if (params.clip) {
+  //   if (params.clipOffset) {
+  //     ctx.translate(Math.floor(-params.clipOffset.x), Math.floor(-params.clipOffset.y))
+  //   }
+  //   ctx.clip(params.clip);
+  //   if (params.clipOffset) {
+  //     ctx.translate(Math.floor(params.clipOffset.x), Math.floor(params.clipOffset.y))
+  //   }
+  // }
   switch (action) {
     case "paste":
       paste(ctx, params);

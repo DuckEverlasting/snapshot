@@ -1,5 +1,5 @@
 import { getDiff } from "../custom/ctxActions";
-import { getCanvas } from "../../utils/helpers";
+import { getCanvas } from "../../../utils/helpers";
 import moveLayer from "../redux/moveLayer";
 
 import * as t from "./types";

@@ -1,4 +1,4 @@
-import { midpoint, getQuadLength, getDistance, getCanvas } from "../../utils/helpers";
+import { midpoint, getQuadLength, getDistance, getCanvas } from "../../../utils/helpers";
 
 function floor(vector) {
   return {

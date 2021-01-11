@@ -4,7 +4,7 @@ import { scrollbar } from "../styles/shared";
 
 import { useDispatch } from "react-redux";
 
-import { setOverlay } from "../actions/redux";
+import { setOverlay } from "../store/actions/redux";
 
 const AboutModalSC = styled.div`
   position: fixed;

@@ -24,20 +24,20 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import createTransformObject from "../actions/redux/createTransformObject";
+import createTransformObject from "../store/actions/redux/createTransformObject";
 
 import {
   updateWorkspaceSettings,
   setImportImageFile,
   createLayer
-} from "../actions/redux";
+} from "../store/actions/redux";
 
 import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 import useUpdateOnResize from "../hooks/useUpdateOnResize";
 import selectFromActiveProject from "../utils/selectFromActiveProject";
 
@@ -583,16 +583,7 @@ export default function Workspace() {
       cursor={getCursor(isDragging ? "activeHand" : activeTool, keys, cursorState)}
     >
       <DropZone onDrop={handleDrop} />
-      <CanvasPaneSC
-        ref={refRef}
-        translateX={translateX}
-        translateY={translateY}
-        width={documentWidth}
-        height={documentHeight}
-        zoomPct={zoomPct}
-      >
-        <MainCanvas />
-      </CanvasPaneSC>
+      <MainCanvas />
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
     </WorkspaceSC>
   );

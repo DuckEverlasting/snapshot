@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from "react-redux";
-import { updateUtilityCanvas, setOverlay } from '../actions/redux'
+import { updateUtilityCanvas, setOverlay } from '../store/actions/redux'
 
 import DraggableWindow from "../components/DraggableWindow";
 import Histogram from "../utils/Histogram";

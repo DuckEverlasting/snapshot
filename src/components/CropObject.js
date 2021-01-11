@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import selectFromActiveProject from "../utils/selectFromActiveProject";
 import useEventListener from "../hooks/useEventListener";
-import { setMenuIsDisabled, setCropIsActive } from "../actions/redux";
+import { setMenuIsDisabled, setCropIsActive } from "../store/actions/redux";
 import transformActionFactory from "../utils/TransformAction";
 import { calculateClipping } from "../utils/helpers";
 
 import styled from "styled-components";
-import { resizeDocument } from "../actions/redux/menuAction";
+import { resizeDocument } from "../store/actions/redux/menuAction";
 
 const BoundingBoxSC = styled.div.attrs((props) => ({
   style: {

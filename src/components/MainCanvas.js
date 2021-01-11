@@ -1,18 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { useSelector, useDispatch } from "react-redux";
-import { updateMainCanvas } from '../actions/redux'
-
-const LayerWrapperSC = styled.div.attrs(props => ({
-  style: {
-    width: `${props.size.w}px`,
-    height: `${props.size.h}px`
-  }
-}))`
-  position: absolute;
-  overflow: hidden;
-  pointer-events: none;
-`
+import { useDispatch } from "react-redux";
+import { updateMainCanvas } from '../store/actions/redux'
 
 const LayerSC = styled.canvas`
   position: absolute;
@@ -25,13 +14,12 @@ const LayerSC = styled.canvas`
   pointer-events: none;
 `
 
-function MainCanvas() {
+function MainCanvas({ dpi }) {
   const canvasRef = useRef(null);
-  const activeProject = useSelector(state => state.main.activeProject);
-  const { documentWidth, documentHeight } = useSelector(state => state.main.projects[activeProject].present.documentSettings);
-  const docSize = {w: documentWidth, h: documentHeight};
 
   const dispatch = useDispatch();
+
+  const [ calcSize, setCalcSize ] = useState({ w: 0, h: 0 })
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
@@ -40,11 +28,16 @@ function MainCanvas() {
 
     return () => dispatch(updateMainCanvas(null));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentWidth, documentHeight])
+  }, [])
 
-  return <LayerWrapperSC size={docSize}>
-    <LayerSC width={docSize.w} height={docSize.h} ref={canvasRef} />
-  </LayerWrapperSC>
+  useEffect(() => {
+    if (!canvasRef.current) {
+      return;
+    }
+    setCalcSize({w: canvasRef.current.clientWidth * dpi, h: canvasRef.current.clientHeight * dpi});
+  }, [dpi])
+
+  return <LayerSC width={calcSize.w} height={calcSize.h} ref={canvasRef} />
 }
 
 export default MainCanvas;

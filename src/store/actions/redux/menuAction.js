@@ -17,16 +17,16 @@ import {
   updateClipboardSettings
 } from "./index";
 
-import { MoveAction } from "../../utils/ToolAction";
+import { MoveAction } from "../../../utils/ToolAction";
 
-import { filter } from "../../utils/filters";
+import { filter } from "../../../utils/filters";
 
 import { saveAs } from 'file-saver';
 
 import manipulate from "../../reducers/custom/manipulateReducer";
 
 import render from "./renderCanvas";
-import { getCanvas } from "../../utils/helpers";
+import { getCanvas } from "../../../utils/helpers";
 
 export function exportDocument(type, compression=null) {
   return (dispatch, getState) => {

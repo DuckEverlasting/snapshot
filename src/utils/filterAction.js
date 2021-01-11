@@ -1,6 +1,6 @@
-import { putHistoryData, updateStagingPosition } from "../actions/redux";
+import { putHistoryData, updateStagingPosition } from "../store/actions/redux";
 
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 
 export default function filterAction(apply, input, preview) {
   return (dispatch, getState) => {

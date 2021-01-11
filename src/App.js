@@ -8,8 +8,8 @@ import WaitScreen from "./components/WaitScreen.js";
 import TopBar from "./panels/TopBar.js";
 import { Workspace, EmptyWorkspace, ToolPanel, LayerPanel, ProjectBar } from "./panels";
 
-import { setActiveTool } from "./actions/redux";
-import menuAction from "./actions/redux/menuAction";
+import { setActiveTool } from "./store/actions/redux";
+import menuAction from "./store/actions/redux/menuAction";
 
 import { hotkey, hotkeyCtrl } from "./constants/hotkeys";
 

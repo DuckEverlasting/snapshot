@@ -1,9 +1,9 @@
 import {
   line,
   quadratic,
-} from "../../actions/custom/ctxActions.js";
+} from "../../actions/custom/ctxActions";
 
-import { midpoint } from "../../utils/helpers";
+import { midpoint } from "../../../utils/helpers";
 
 export default function(path, { action, params }) {
   if (path === null) return path;

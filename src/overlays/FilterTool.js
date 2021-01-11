@@ -3,8 +3,8 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import useWait from "../hooks/useWait";
 
-import { setOverlay, setAppIsWaiting } from "../actions/redux";
-import render from "../actions/redux/renderCanvas";
+import { setOverlay, setAppIsWaiting } from "../store/actions/redux";
+import render from "../store/actions/redux/renderCanvas";
 import filterAction from "../utils/filterAction";
 
 import DraggableWindow from "../components/DraggableWindow";

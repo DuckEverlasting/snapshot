@@ -5,7 +5,7 @@ import { scrollbar } from "../styles/shared";
 
 import { useSelector, useDispatch } from "react-redux";
 
-import { setOverlay, setHelpTopic } from "../actions/redux";
+import { setOverlay, setHelpTopic } from "../store/actions/redux";
 
 import { helpHierarchy, helpContent } from "../constants/helpDocumentation.json";
 

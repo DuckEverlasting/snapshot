@@ -9,9 +9,9 @@ import LayerCard from "../components/LayerCard";
 import Button from "../components/Button";
 import SliderInput from "../components/SliderInput";
 import SelectBlendMode from "../components/SelectBlendMode";
-import { createLayer, updateRenderOrder, updateLayerOpacity } from "../actions/redux";
+import { createLayer, updateRenderOrder, updateLayerOpacity } from "../store/actions/redux";
 
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 
 const LayerPanelSC = styled.div`
   display: flex;

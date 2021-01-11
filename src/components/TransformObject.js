@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import selectFromActiveProject from "../utils/selectFromActiveProject";
 import useEventListener from "../hooks/useEventListener";
-import menuAction from "../actions/redux/menuAction";
-import manipulate from "../reducers/custom/manipulateReducer";
+import menuAction from "../store/actions/redux/menuAction";
+import manipulate from "../store/reducers/custom/manipulateReducer";
 import {
   setImportImageFile,
   setTransformTarget,
@@ -12,11 +12,11 @@ import {
   setMenuIsDisabled,
   setActiveTool,
   setHistoryIsDisabled,
-} from "../actions/redux";
+} from "../store/actions/redux";
 import transformActionFactory from "../utils/TransformAction";
 import getImageRect from "../utils/getImageRect";
 import { calculateClipping, isCanvas } from "../utils/helpers";
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 
 import styled from "styled-components";
 

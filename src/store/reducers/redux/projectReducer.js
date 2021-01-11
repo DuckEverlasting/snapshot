@@ -16,8 +16,8 @@ import {
 } from "../../actions/redux/types";
 
 import undoable from "./undoable";
-import { MarchingSquaresAllPaths } from "../../utils/marchingSquaresAllPaths";
-import { getCanvas, isCanvas } from "../../utils/helpers";
+import { MarchingSquaresAllPaths } from "../../../utils/marchingSquaresAllPaths";
+import { getCanvas, isCanvas } from "../../../utils/helpers";
 
 const projectReducer = (state = {}, {type, payload}) => {
   switch (type) {

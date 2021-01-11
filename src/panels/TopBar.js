@@ -5,8 +5,8 @@ import { useSelector, useDispatch } from "react-redux";
 import selectFromActiveProject from "../utils/selectFromActiveProject";
 
 import { MenuBar, Menu, MenuBranch, MenuItem } from "../components/Menu";
-import menuAction from "../actions/redux/menuAction";
-import { setOverlay, setExportOptions } from "../actions/redux";
+import menuAction from "../store/actions/redux/menuAction";
+import { setOverlay, setExportOptions } from "../store/actions/redux";
 
 import filterAction from "../utils/filterAction";
 import { filter } from "../utils/filters";

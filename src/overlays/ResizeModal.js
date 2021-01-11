@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { setOverlay } from "../actions/redux";
+import { setOverlay } from "../store/actions/redux";
 
 import Button from "../components/Button";
 import CheckboxInput from "../components/CheckboxInput";
@@ -9,7 +9,7 @@ import NumberInput from "../components/NumberInput";
 import AnchorInput from "../components/AnchorInput";
 import AnchorPreview from "../components/AnchorPreview";
 import DraggableWindow from "../components/DraggableWindow";
-import { resizeDocument } from "../actions/redux/menuAction";
+import { resizeDocument } from "../store/actions/redux/menuAction";
 
 const ResizeModalSC = styled.div`
   display: flex;

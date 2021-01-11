@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
-import { setOverlay, createNewProject } from "../actions/redux";
-import render from "../actions/redux/renderCanvas";
+import { setOverlay, createNewProject } from "../store/actions/redux";
+import render from "../store/actions/redux/renderCanvas";
 
 import Button from "../components/Button";
 import NumberInput from "../components/NumberInput";

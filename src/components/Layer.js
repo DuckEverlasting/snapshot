@@ -1,7 +1,7 @@
 // import React, { useEffect, useRef } from 'react';
 // import styled from 'styled-components';
 // import { useSelector, useDispatch } from "react-redux";
-// import { updateLayerCanvas } from '../actions/redux'
+// import { updateLayerCanvas } from '../store/actions/redux'
 
 // const LayerWrapperSC = styled.div.attrs(props => ({
 //   style: {

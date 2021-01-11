@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import styled from "styled-components";
 import { scrollbar } from "../styles/shared";
 
-import { updateToolSettings } from "../actions/redux";
+import { updateToolSettings } from "../store/actions/redux";
 
 import SliderInput from "./SliderInput";
 import RadioInput from "./RadioInput";

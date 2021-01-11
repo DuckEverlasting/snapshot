@@ -17,14 +17,14 @@ import {
   setStampData,
   putHistoryData,
   setCropIsActive
-} from "../actions/redux";
+} from "../store/actions/redux";
 
-import draw from "../reducers/custom/drawingReducer";
-import manipulate from "../reducers/custom/manipulateReducer";
-import selection from "../reducers/custom/selectionReducer";
+import draw from "../store/reducers/custom/drawingReducer";
+import manipulate from "../store/reducers/custom/manipulateReducer";
+import selection from "../store/reducers/custom/selectionReducer";
 
-import render from "../actions/redux/renderCanvas";
-import { getFillContent } from "../actions/custom/ctxActions";
+import render from "../store/actions/redux/renderCanvas";
+import { getFillContent } from "../store/actions/custom/ctxActions";
 
 class ToolActionBase {
   constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData) {

@@ -2,9 +2,9 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import selectFromActiveProject from "../utils/selectFromActiveProject";
 
-import { updateLayerBlendMode } from "../actions/redux";
+import { updateLayerBlendMode } from "../store/actions/redux";
 
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 
 export default function SelectBlendMode() {
   const [activeLayer, layerSettings] = useSelector(selectFromActiveProject("activeLayer", "layerSettings"))

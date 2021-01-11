@@ -5,6 +5,7 @@ import styled from "styled-components";
 
 import TransformObject from "../components/TransformObject";
 import CropObject from "../components/CropObject";
+import PixelGrid from "../components/PixelGrid";
 
 import {
   PencilAction,
@@ -24,21 +25,20 @@ import { addOpacity, toArrayFromRgba } from "../utils/colorConversion.js";
 
 import getCursor from "../utils/cursors";
 
-import createTransformObject from "../actions/redux/createTransformObject";
+import createTransformObject from "../store/actions/redux/createTransformObject";
 
 import {
   updateWorkspaceSettings,
   setImportImageFile,
   createLayer
-} from "../actions/redux";
+} from "../store/actions/redux";
 
 import DropZone from "../components/DropZone";
 import useEventListener from "../hooks/useEventListener";
 
 import { filter } from "../utils/filters";
 import MainCanvas from "../components/MainCanvas";
-import PixelGrid from "../components/PixelGrid";
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 import useUpdateOnResize from "../hooks/useUpdateOnResize";
 import selectFromActiveProject from "../utils/selectFromActiveProject";
 
@@ -95,7 +95,7 @@ export default function Workspace() {
     (state) => state.ui.workspaceSettings
   );
   const primary = useSelector((state) => state.ui.colorSettings.primary);
-  const { activeTool, toolSettings, transformTarget, cropIsActive } = useSelector((state) => state.ui);
+  const { dpi, activeTool, toolSettings, transformTarget, cropIsActive } = useSelector((state) => state.ui);
   const activeProject = useSelector(state => state.main.activeProject);
   const mainCanvas = useSelector(state => state.main.mainCanvas);
   const { documentWidth, documentHeight } = useSelector((state) => state.main.projects[activeProject].present.documentSettings);
@@ -119,7 +119,6 @@ export default function Workspace() {
     buttons: 0
   });
   const workspaceRef = useRef(null);
-  const refRef = useRef(null);
 
   const workspaceDimensions = useUpdateOnResize(workspaceRef);
 
@@ -139,12 +138,15 @@ export default function Workspace() {
   }, []);
 
   useEffect(() => {
-    dispatch(updateWorkspaceSettings({
-      translateX: 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100),
-      translateY: 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100),
-    }))
+    dispatch(async (dispatch) => {
+      await dispatch(updateWorkspaceSettings({
+        translateX: 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100),
+        translateY: 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100),
+      }));
+      dispatch(render({ clearAll: true }));
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentWidth, documentHeight])
+  }, [documentWidth, documentHeight]);
 
   function getTranslateData(noOffset) {
     return {
@@ -412,13 +414,14 @@ export default function Workspace() {
 
     const [newTranslateX, newTranslateY] = capTranslate(transX, transY, newZoomPct);
 
-    dispatch(
-      updateWorkspaceSettings({
+    dispatch(async (dispatch) => {
+      await dispatch(updateWorkspaceSettings({
         translateX: newTranslateX,
         translateY: newTranslateY,
         zoomPct: newZoomPct
-      })
-    );
+      }));
+      dispatch(render({ clearAll: true }));
+    });
   };
 
   const zoomTool = (e, zoomOut) => {
@@ -430,17 +433,18 @@ export default function Workspace() {
       steps = e.shiftKey ? -2 : -1;
       zoom(steps, e);
     }
-    dispatch(render());
+    dispatch(render({ clearAll: true }));
   };
 
   const translate = (deltaX, deltaY) => {
     const [newTranslateX, newTranslateY] = capTranslate(translateX + deltaX, translateY + deltaY);
-    dispatch(
-      updateWorkspaceSettings({
+    dispatch(async (dispatch) => {
+      await dispatch(updateWorkspaceSettings({
         translateX: newTranslateX,
         translateY: newTranslateY,
-      })
-    );
+      }));
+      dispatch(render({ clearAll: true }));
+    });
   };
 
   const translateTool = (e) => {
@@ -538,12 +542,13 @@ export default function Workspace() {
       const transY =
         Math.floor(e.screenY) - dragOrigin.y * (zoomPct / 100);
       const [newTranslateX, newTranslateY] = capTranslate(transX, transY);
-      dispatch(
-        updateWorkspaceSettings({
+      dispatch(async (dispatch) => {
+        await dispatch(updateWorkspaceSettings({
           translateX: newTranslateX,
           translateY: newTranslateY,
-        })
-      );
+        }));
+        dispatch(render({ clearAll: true }));
+      });
     } else if (currentAction && e.buttons === 1) {
       currentAction.move(e);
       // if (!isDrawing && eventIsWithinCanvas(e)) {
@@ -599,23 +604,7 @@ export default function Workspace() {
       cursor={getCursor(isDragging ? "activeHand" : activeTool, keys, cursorState)}
     >
       <DropZone onDrop={handleDrop} />
-      <CanvasPaneSC
-        ref={refRef}
-        translateX={translateX}
-        translateY={translateY}
-        width={documentWidth}
-        height={documentHeight}
-        zoomPct={zoomPct}
-      >
-        <MainCanvas />
-        <PixelGrid
-          transX={workspaceRef.current ? translateX - 0.5 * (workspaceRef.current.clientWidth - documentWidth * zoomPct / 100) : 0}
-          transY={workspaceRef.current ? translateY - 0.5 * (workspaceRef.current.clientHeight - documentHeight * zoomPct / 100) : 0}
-          sizeW={workspaceRef.current ? workspaceRef.current.clientWidth + zoomPct / 50 : 1}
-          sizeH={workspaceRef.current ? workspaceRef.current.clientHeight + zoomPct / 50 : 1}
-          refRef={refRef}
-        />
-      </CanvasPaneSC>
+      <MainCanvas dpi={dpi}/>
       {importImageFile && (
         <TransformObject
           source={importImageFile}
@@ -635,6 +624,7 @@ export default function Workspace() {
       {cropIsActive && (
         <CropObject />
       )}
+      <PixelGrid />
       <ZoomDisplaySC>Zoom: {Math.ceil(zoomPct * 100) / 100}%</ZoomDisplaySC>
     </WorkspaceSC>
   );

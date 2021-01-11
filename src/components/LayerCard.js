@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
-import render from "../actions/redux/renderCanvas";
+import render from "../store/actions/redux/renderCanvas";
 
 import {
   makeActiveLayer,
@@ -14,7 +14,7 @@ import {
   hideLayer,
   setEnableLayerRename,
   updateLayerName
-} from "../actions/redux";
+} from "../store/actions/redux";
 
 const LayerCardSC = styled.div.attrs(props => ({
   style: {

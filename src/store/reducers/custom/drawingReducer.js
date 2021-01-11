@@ -4,7 +4,7 @@ import {
   quadraticPoints,
   rectangle,
   ellipse
-} from "../../actions/custom/ctxActions.js";
+} from "../../actions/custom/ctxActions";
 
 export default function(ctx, { action, params }) {
   if (action === "clear") {

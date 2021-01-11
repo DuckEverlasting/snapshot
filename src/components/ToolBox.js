@@ -30,7 +30,7 @@ import styled from "styled-components";
 
 import Button from "./Button";
 
-import { setActiveTool } from "../actions/redux";
+import { setActiveTool } from "../store/actions/redux";
 
 const ToolboxSC = styled.div`
   display: flex;
