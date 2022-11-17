@@ -16,7 +16,9 @@ import {
   updateLayerPosition,
   setStampData,
   putHistoryData,
-  setCropIsActive
+  setCropIsActive,
+  setLastEndpoint,
+  setCurrentToolAction
 } from "../store/actions/redux";
 
 import draw from "../store/reducers/custom/drawingReducer";
@@ -130,6 +132,7 @@ class ToolActionBase {
     if (this.renderOnEnd) {
       this.dispatch(render());
     };
+    this.dispatch(setCurrentToolAction(null));
   }
 
   onEnd() {}
@@ -139,12 +142,12 @@ export class FreeDrawAction extends ToolActionBase {
   constructor(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData, params) {
     super(targetLayer, layerCanvas, utilityCanvas, dispatch, translateData);
     this.lastEndpoint = params.lastEndpoint;
-    this.setLastEndpoint = params.setLastEndpoint;
     this.renderOnStart = true;
     this.isSelectionTool = targetLayer === "selection";
   }
 
   start(e, ...args) {
+    console.log(e);
     if (this.usesStaging) {
       this._moveStaging();
     }
@@ -183,9 +186,7 @@ export class FreeDrawAction extends ToolActionBase {
 
     this.onEnd(...args);
     
-    if (this.setLastEndpoint) {
-      this.setLastEndpoint(this.coords);
-    }
+    this.dispatch(setLastEndpoint(this.coords));
 
     if (this.usesStaging) {
       this._clearStaging();
@@ -265,11 +266,11 @@ export class PencilAction extends FreeDrawAction {
   }
 
   onEnd() {
-    if (canvasIsBlank(this.utilityCanvas.staging)) return;
     if (this.isSelectionTool) {
       if (this.destArray.length < 2) {
         return this.dispatch(updateSelectionPath("clear"));
       }
+      if (canvasIsBlank(this.utilityCanvas.staging)) return;
       let path = new Path2D();
       path = selection(path, {
         action: "drawQuadPath",
@@ -277,8 +278,9 @@ export class PencilAction extends FreeDrawAction {
       });
       this.dispatch(updateSelectionPath(this.selectionOperation, path));
     } else {
+      if (canvasIsBlank(this.utilityCanvas.staging)) return;
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
-      if (this.destArray.length > 0) {
+      if (this.destArray.length) {
         this.dispatch(putHistoryData(
           this.targetLayer,
           activeCtx,
@@ -847,37 +849,38 @@ export class ShapeAction extends ToolActionBase {
   }
 
   onEnd() {
-    if (canvasIsBlank(this.utilityCanvas.staging)) return;
+    if (this.dest && canvasIsBlank(this.utilityCanvas.staging)) {
+      return;
+    }
     if (this.isSelectionTool) {
       if (!this.dest) {
-        return this.dispatch(updateSelectionPath("clear"));
+        this.dispatch(updateSelectionPath("clear"));
+      } else {
+        let path = new Path2D();
+        path = selection(path, {
+          action: this.drawActionType,
+          params: { orig: this.origin, dest: this.dest }
+        });
+        this.dispatch(updateSelectionPath(this.selectionOperation, path));
       }
-      let path = new Path2D();
-      path = selection(path, {
-        action: this.drawActionType,
-        params: { orig: this.origin, dest: this.dest }
-      });
-      this.dispatch(updateSelectionPath(this.selectionOperation, path));        
-    } else {
+    } else if (this.dest) {
       const activeCtx = this.layerCanvas[this.targetLayer].getContext("2d")
-      if (this.dest) {
-        this.dispatch(putHistoryData(
-          this.targetLayer,
-          activeCtx,
-          () => draw(activeCtx, {
-            action: this.drawActionType,
-            params: {
-              orig: this.origin,
-              dest: this.dest,
-              width: this.width,
-              strokeColor: this.color,
-              fillColor: this.color,
-              clip: this.clip,
-              clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
-            }
-          })
-        ));
-      }
+      this.dispatch(putHistoryData(
+        this.targetLayer,
+        activeCtx,
+        () => draw(activeCtx, {
+          action: this.drawActionType,
+          params: {
+            orig: this.origin,
+            dest: this.dest,
+            width: this.width,
+            strokeColor: this.color,
+            fillColor: this.color,
+            clip: this.clip,
+            clipOffset: {x: this.translateData.offX, y: this.translateData.offY}
+          }
+        })
+      ));
     }
   }
 }

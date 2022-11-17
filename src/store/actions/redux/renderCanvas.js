@@ -1,31 +1,49 @@
 import draw from "../../reducers/custom/drawingReducer";
 import manipulate from "../../reducers/custom/manipulateReducer";
+import { getCanvas } from '../../../utils/helpers';
+
+const getGridPattern = zoom => {
+  const dim = Math.max(zoom, 1);
+  let pattern = getCanvas(dim, dim);
+  const patternCtx = pattern.getContext("2d");
+  patternCtx.lineWidth = 1;
+  patternCtx.strokeStyle = 'rgba(128, 128, 128, 1)';
+  patternCtx.beginPath();
+  patternCtx.moveTo(-1, dim);
+  patternCtx.lineTo(dim, dim);
+  patternCtx.lineTo(dim, -1);
+  patternCtx.stroke();
+  return pattern;
+};
 
 export default function renderCanvas(params={}) {
   return (_dispatch, getState) => {
     requestAnimationFrame(() => {
       const activeProject = getState().main.activeProject;
-      if (!activeProject) {return;}
-      const {
-        layerCanvas,
-        layerSettings,
-        renderOrder,
-        selectionPath,
-        selectionActive,
-      } = getState().main.projects[activeProject].present,
-        stagingPinnedTo = getState().main.stagingPinnedTo,
-        mainCanvas = getState().main.mainCanvas,
-        utilityCanvas = getState().main.utilityCanvas,
-        dpi = getState().ui.dpi,
-        { documentWidth, documentHeight } = getState().main.projects[activeProject].present.documentSettings,
-        { translateX, translateY, zoomPct } = getState().ui.workspaceSettings,
-        docRect = { x: translateX, y: translateY, w: documentWidth, h: documentHeight },
-        zoom = zoomPct / 100,
-        ctx = mainCanvas.getContext("2d"),
-        tempCtx = new OffscreenCanvas(mainCanvas.width / dpi, mainCanvas.height / dpi).getContext('2d');
-        tempCtx.imageSmoothingEnabled = false;
+      if (!activeProject) {
+        return;
+      }
+      
+      const { layerCanvas, layerSettings, renderOrder, selectionPath, selectionActive } = getState()
+        .main.projects[activeProject]
+        .present;
+      const stagingPinnedTo = getState().main.stagingPinnedTo;
+      const mainCanvas = getState().main.mainCanvas;
+      const utilityCanvas = getState().main.utilityCanvas;
+      const dpi = getState().ui.dpi;
+      const { documentWidth, documentHeight } = getState()
+        .main
+        .projects[activeProject]
+        .present
+        .documentSettings;
+      const { translateX, translateY, zoomPct } = getState().ui.workspaceSettings;
+      const docRect = { x: translateX, y: translateY, w: documentWidth, h: documentHeight };
+      const zoom = zoomPct / 100;
+      const ctx = mainCanvas.getContext("2d");
+      const tempCtx = new OffscreenCanvas(mainCanvas.width / dpi, mainCanvas.height / dpi).getContext('2d');
+      
+      tempCtx.imageSmoothingEnabled = false;
 
-  
       if (params.clearAll) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       }
@@ -36,8 +54,7 @@ export default function renderCanvas(params={}) {
           params: {
             orig: { x: docRect.x, y: docRect.y },
             dest: { x: (docRect.x + docRect.w * zoom), y: (docRect.y + docRect.h * zoom) },
-            // Change this to svg grid pattern
-            fillColor: "rgb(255, 255, 255)",
+            fillColor: tempCtx.createPattern(getState().ui.bgPattern, "repeat")
           }
         });
       }
@@ -74,19 +91,26 @@ export default function renderCanvas(params={}) {
         }
       }
       
-      if (selectionActive) {  
+      if (selectionActive) {
+        const timeOffset = (Date.now() / 100) % 20;
         tempCtx.save();
-        tempCtx.translate(.5, .5);
+        tempCtx.translate(docRect.x, docRect.y);
+        tempCtx.transform(zoom, 0, 0, zoom, 0, 0);
         tempCtx.strokeStyle = "rgba(0, 0, 0, 1)";
-        tempCtx.setLineDash([7, 7]);
-        tempCtx.lineWidth = Math.ceil(1 / zoom);
+        tempCtx.lineWidth = 1 / zoom;
+        tempCtx.setLineDash([10 / zoom, 10 / zoom]);
+        tempCtx.lineDashOffset = timeOffset / zoom;
         tempCtx.stroke(selectionPath);
         tempCtx.strokeStyle = "rgba(255, 255, 255, 1)";
-        tempCtx.lineDashOffset = 7;
+        tempCtx.lineDashOffset = (10 + timeOffset) / zoom;
         tempCtx.stroke(selectionPath);
         tempCtx.restore();
       }
         
+      // TODO- Fix this so the line width matches above
+      // Probably have to change the way staging canvas works for selection? ugh. sounds bad.
+      // ...or it might be very, very simple.
+      // prob not.
       if (stagingPinnedTo === "selection") {
         manipulate(tempCtx, {
           action: "paste",
@@ -97,6 +121,21 @@ export default function renderCanvas(params={}) {
           }
         });
       }
+
+      if (zoom >= 20) {
+        tempCtx.save();
+        tempCtx.translate(docRect.x % zoom, docRect.y % zoom);
+        draw(tempCtx, {
+          action: "fillRect",
+          params: {
+            orig: { x: docRect.x - (docRect.x % zoom), y: docRect.y },
+            dest: { x: (docRect.x + docRect.w * zoom) - (docRect.x % zoom), y: (docRect.y + docRect.h * zoom) - (docRect.y % zoom) },
+            fillColor: tempCtx.createPattern(getGridPattern(zoom), "repeat")
+          }
+        });
+        tempCtx.restore();
+      }
+
       manipulate(ctx, {
         action: "paste",
         params: {

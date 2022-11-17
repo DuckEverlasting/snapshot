@@ -1,17 +1,17 @@
-import { zoomSteps } from "../constants/constants";
+import { ZOOM_STEPS } from "../constants/constants";
 import { toArrayFromRgba } from "./colorConversion";
 
 export function getZoomAmount(steps, zoomPct) {
   let amount;
-  const firstLarger = zoomSteps.findIndex(el => el > zoomPct)
-  if (steps < 0 && !zoomSteps[firstLarger]) {
-    amount = zoomSteps[zoomSteps.length - 1 + steps]
+  const firstLarger = ZOOM_STEPS.findIndex(el => el > zoomPct)
+  if (steps < 0 && !ZOOM_STEPS[firstLarger]) {
+    amount = ZOOM_STEPS[ZOOM_STEPS.length - 1 + steps]
   } else if (steps < 0) {
-    amount = zoomSteps[firstLarger - 1 + steps] || zoomSteps[0]
-  } else if (steps > 0 && !zoomSteps[firstLarger]) {
-    amount = zoomSteps[zoomSteps.length - 1]
+    amount = ZOOM_STEPS[firstLarger - 1 + steps] || ZOOM_STEPS[0]
+  } else if (steps > 0 && !ZOOM_STEPS[firstLarger]) {
+    amount = ZOOM_STEPS[ZOOM_STEPS.length - 1]
   } else {
-    amount = zoomSteps[firstLarger - 1 + steps] || zoomSteps[zoomSteps.length - 1]
+    amount = ZOOM_STEPS[firstLarger - 1 + steps] || ZOOM_STEPS[ZOOM_STEPS.length - 1]
   }
   return amount
 }

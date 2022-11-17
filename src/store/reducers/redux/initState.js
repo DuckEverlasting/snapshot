@@ -11,6 +11,17 @@ const getInitSelectionPath = (width=getInitWidth(), height=getInitHeight()) => {
   initSelectionPath.rect(0, 0, width, height);
 }
 
+const getBgPattern = (dim = 10) => {
+  const pattern = getCanvas(dim, dim),
+    ctx = pattern.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, dim, dim);
+  ctx.fillStyle = '#ccc';
+  ctx.fillRect(0, 0, dim / 2, dim / 2);
+  ctx.fillRect(dim / 2, dim / 2, dim, dim);
+  return pattern;
+}
+
 export const getInitProjectState = (id, name="My Great Document", width=getInitWidth(), height=getInitHeight()) => ({
   past: [],
   future: [],
@@ -77,7 +88,10 @@ export const getInitMainState = (width=getInitWidth(), height=getInitHeight(), i
       canvas: null,
       origin: null,
       destination: null
-    }
+    },
+    lastEndpoint: null,
+    currentToolAction: null,
+    tick: 0
 }};
 
 export const getInitUiState = () => ({
@@ -86,7 +100,13 @@ export const getInitUiState = () => ({
     translateY: 0,
     zoomPct: 100
   },
+  modKeys: {
+    shift: false,
+    ctrl: false,
+    alt: false
+  },
   dpi: window.devicePixelRatio,
+  bgPattern: getBgPattern(),
   toolSettings: {
     pencil: { name: "Pencil", width: 5, opacity: 100, smooth: true },
     brush: { name: "Brush", width: 50, opacity: 100, hardness: 50 },

@@ -351,6 +351,13 @@ export const setActiveTool = slug => {
   };
 };
 
+export const setModKeys = data => {
+  return {
+    type: t.SET_MOD_KEYS,
+    payload: data
+  };
+};
+
 export const updateToolSettings = (tool, changes) => {
   return {
     type: t.UPDATE_TOOL_SETTINGS,
@@ -396,6 +403,20 @@ export const setClipboardIsUsed = bool => {
   return {
     type: t.SET_CLIPBOARD_IS_USED,
     payload: {bool, params: {ignoreHistory: true}}
+  }
+}
+
+export const setLastEndpoint = coords => {
+  return {
+    type: t.SET_LAST_ENDPOINT,
+    payload: coords
+  }
+}
+
+export const setCurrentToolAction = action => {
+  return {
+    type: t.SET_CURRENT_TOOL_ACTION,
+    payload: action
   }
 }
 

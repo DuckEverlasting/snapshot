@@ -6,6 +6,9 @@ import {
   UPDATE_UTILITY_CANVAS,
   UPDATE_STAGING_POSITION,
   SET_STAMP_DATA,
+  SET_LAST_ENDPOINT,
+  SET_CURRENT_TOOL_ACTION,
+  SET_ACTIVE_TOOL,
   UPDATE_CLIPBOARD_SETTINGS
 } from "../../actions/redux";
 
@@ -62,7 +65,8 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
 
       return {
         ...state,
-        activeProject: payload
+        activeProject: payload,
+        lastEndpoint: null // Side effect of setting active project
       }
 
     case UPDATE_MAIN_CANVAS:
@@ -103,6 +107,25 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
           ...payload.changes
         }
       };
+
+    case SET_LAST_ENDPOINT:
+      return {
+        ...state,
+        lastEndpoint: payload
+      }
+    
+    case SET_CURRENT_TOOL_ACTION:
+      return {
+        ...state,
+        currentToolAction: payload
+      }
+    
+    // Side effect of setting active tool
+    case SET_ACTIVE_TOOL:
+      return {
+        ...state,
+        lastEndpoint: null
+      }
 
     case UPDATE_CLIPBOARD_SETTINGS:
       return {

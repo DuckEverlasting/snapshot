@@ -1,4 +1,4 @@
-export const zoomSteps = [
+export const ZOOM_STEPS = [
   5,
   8,
   12.5,
@@ -16,3 +16,6 @@ export const zoomSteps = [
   4000,
   8000
 ]
+
+export const ZOOM_MIN = 5;
+export const ZOOM_MAX = 8000;

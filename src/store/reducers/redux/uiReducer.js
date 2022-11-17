@@ -1,5 +1,6 @@
 import {
   SET_ACTIVE_TOOL,
+  SET_MOD_KEYS,
   UPDATE_TOOL_SETTINGS,
   UPDATE_WORKSPACE_SETTINGS,
   UPDATE_COLOR,
@@ -26,6 +27,15 @@ const uiReducer = (state = getInitUiState(), {type, payload}) => {
         ...state,
         activeTool: payload
       };
+    
+    case SET_MOD_KEYS:
+      return {
+        ...state,
+        modKeys: {
+          ...state.modKeys,
+          ...payload
+        }
+      }
 
     case UPDATE_TOOL_SETTINGS:
       let { tool, changes: toolChanges } = payload;

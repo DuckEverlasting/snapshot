@@ -7,13 +7,13 @@ import smallArrowPlusImg from "../cursors/small_arrow_plus.png";
 import smallArrowMinusImg from "../cursors/small_arrow_minus.png";
 import smallArrowCrossImg from "../cursors/small_arrow_cross.png";
 
-export default function getCursor(cursorName, keys, cursorState) {
+export default function getCursor(cursorName, modKeys, cursorState) {
   function getSelectionArrow() {
-    if (keys.alt && keys.shift) {
+    if (modKeys.alt && modKeys.shift) {
       return smallArrowCrossImg
-    } else if (keys.shift) {
+    } else if (modKeys.shift) {
       return smallArrowPlusImg
-    } else if (keys.alt) {
+    } else if (modKeys.alt) {
       return smallArrowMinusImg
     } else {
       return smallArrowImg
@@ -42,7 +42,7 @@ export default function getCursor(cursorName, keys, cursorState) {
     case "selectionFill":
       return `url(${getSelectionArrow()}) 0 0, auto`;
     case "stamp":
-      return keys.alt ? `url(${crosshairsImg}) 10 10, auto` : "crosshair";
+      return modKeys.alt ? `url(${crosshairsImg}) 10 10, auto` : "crosshair";
     case "eyeDropper":
       return `url(${dropperImg}) -22 22, auto`;
     case "move":
@@ -52,7 +52,7 @@ export default function getCursor(cursorName, keys, cursorState) {
     case "activeHand":
       return "grabbing";
     case "zoom":
-      return keys.alt ? "zoom-out" : "zoom-in";
+      return modKeys.alt ? "zoom-out" : "zoom-in";
     default:
       return "auto";
   }
