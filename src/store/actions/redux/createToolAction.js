@@ -11,9 +11,10 @@ import {
   CropAction,
 } from "../../../utils/ToolAction";
 
+import createTransformObject from "./createTransformObject";
 import selectFromActiveProject from "../../../utils/selectFromActiveProject";
 import { filter } from "../../../utils/filters";
-import { addOpacity, toArrayFromRgba } from "../../../utils/colorConversion.js";
+import { addOpacity, toArrayFromRgba } from "../../../utils/colorConversion";
 import { setCurrentToolAction } from ".";
 
 // TODO: ditto with current action (this means we can check what the current action is, yippee. maybe throw some name props on those classes there for fun)
@@ -42,6 +43,8 @@ export default function buildToolAction(e) {
         documentHeight,
       };
     }
+
+    console.log(getTranslateData());
 
     let createdAction;
 
@@ -160,10 +163,14 @@ export default function buildToolAction(e) {
         });
         break;
       case "move":
-        if (!activeLayer || selectionActive) {
+        if (!activeLayer) {
           return;
         }
-        createdAction = new MoveAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData());
+        if (selectionActive) {
+          return dispatch(createTransformObject(e));
+        } else {
+          createdAction = new MoveAction(activeLayer, layerCanvas, utilityCanvas, dispatch, getTranslateData());
+        }
         break;
       case "stamp":
         if (!activeLayer) { break; }

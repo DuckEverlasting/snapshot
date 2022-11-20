@@ -43,6 +43,7 @@ class ToolActionBase {
     this.renderOnStart = false;
     this.renderOnMove = true;
     this.renderOnEnd = true;
+    this.renderParams = {};
   }
 
   _moveStaging(layer = this.targetLayer) {
@@ -105,7 +106,7 @@ class ToolActionBase {
     }
 
     if (this.renderOnStart) {
-      this.dispatch(render());
+      this.dispatch(render(this.renderParams));
     };
   }
 
@@ -115,7 +116,7 @@ class ToolActionBase {
     this.onMove(...args);
 
     if (this.renderOnMove) {
-      this.dispatch(render());
+      this.dispatch(render(this.renderParams));
     };
   }
 
@@ -130,7 +131,7 @@ class ToolActionBase {
     }
 
     if (this.renderOnEnd) {
-      this.dispatch(render());
+      this.dispatch(render(this.renderParams));
     };
     this.dispatch(setCurrentToolAction(null));
   }
@@ -929,6 +930,7 @@ export class MoveAction extends ToolActionBase {
     this.alwaysFire = true;
     this.usesStaging = false;
     this.renderOnEnd = false;
+    this.renderParams = { clearAll: true };
   }
 
   onStart(e) {
@@ -982,13 +984,25 @@ export class MoveAction extends ToolActionBase {
       }
     } else {
       redrawData = canvas.getContext("2d").getImageData(canvasRect.x, canvasRect.y, canvasRect.w, canvasRect.h);
-      newOffset = {
-        x: Math.min(0, this.offset.x + canvasRect.x),
-        y: Math.min(0, this.offset.y + canvasRect.y)
+      const newOffsetRaw = {
+        x: Math.max(
+          Math.min(0, this.offset.x + canvasRect.x),
+          (canvasRect.x + canvasRect.w + this.offset.x) - this.translateData.documentWidth
+        ),
+        y: Math.max(
+          Math.min(0, this.offset.y + canvasRect.y),
+          (canvasRect.y + canvasRect.h + this.offset.y) - this.translateData.documentHeight
+        )
       }
       newSize = {
-        w: Math.max(this.translateData.documentWidth - newOffset.x, this.offset.x + canvasRect.x + canvasRect.w),
-        h: Math.max(this.translateData.documentHeight - newOffset.y, this.offset.y + canvasRect.y + canvasRect.h)
+        w: Math.max(this.translateData.documentWidth + Math.abs(newOffsetRaw.x), canvasRect.w),
+        h: Math.max(this.translateData.documentHeight + Math.abs(newOffsetRaw.y), canvasRect.h)
+      }
+      // seems wrong, but with current setup layers can't actually have a positive offset since the canvas must always overlap the main drawing space.
+      // renaming or reworking in order, for clarity's sake?
+      newOffset = {
+        x: Math.min(newOffsetRaw.x, 0),
+        y: Math.min(newOffsetRaw.y, 0)
       }
     }
     this.dispatch(async dispatch => {
@@ -1003,8 +1017,14 @@ export class MoveAction extends ToolActionBase {
         canvas.height = newSize.h;
         canvas.getContext("2d").putImageData(
           redrawData,
-          Math.max(0, this.offset.x + canvasRect.x),
-          Math.max(0, this.offset.y + canvasRect.y)
+          Math.min(
+            Math.max(0, this.offset.x + canvasRect.x),
+            newSize.w - canvasRect.w
+          ),
+          Math.min(
+            Math.max(0, this.offset.y + canvasRect.y),
+            newSize.h - canvasRect.h
+          )
         );
       }
       this.dispatch(putHistoryData(this.targetLayer, this.layerCanvas[this.targetLayer].getContext("2d"), null, null, {
@@ -1019,7 +1039,7 @@ export class MoveAction extends ToolActionBase {
           rect: canvasRect
         }
       }, {groupWithPrevious}));
-      this.dispatch(render());
+      this.dispatch(render(this.renderParams));
     });
   }
 

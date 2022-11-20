@@ -40,6 +40,7 @@ export default function renderCanvas(params={}) {
       const docRect = { x: translateX, y: translateY, w: documentWidth, h: documentHeight };
       const zoom = zoomPct / 100;
       const ctx = mainCanvas.getContext("2d");
+      // Create offscreen canvas for staging (to be printed to the actual main canvas at the end of the process)
       const tempCtx = new OffscreenCanvas(mainCanvas.width / dpi, mainCanvas.height / dpi).getContext('2d');
       
       tempCtx.imageSmoothingEnabled = false;
@@ -48,6 +49,12 @@ export default function renderCanvas(params={}) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       }
 
+      // Keep printing of layers restricted to the bounds of the document
+      tempCtx.beginPath();
+      tempCtx.rect(Math.floor(docRect.x), Math.floor(docRect.y), Math.floor(docRect.x + docRect.w * zoom - docRect.x), Math.floor(docRect.y + docRect.h * zoom - docRect.y));
+      tempCtx.clip();
+
+      // Fill document background with bgpattern
       if (!params.noClear) {
         draw(tempCtx, {
           action: "fillRect",
@@ -58,21 +65,22 @@ export default function renderCanvas(params={}) {
           }
         });
       }
-      
-      const start = params.start || 0,
-        end = params.end || renderOrder.length;
+
+      const start = params.start || 0;
+      const end = params.end || renderOrder.length;
   
+      // Print to tempCtx specified layer range (default = all) in order
       for (let i = start; i < end; i++) {
         const current = renderOrder[i]
-        const { offset, blend, opacity } = layerSettings[current];
+        const { offset, blend, opacity, size } = layerSettings[current];
 
         if (layerSettings[current].hidden || opacity === 0) continue;
         manipulate(tempCtx, {
           action: "paste",
           params: {
             sourceCtx: layerCanvas[current].getContext("2d"),
-            dest: { x: offset.x + docRect.x, y: offset.y + docRect.y },
-            size: { w: docRect.w * zoom, h: docRect.h * zoom },
+            dest: { x: offset.x * zoom + docRect.x, y: offset.y * zoom + docRect.y },
+            size: { w: size.w * zoom, h: size.h * zoom },
             globalAlpha: opacity / 100,
             composite: blend
           }
@@ -145,6 +153,5 @@ export default function renderCanvas(params={}) {
         }
       });
     });
-    // Draw pixel grid (and selection?) here
   }
 }

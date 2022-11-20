@@ -35,7 +35,7 @@ export const getInitProjectState = (id, name="My Great Document", width=getInitW
       documentName: name
     },
     layerCanvas: {
-      1: getCanvas(width, height)
+      1: getCanvas(width, height, { willReadFrequently: true, desynchronized: true })
     },
     layerSettings: {
       1: {
@@ -72,9 +72,9 @@ export const getInitMainState = (width=getInitWidth(), height=getInitHeight(), i
     activeProject: initProject ? initProject.id : null,
     mainCanvas: null,
     utilityCanvas: {
-      clipboard: getCanvas(width, height),
-      placeholder: getCanvas(width, height),
-      staging: getCanvas(width, height)
+      clipboard: getCanvas(width, height, { willReadFrequently: true, desynchronized: true }),
+      placeholder: getCanvas(width, height, { willReadFrequently: true, desynchronized: true }),
+      staging: getCanvas(width, height, { willReadFrequently: true, desynchronized: true })
     },
     stagingPinnedTo: 1,
     clipboardUsed: false,

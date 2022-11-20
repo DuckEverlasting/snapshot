@@ -47,7 +47,7 @@ const projectReducer = (state = {}, {type, payload}) => {
         opacity: 100,
         blend: "source-over"
       };
-      const newLayerCanvas = getCanvas(newLayerSettings.size.w, newLayerSettings.size.h);
+      const newLayerCanvas = getCanvas(newLayerSettings.size.w, newLayerSettings.size.h, { willReadFrequently: true, desynchronized: true });
       let orderAfterCreate = state.renderOrder.slice(0);
       orderAfterCreate.splice(position + 1, 0, layerId);
 

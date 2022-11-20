@@ -50,13 +50,16 @@ export function resizeDocument(width, height, offset=null, rescale=false) {
   if (!rescale && !offset) {
     throw new Error("Resize must specify either parameter 'rescale' or parameter 'offset'");
   }
-  if (offset && (
-    !typeof offset === "string" ||
-    !offset.x ||
-    typeof offset.x !== "number" ||
-    !offset.y ||
-    typeof offset.y !== "number"
-  )) {
+  if (
+    offset && 
+    typeof offset !== "string" &&
+    (
+      !offset.x ||
+      typeof offset.x !== "number" ||
+      !offset.y ||
+      typeof offset.y !== "number"
+    )
+  ) {
     throw new TypeError("Invalid type in function resizeDocument: 'offset' must be a string or an object containing numbers 'x' and 'y'");
   }
 

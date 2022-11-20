@@ -9,7 +9,8 @@ import {
   SET_LAST_ENDPOINT,
   SET_CURRENT_TOOL_ACTION,
   SET_ACTIVE_TOOL,
-  UPDATE_CLIPBOARD_SETTINGS
+  UPDATE_CLIPBOARD_SETTINGS,
+  SET_CLIPBOARD_IS_USED
 } from "../../actions/redux";
 
 import { v4 as uuidv4 } from 'uuid';
@@ -134,6 +135,12 @@ const mainReducer = (state=getInitMainState(), {type, payload}) => {
           ...state.clipboardSettings,
           ...payload.changes
         }
+      };
+    
+    case SET_CLIPBOARD_IS_USED:
+      return {
+        ...state,
+        clipboardIsUsed: payload.bool
       };
       
     default:

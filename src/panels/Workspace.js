@@ -14,7 +14,6 @@ import { getZoomAmount } from "../utils/helpers";
 
 import getCursor from "../utils/cursors";
 
-import createTransformObject from "../store/actions/redux/createTransformObject";
 import createToolAction from "../store/actions/redux/createToolAction";
 
 import {
@@ -66,8 +65,8 @@ export default function Workspace() {
   const { dpi, activeTool, transformTarget, cropIsActive } = useSelector((state) => state.ui);
   const activeProject = useSelector(state => state.main.activeProject);
   const { documentWidth, documentHeight } = useSelector((state) => state.main.projects[activeProject].present.documentSettings);
-  const [selectionActive, layerCanvas, layerSettings, renderOrder] = useSelector(
-    selectFromActiveProject("activeLayer", "selectionPath", "selectionActive", "layerCanvas", "layerSettings", "renderOrder")
+  const [layerCanvas, layerSettings, renderOrder] = useSelector(
+    selectFromActiveProject("layerCanvas", "layerSettings", "renderOrder")
   );
   const { modKeys } = useSelector((state) => state.ui);
   const currentToolAction = useSelector((state) => state.main.currentToolAction);
@@ -234,9 +233,6 @@ export default function Workspace() {
         y: ((Math.floor(e.screenY) - translateY) * 100) / zoomPct,
       });
     } else if (e.buttons === 1) {
-      if (activeTool === "move" && selectionActive) {
-        return dispatch(createTransformObject(e));
-      }
       dispatch(createToolAction(e));
       // if (eventIsWithinCanvas(e)) {
       //   isDrawing = true;

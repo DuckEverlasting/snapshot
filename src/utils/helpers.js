@@ -197,7 +197,7 @@ export function calculateClipping(size, offset, docSize, zoom) {
   };
 }
 
-export function getCanvas(width, height) {
+export function getCanvas(width, height, params = {}) {
   let canvas;
   if (typeof OffscreenCanvas !== "undefined") { 
     canvas = new OffscreenCanvas(width, height);
@@ -206,7 +206,8 @@ export function getCanvas(width, height) {
     canvas.width = width;
     canvas.height = width;
   }
-  canvas.getContext("2d").imageSmoothingEnabled = false;
+  const ctx = canvas.getContext("2d", params);
+  ctx.imageSmoothingEnabled = false;
   return canvas;
 }
 
